@@ -402,6 +402,52 @@
     box-shadow: inset 0 0 50px 8px #ff2e88; animation: edge 1.2s linear infinite;
   }
   @keyframes edge { 0% { box-shadow: inset 0 0 50px 8px #ff2e88; } 33% { box-shadow: inset 0 0 50px 8px #ffd23f; } 66% { box-shadow: inset 0 0 50px 8px #22e4ff; } 100% { box-shadow: inset 0 0 50px 8px #ff2e88; } }
+  /* ---- Round 9 ---- */
+  .title { color: var(--mute); font-weight: 700; }
+  .bestbar { display: flex; flex-direction: column; gap: 2px; }
+  .bestbar .bb { height: 5px; border-radius: 3px; background: #0c0717; overflow: hidden; }
+  .bestbar .bb div { height: 100%; width: 0%; background: linear-gradient(90deg, var(--cyan), var(--gold)); }
+  .bestbar span { font: 700 9px/1 var(--f-num); color: var(--mute); letter-spacing: .04em; }
+  .bestbar.beat span { color: var(--gold); }
+  .bestbar.beat .bb div { background: linear-gradient(90deg, var(--gold), var(--pink)); }
+  .skins { display: flex; flex-wrap: wrap; gap: 6px; justify-content: center; }
+  .skin { font: 700 11px/1 var(--f-num); padding: 7px 9px; border-radius: 8px; border: 2px solid var(--line); background: var(--panel); color: var(--text); cursor: pointer; box-shadow: inset 0 -3px 0 var(--sw); }
+  .skin.on { border-color: var(--gold); }
+  .skin:disabled { opacity: .45; cursor: default; box-shadow: none; }
+  .life-stats { font-size: 11px; color: var(--mute); }
+  .reel.reach { animation: reach .25s ease-in-out infinite; border: 2px solid var(--gold); }
+  @keyframes reach { 50% { box-shadow: 0 0 16px var(--gold); } }
+  .goals { grid-column: 1 / -1; display: flex; flex-direction: column; gap: 3px; font-size: 11px; color: var(--mute); margin-top: 6px; text-align: left; }
+  .goals b { color: var(--gold); }
+  @media (max-width: 720px) {
+    .title { display: none; }
+    #pStats .bestbar { grid-column: span 3; }
+    .bestbar span { font-size: 7px; }
+  }
+  /* ---- overlay + toast fit on small screens ---- */
+  .overlay { overflow-y: auto; justify-content: safe center; }
+  .overlay > * { flex-shrink: 0; }
+  @media (max-width: 720px) {
+    .overlay { gap: 8px; padding: 10px 8px; }
+    #startOv > p:not(.life-stats) { display: none; }
+    .overlay h2 { font-size: 22px; }
+    .big { font-size: 16px; padding: 11px 18px; }
+    .touch-hint { font-size: 10px; gap: 2px 8px; }
+    .skin { font-size: 9px; padding: 5px 6px; }
+    .life-stats { font-size: 9px; }
+    .overlay .final { font-size: 24px; }
+    #finalInfo { font-size: 10px; line-height: 1.4; }
+    .grade { font-size: 40px; }
+    .rrow { font-size: 10px; }
+    .goals { font-size: 9px; }
+    .toasts { top: 6px; right: 6px; left: 6px; align-items: flex-end; gap: 4px; }
+    .toast { padding: 4px 8px; gap: 6px; border-width: 1px; }
+    .toast .ico { font-size: 14px; }
+    .toast .t1 { font-size: 7px; }
+    .toast .t2 { font-size: 11px; }
+    .toast .t3 { display: none; }
+    .toast:nth-last-child(n+3) { display: none; }
+  }
   @media (prefers-reduced-motion: reduce) {
     body.fever .bg, .gauge-fill, .big { animation: none; }
   }
@@ -415,7 +461,8 @@
     <div>
       <h1 class="logo">DOPA<span>TRIS</span></h1>
       <p class="tag">ドーパミンがドパドパ出るテトリス</p>
-      <div class="meta"><span class="rank" id="rankChip">RANK 1</span><span class="xp" aria-hidden="true"><span id="xpFill"></span></span><span class="coins" id="coinChip">◎ 0</span></div>
+      <div class="meta"><span class="rank" id="rankChip">RANK 1</span><span class="xp" aria-hidden="true"><span id="xpFill"></span></span><span class="title" id="titleChip"></span>
+<span class="coins" id="coinChip">◎ 0</span></div>
     </div>
     <div class="tools">
       <button class="btn" id="pauseBtn" type="button" aria-label="ポーズ">II</button>
@@ -431,6 +478,7 @@
       </section>
       <section class="panel" id="pStats">
         <div class="stat" id="scoreStat"><span class="k">SCORE</span><span class="v score" id="scoreV">0</span></div>
+        <div class="bestbar" id="bestBar" hidden><div class="bb"><div id="bestFill"></div></div><span id="bestText"></span></div>
         <div class="stat" id="levelStat"><span class="k">LV</span><span class="v" id="levelV">1</span></div>
         <div class="stat"><span class="k">LINES</span><span class="v" id="linesV">0</span></div>
         <div class="stat" id="multStat"><span class="k">COMBO</span><span class="v mult" id="multV">×1.0</span></div>
@@ -450,6 +498,8 @@
         <h2>DOPATRIS</h2>
         <p>金ブロック、ボム、スロット、フィーバー。<br>消すたびに脳が光る。</p>
         <button class="big" id="startBtn" type="button">START</button>
+        <div class="skins" id="skins" aria-label="ブロックのスキン"></div>
+        <p class="life-stats" id="lifeStats"></p>
         <div class="touch-hint">
           <b>タップ</b><span>回転（左半分⟲ / 右半分⟳）</span>
           <b>左右ドラッグ</b><span>移動</span>
@@ -2534,6 +2584,155 @@
     if (reduceMotion || d < 2) return;
     boardWrap.animate([{ transform: "translateY(0)" }, { transform: `translateY(${Math.min(9, 2 + d / 2)}px)` }, { transform: "translateY(0)" }], { duration: 160, easing: "ease-out" });
   });
+
+  // ===================== ROUND 9: progression =====================
+  const life = store.get("dopatris-life", { games: 0, lines: 0, bestCombo: 0, milestone: 0 });
+  let sessionGames = 0, lastOverAt = 0;
+  on("fresh", (s) => { s.missionAge = 0; s.bestShownPct = 0; });
+  // Fix: a mission that is not finished in 40 s is swapped for a new one.
+  on("tick", (dt) => {
+    if (!S.mission) { S.missionAge = 0; return; }
+    S.missionAge += dt;
+    if (S.missionAge > 40000 && !S.mission.time) { S.missionAge = 0; popup("ミッション変更!", "cyan small", 20); newMission(); }
+  });
+
+  // R9-1 sixteen player titles, one every two ranks
+  const TITLES = ["見習い", "ルーキー", "ブロック使い", "ライン職人", "コンボ見習い", "コンボ職人", "スロット好き", "ゴールドハンター",
+    "ボム職人", "フィーバー王", "テトリス名人", "ドーパミン中毒", "ブロックの賢者", "光速の指", "伝説", "神"];
+  rankTitle = (r) => TITLES[Math.min(TITLES.length - 1, Math.floor((r - 1) / 2))];
+  const baseRenderMeta = renderMeta;
+  renderMeta = function () { baseRenderMeta(); $("rankChip").title = rankTitle(meta.rank); $("titleChip").textContent = rankTitle(meta.rank); };
+  // R9-2 a progress bar toward your personal best (the goal is always in sight)
+  on("frame", () => {
+    const el = $("bestBar");
+    if (!S.started || best <= 0) { el.hidden = true; return; }
+    el.hidden = false;
+    const pct = Math.min(100, (S.disp / best) * 100);
+    $("bestFill").style.width = pct + "%";
+    const txt = S.score > best ? "BEST更新中!" : `BESTまで ${(best - Math.floor(S.disp)).toLocaleString()}`;
+    if ($("bestText").textContent !== txt) $("bestText").textContent = txt;
+    el.classList.toggle("beat", S.score > best);
+    const step = Math.floor(pct / 25) * 25;
+    if (step > S.bestShownPct && step >= 50 && step < 100) { S.bestShownPct = step; popup(`BESTの${step}%!`, "cyan small", 80); }
+  });
+  // R9-3 consecutive games in one sitting build a play-streak bonus
+  // R9-4 retrying within 10 s of a game over gives a quick-retry bonus
+  MODS.score.push(() => (hasBuff("streak") ? 1 + Math.min(3, sessionGames - 1) * 0.1 : 1));
+  MODS.score.push(() => (hasBuff("quick") ? 1.2 : 1));
+  on("start", () => {
+    sessionGames++;
+    if (sessionGames >= 2) {
+      const m = (1 + Math.min(3, sessionGames - 1) * 0.1).toFixed(1);
+      addBuff("streak", `連続${sessionGames}回 ×${m}`, 30000, "pink");
+      setTimeout(() => popup(`${sessionGames}連続プレイ!`, "cyan", 66, `30秒間スコア×${m}`), 1200);
+    }
+    if (lastOverAt && performance.now() - lastOverAt < 10000) {
+      addBuff("quick", "即リトライ ×1.2", 30000, "lime");
+      setTimeout(() => popup("QUICK RETRY!", "lime", 76, "30秒間スコア×1.2"), 1500);
+    }
+  });
+  on("over", () => { lastOverAt = performance.now(); });
+  addEventListener("keydown", (e) => { if (e.code === "KeyR" && S.over) start(); });
+
+  // R9-5 block skins unlock as your rank grows
+  const SKINS = [
+    { id: "neon", name: "NEON", rank: 1, colors: { I: "#22e4ff", O: "#ffd23f", T: "#c86bff", S: "#7dff5a", Z: "#ff3b5c", J: "#3b7bff", L: "#ff9a2e" } },
+    { id: "candy", name: "CANDY", rank: 3, colors: { I: "#8ee8ff", O: "#ffe98a", T: "#e3a6ff", S: "#b8ffa1", Z: "#ff9eb5", J: "#9fb8ff", L: "#ffc38a" } },
+    { id: "gem", name: "JEWEL", rank: 6, colors: { I: "#00b3ff", O: "#ffb700", T: "#9d2bff", S: "#00d26a", Z: "#ff1f4b", J: "#1f4bff", L: "#ff6a00" } },
+    { id: "pixel", name: "PIXEL", rank: 9, colors: { I: "#5ff", O: "#ff5", T: "#f5f", S: "#5f5", Z: "#f55", J: "#55f", L: "#fa5" } },
+  ];
+  let skin = store.get("dopatris-skin", "neon");
+  function applySkin(id) {
+    const sk = SKINS.find((s) => s.id === id && meta.rank >= s.rank) || SKINS[0];
+    skin = sk.id; store.set("dopatris-skin", skin);
+    Object.assign(COLORS, sk.colors);
+    renderSkins(); drawPreviews();
+  }
+  function renderSkins() {
+    const host = $("skins"); host.innerHTML = "";
+    SKINS.forEach((sk) => {
+      const b = document.createElement("button");
+      b.type = "button"; b.className = "skin" + (sk.id === skin ? " on" : "");
+      const locked = meta.rank < sk.rank;
+      b.disabled = locked;
+      b.textContent = locked ? `RANK ${sk.rank}` : sk.name;
+      b.style.setProperty("--sw", sk.colors.T);
+      b.addEventListener("click", () => applySkin(sk.id));
+      host.appendChild(b);
+    });
+  }
+  const baseDrawCell = drawCell;
+  drawCell = function (ctx, px, py, s, c, color, alpha = 1) {
+    baseDrawCell(ctx, px, py, s, c, color, alpha);
+    if (c.bomb || skin === "neon" || skin === "candy") return;
+    ctx.globalAlpha = alpha;
+    if (skin === "gem") {
+      ctx.fillStyle = "rgba(255,255,255,.28)"; ctx.beginPath(); ctx.moveTo(px + 1, py + 1); ctx.lineTo(px + s / 2, py + s / 2); ctx.lineTo(px + s - 1, py + 1); ctx.closePath(); ctx.fill();
+      ctx.fillStyle = "rgba(0,0,0,.22)"; ctx.beginPath(); ctx.moveTo(px + 1, py + s - 1); ctx.lineTo(px + s / 2, py + s / 2); ctx.lineTo(px + s - 1, py + s - 1); ctx.closePath(); ctx.fill();
+    } else if (skin === "pixel") {
+      ctx.fillStyle = "rgba(0,0,0,.25)";
+      const q = s / 4;
+      for (let i = 0; i < 4; i++) for (let j = 0; j < 4; j++) if ((i + j) % 2) ctx.fillRect(px + i * q, py + j * q, q, q);
+    }
+    ctx.globalAlpha = 1;
+  };
+  let lastRankSeen = meta.rank;
+  on("frame", () => {
+    if (meta.rank === lastRankSeen) return;
+    const newly = SKINS.filter((sk) => sk.rank > lastRankSeen && sk.rank <= meta.rank);
+    lastRankSeen = meta.rank;
+    renderSkins();
+    newly.forEach((sk) => setTimeout(() => popup("NEW SKIN!", "gold", 60, `${sk.name} スキン解放`), 1600));
+  });
+
+  // R9-6 lifetime milestones across all your games
+  const LIFE_MS = [50, 100, 250, 500, 1000, 2500, 5000, 10000];
+  on("clear", (info) => {
+    life.lines += info.n;
+    life.bestCombo = Math.max(life.bestCombo, info.combo);
+    while (life.milestone < LIFE_MS.length && life.lines >= LIFE_MS[life.milestone]) {
+      const m = LIFE_MS[life.milestone++];
+      setTimeout(() => { popup(`累計${m}ライン!`, "lime", 22, "これまでの全プレイ合計"); rockets(2); }, 900);
+    }
+    store.set("dopatris-life", life);
+  });
+  on("start", () => { life.games++; store.set("dopatris-life", life); });
+  function renderLife() { $("lifeStats").textContent = `これまで ${life.games}ゲーム ・ 累計${life.lines}ライン ・ 最高${life.bestCombo}コンボ`; }
+
+  // R9-7 slot REACH: when the first two reels match, the third one slows down with a drumroll
+  const baseSpinSlot = spinSlot;
+  spinSlot = function () {
+    if (S.spinning) return;
+    baseSpinSlot();
+    // The first two reels stop at 420 ms and 680 ms; peek at them and stretch the drama if they match.
+    setTimeout(() => {
+      const a = reels[0].textContent, b = reels[1].textContent;
+      if (a !== b || !S.spinning) return;
+      $("slotMsg").textContent = a === "7" ? "7リーチ!!" : "リーチ!";
+      reels[2].classList.add("reach");
+      for (let i = 0; i < 8; i++) noise(0.05, 0.08, i * 0.07, 1500);
+      if (a === "7") popup("REACH!!", "gold", 72, "7が2つ揃った!");
+    }, 700);
+  };
+  on("slot", (res) => {
+    reels[2].classList.remove("reach");
+    // near miss: two sevens but not three
+    const sevens = res.filter((s) => s === "7").length;
+    if (sevens === 2) { popup("おしい!!", "cyan", 72, "7があと1つ! コイン+1"); addCoins(1); }
+  });
+  // R9-8 the result screen shows your next goals
+  on("over", () => {
+    const need = xpNeed(meta.rank) - meta.xp;
+    const goals = document.createElement("div");
+    goals.className = "goals";
+    goals.innerHTML = `<div>次のランク <b>${rankTitle(meta.rank + 1)}</b> まで あと <b>${need} XP</b></div>` +
+      (S.score < best ? `<div>自己ベストまで あと <b>${(best - S.score).toLocaleString()}</b></div>` : `<div><b>自己ベスト更新!</b></div>`) +
+      `<div>R キー / ボタンで即リトライ → ボーナス</div>`;
+    $("resultExtra").appendChild(goals);
+    renderLife(); renderSkins();
+  });
+  applySkin(skin);
+  renderMeta(); renderLife();
 
   // Demo board behind the start screen so the first frame already shows the game.
   (function demo() {
