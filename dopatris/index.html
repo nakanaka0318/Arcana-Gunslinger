@@ -289,7 +289,7 @@
     text-shadow: 0 0 10px #ff9a2e, 2px 2px 0 #7a2a00;
     animation: floatUp 1.1s ease-out forwards;
   }
-  .floater.big { font-size: clamp(20px, 5vw, 32px); color: #fff; text-shadow: 0 0 16px var(--gold), 3px 3px 0 var(--pink); }
+  .floater.fbig { font-size: clamp(20px, 5vw, 32px); color: #fff; text-shadow: 0 0 16px var(--gold), 3px 3px 0 var(--pink); }
   @keyframes floatUp { 0% { opacity: 0; transform: translate(-50%, -20%) scale(.6); } 15% { opacity: 1; transform: translate(-50%, -50%) scale(1.2); } 100% { opacity: 0; transform: translate(-50%, -260%) scale(1); } }
   .stat { position: relative; }
   #scoreStat.rolling .v.score { color: #fff; text-shadow: 0 0 16px var(--gold), 0 0 4px #fff; }
@@ -1245,7 +1245,7 @@
     el.querySelector(".t2").textContent = t;
     el.querySelector(".t3").textContent = d;
     $("toasts").appendChild(el);
-    el.addEventListener("animationend", () => el.remove());
+    autoRemove(el, 3600);
     setTimeout(sfx.ach, 500);
     emit("ach", k);
   }
@@ -1264,6 +1264,12 @@
     fade: [[{ opacity: 0.75 }, { opacity: 0 }], 350],
     glow: [[{ opacity: 1 }, { opacity: 0 }], 220],
   };
+  // Remove a temporary element when ITS OWN animation ends (not a child's), and in any case after ms,
+  // so nothing can get stuck on screen if an animation is switched off (light-effects mode, reduced motion).
+  function autoRemove(el, ms) {
+    el.addEventListener("animationend", (e) => { if (e.target === el) el.remove(); });
+    setTimeout(() => el.remove(), ms);
+  }
   function pulseEl(el, kind) { if (!el || !el.animate) return; const [k, d] = PULSES[kind]; el.animate(k, { duration: d, easing: "ease-out" }); }
 
   // ---------- juice ----------
@@ -1274,7 +1280,7 @@
     el.textContent = text;
     if (sub) { const s = document.createElement("small"); s.textContent = sub; el.appendChild(s); }
     pops.appendChild(el);
-    el.addEventListener("animationend", () => el.remove());
+    autoRemove(el, 1600);
     return el;
   }
   function flash() { pulseEl(flashEl, "fade"); }
@@ -1737,7 +1743,7 @@
     el.style.left = Math.min(85, Math.max(15, lx)) + "%"; el.style.top = ly + "%";
     el.textContent = text;
     pops.appendChild(el);
-    el.addEventListener("animationend", () => el.remove());
+    autoRemove(el, 1500);
     return el;
   }
   function burstAt(cx, cy, color, n, speed, kind = "spark") {
@@ -1760,7 +1766,7 @@
   // R1-1 floating score where the lines vanished
   on("clear", (info) => {
     const mid = info.rows[Math.floor(info.rows.length / 2)];
-    floater("+" + info.pts.toLocaleString(), 4.5, mid, info.n >= 4 ? "big" : "");
+    floater("+" + info.pts.toLocaleString(), 4.5, mid, info.n >= 4 ? "fbig" : "");
   });
   // R1-2 the score glows while it counts up
   const scoreStatEl = $("scoreStat");
@@ -1821,7 +1827,7 @@
   on("clear", (info) => {
     const host = $("linesV").parentElement, chip = document.createElement("span");
     chip.className = "chip"; chip.textContent = `+${info.n}`;
-    host.appendChild(chip); chip.addEventListener("animationend", () => chip.remove());
+    host.appendChild(chip); autoRemove(chip, 1300);
   });
   // R1-8 a rising chime and a hot multiplier readout while the combo climbs
   on("clear", (info) => {
@@ -2564,7 +2570,7 @@
     const pts = 800 * S.level; addScore(pts);
     const [cx, cy] = toClient(S.spot.x, S.spot.y);
     burstAt(cx, cy, "#ffd23f", 30, 5); ring(cx, cy, "#ffd23f", cell * 3);
-    floater(`LUCKY! +${pts.toLocaleString()}`, S.spot.x, S.spot.y, "big");
+    floater(`LUCKY! +${pts.toLocaleString()}`, S.spot.x, S.spot.y, "fbig");
     addCoins(2, [cx, cy]);
     [0, 4, 7, 12, 16].forEach((s, i) => tone(mtof(84 + s), 0.07, "square", 0.08, i * 0.04));
     S.spot = null; S.spotT = 5000;
@@ -2657,7 +2663,7 @@
     rays.className = "rays" + (cls.includes("gold") ? " gold" : "");
     rays.style.top = el.style.top;
     pops.insertBefore(rays, el);
-    rays.addEventListener("animationend", () => rays.remove());
+    autoRemove(rays, 1500);
     if (!reduceMotion) {
       const small = el.querySelector("small");
       el.textContent = "";
@@ -2902,7 +2908,7 @@
     if (reduceMotion) return;
     const el = document.createElement("div");
     el.className = "sweep"; document.body.appendChild(el);
-    el.addEventListener("animationend", () => el.remove());
+    autoRemove(el, 1100);
   });
   // R10-3 fever ends with a tally of what it earned
   on("fever", () => { S.feverStart = S.score; });
@@ -3321,6 +3327,7 @@
     // screen-wide purple flash, colour split, zoom punch
     const fl = document.createElement("div"); fl.className = "tsflash"; document.body.appendChild(fl);
     fl.animate([{ opacity: 1 }, { opacity: 0 }], { duration: 500 + L * 100, easing: "ease-out" }).onfinish = () => fl.remove();
+    setTimeout(() => fl.remove(), 1200);
     rgbSplit(4 + L * 2); shake(8 + L * 4); flash();
     if (!reduceMotion) boardWrap.animate([{ transform: "scale(1)" }, { transform: `scale(${1.03 + L * 0.015})` }, { transform: "scale(1)" }], { duration: 320, easing: "ease-out" });
     buzz([30, 30, 30, 30, 60 + L * 30]);
@@ -3358,7 +3365,7 @@
   setDemo();
 
   // Test handle, only with #debug in the URL.
-  if (location.hash === "#debug") window.__dopa = { get S() { return S; }, breakLast, ev: (id) => startEvent(EVENTS.find((e) => e.id === id)), collide, rot, hardDrop, start, emit, startFever, HOOKS, parts: () => parts.length };
+  if (location.hash === "#debug") window.__dopa = { get S() { return S; }, breakLast, setLowFx: (v) => setLowFx(v), ev: (id) => startEvent(EVENTS.find((e) => e.id === id)), collide, rot, hardDrop, start, emit, startFever, HOOKS, parts: () => parts.length };
 
   layout();
   requestAnimationFrame(frame);
