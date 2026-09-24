@@ -385,6 +385,23 @@
   /* ---- Round 7 ---- */
   body.timestop #board { filter: saturate(.3) hue-rotate(180deg) brightness(1.1); }
   body.timestop .board-wrap { background: linear-gradient(135deg, #8f7bff, #22e4ff); }
+  /* ---- Round 8 ---- */
+  .rays {
+    position: absolute; left: 50%; width: 150%; aspect-ratio: 1; max-width: none; transform: translate(-50%, -50%); pointer-events: none;
+    background: repeating-conic-gradient(from 0deg, rgba(255,255,255,.16) 0deg 10deg, transparent 10deg 24deg);
+    -webkit-mask-image: radial-gradient(circle, #000 0%, transparent 60%); mask-image: radial-gradient(circle, #000 0%, transparent 60%);
+    animation: rays 1.2s ease-out forwards;
+  }
+  .rays.gold { background: repeating-conic-gradient(from 0deg, rgba(255,210,63,.3) 0deg 10deg, transparent 10deg 24deg); }
+  @keyframes rays { 0% { opacity: 0; transform: translate(-50%, -50%) rotate(0) scale(.4); } 20% { opacity: 1; } 100% { opacity: 0; transform: translate(-50%, -50%) rotate(90deg) scale(1); } }
+  .pop .ltr { display: inline-block; animation: ltr .5s cubic-bezier(.2,2,.4,1) both; }
+  @keyframes ltr { 0% { transform: translateY(-60%) scale(.2); opacity: 0; } 100% { transform: none; opacity: 1; } }
+  #mascot { display: block; margin: 0 auto; }
+  body.fever::after {
+    content: ""; position: fixed; inset: 0; pointer-events: none; z-index: 19;
+    box-shadow: inset 0 0 50px 8px #ff2e88; animation: edge 1.2s linear infinite;
+  }
+  @keyframes edge { 0% { box-shadow: inset 0 0 50px 8px #ff2e88; } 33% { box-shadow: inset 0 0 50px 8px #ffd23f; } 66% { box-shadow: inset 0 0 50px 8px #22e4ff; } 100% { box-shadow: inset 0 0 50px 8px #ff2e88; } }
   @media (prefers-reduced-motion: reduce) {
     body.fever .bg, .gauge-fill, .big { animation: none; }
   }
@@ -484,6 +501,7 @@
       </section>
       <section class="panel" id="pLife">
         <h2>LIFE</h2>
+        <canvas id="mascot" aria-label="マスコットのドパくん"></canvas>
         <div class="lives"><span class="heart" id="heart">♥</span><span>セカンドチャンス</span></div>
       </section>
     </aside>
@@ -1447,6 +1465,7 @@
     cell = Math.max(12, Math.min(34, Math.floor(Math.min(availW / COLS, availH / VIS))));
     sizeCanvas(boardCv, bctx, COLS * cell, VIS * cell);
     sizeCanvas(fxCv, fctx, innerWidth, innerHeight);
+    if (typeof sizeMascot === "function") sizeMascot();
     fxCv.style.width = ""; fxCv.style.height = "";
     drawPreviews();
   }
@@ -2389,6 +2408,131 @@
       if (!hasBuff("speed")) { popup("SPEED STREAK!", "cyan small", 78, "テンポよく置いて×1.2"); tone(mtof(88), 0.12, "sawtooth", 0.07, 0, mtof(100)); }
       addBuff("speed", "SPEED ×1.2", 2000, "lime");
     }
+  });
+
+  // ===================== ROUND 8: celebration visuals =====================
+  // R8-1 rocket fireworks launch from the bottom of the screen and burst
+  function rockets(n = 4) {
+    for (let i = 0; i < n; i++) setTimeout(() => {
+      const x = innerWidth * (0.15 + Math.random() * 0.7), ty = innerHeight * (0.15 + Math.random() * 0.3), c = FW[(Math.random() * FW.length) | 0];
+      parts.push({ x, y: innerHeight + 10, vy: -(innerHeight - ty) / 38, life: 0, max: 5000, color: c, kind: "rocket", trail: [],
+        upd(p, k) {
+          p.trail.push([p.x, p.y]); if (p.trail.length > 10) p.trail.shift();
+          p.y += p.vy * k; p.vy *= Math.pow(0.975, k); p.x += Math.sin(p.life / 50) * 0.6;
+          if (p.vy > -2.2) { p.life = p.max; burstAt(p.x, p.y, p.color, 60, 6.5); burstAt(p.x, p.y, "#fff", 20, 3); noise(0.3, 0.2, 0, 600); tone(120, 0.3, "sine", 0.25, 0, 40); }
+        },
+        drw(ctx, p) {
+          ctx.globalAlpha = 1; ctx.strokeStyle = p.color; ctx.lineWidth = 2; ctx.beginPath();
+          p.trail.forEach(([tx, ty], j) => (j ? ctx.lineTo(tx, ty) : ctx.moveTo(tx, ty))); ctx.stroke();
+          ctx.fillStyle = "#fff"; ctx.fillRect(p.x - 2, p.y - 2, 4, 4);
+        } });
+      tone(400, 0.6, "sine", 0.05, 0, 1400);
+    }, i * 260);
+  }
+  on("fever", () => rockets(5));
+  on("perfect", () => rockets(8));
+  on("clear", (info) => { if (info.n >= 4) rockets(3); });
+  // R8-2 confetti now includes stars and hearts
+  const baseConfetti = confetti;
+  const SHAPES2 = ["star", "heart"];
+  confetti = function (n) {
+    baseConfetti(Math.ceil(n * 0.6));
+    for (let i = 0; i < n * 0.4 && parts.length < 2200; i++) {
+      const shape = SHAPES2[i % 2], col = FW[i % FW.length];
+      parts.push({ x: Math.random() * innerWidth, y: -20 - Math.random() * 200, vx: (Math.random() - 0.5) * 2, vy: 1.5 + Math.random() * 3,
+        life: 0, max: 2600 + Math.random() * 1000, rot: Math.random() * 6, vr: (Math.random() - 0.5) * 0.15, size: 6 + Math.random() * 5, color: col, kind: shape,
+        upd(p, k) { p.x += (p.vx + Math.sin(p.life / 300) * 0.8) * k; p.y += p.vy * k; p.rot += p.vr * k; },
+        drw(ctx, p) {
+          ctx.globalAlpha = Math.min(1, 2 * (1 - p.life / p.max)); ctx.save(); ctx.translate(p.x, p.y); ctx.rotate(p.rot); ctx.fillStyle = p.color; ctx.beginPath();
+          const s = p.size;
+          if (p.kind === "star") for (let j = 0; j < 10; j++) { const a = -Math.PI / 2 + (j * Math.PI) / 5, r = j % 2 ? s * 0.45 : s; ctx.lineTo(Math.cos(a) * r, Math.sin(a) * r); }
+          else { ctx.moveTo(0, s * 0.35); ctx.bezierCurveTo(-s, -s * 0.3, -s * 0.4, -s, 0, -s * 0.35); ctx.bezierCurveTo(s * 0.4, -s, s, -s * 0.3, 0, s * 0.35); }
+          ctx.closePath(); ctx.fill(); ctx.restore();
+        } });
+    }
+  };
+  // R8-3 god rays spin behind every big headline
+  // R8-5 big headlines bounce letter by letter
+  const lanePopup = popup;
+  popup = function (text, cls = "", yPct = 45, sub = "") {
+    const el = lanePopup(text, cls, yPct, sub);
+    if (!cls.includes("huge")) return el;
+    const rays = document.createElement("div");
+    rays.className = "rays" + (cls.includes("gold") ? " gold" : "");
+    rays.style.top = el.style.top;
+    pops.insertBefore(rays, el);
+    rays.addEventListener("animationend", () => rays.remove());
+    if (!reduceMotion) {
+      const small = el.querySelector("small");
+      el.textContent = "";
+      [...text].forEach((ch, i) => { const s = document.createElement("span"); s.className = "ltr"; s.style.animationDelay = i * 0.04 + "s"; s.textContent = ch === " " ? " " : ch; el.appendChild(s); });
+      if (small) el.appendChild(small);
+    }
+    return el;
+  };
+  // R8-4 DOPA-kun: a mascot that reacts to what happens
+  const mascot = { mood: "idle", t: 0, blink: 0 };
+  const mcv = $("mascot"), mctx = mcv.getContext("2d");
+  function setMood(m, ms = 1400) { mascot.mood = m; mascot.t = ms; }
+  on("clear", (info) => setMood(info.n >= 3 || info.combo >= 3 ? "wow" : "happy"));
+  on("bomb", () => setMood("shock", 1000));
+  on("slot", (r) => { if (r[0] === r[1] && r[1] === r[2]) setMood("wow", 2000); });
+  on("noClear", (pl, lost) => { if (lost >= 2) setMood("sad", 1200); });
+  on("over", () => setMood("sad", 99999));
+  on("start", () => setMood("happy", 1200));
+  on("frame", (dt) => {
+    mascot.t -= dt; if (mascot.t <= 0 && mascot.mood !== "idle") mascot.mood = "idle";
+    const mood = S.fever && mascot.mood === "idle" ? "wow" : dangerNow && mascot.mood === "idle" ? "worry" : mascot.mood;
+    const w = mcv.width / DPR, h = mcv.height / DPR;
+    if (!w) return;
+    mctx.setTransform(DPR, 0, 0, DPR, 0, 0);
+    mctx.clearRect(0, 0, w, h);
+    const bounce = mood === "wow" ? Math.abs(Math.sin(S.time / 90)) * 5 : mood === "happy" ? Math.abs(Math.sin(S.time / 140)) * 3 : Math.sin(S.time / 600) * 1;
+    const cx = w / 2, cy = h / 2 + 3 - bounce, r = Math.min(w, h) * 0.38;
+    mctx.fillStyle = S.fever ? `hsl(${(S.time * 0.3) % 360} 90% 62%)` : mood === "worry" ? "#ff8aa5" : "#ff5fa2";
+    mctx.beginPath(); mctx.ellipse(cx, cy, r * 1.1, r, 0, 0, 7); mctx.fill();
+    mctx.fillStyle = "rgba(255,255,255,.35)"; mctx.beginPath(); mctx.ellipse(cx - r * 0.4, cy - r * 0.5, r * 0.3, r * 0.18, -0.4, 0, 7); mctx.fill();
+    mascot.blink -= dt; if (mascot.blink < -3000) mascot.blink = 150;
+    const eyeY = cy - r * 0.1, ex = r * 0.42;
+    mctx.fillStyle = "#1a0f2b"; mctx.strokeStyle = "#1a0f2b"; mctx.lineWidth = 2;
+    if (mood === "happy" || mood === "wow") {
+      [-1, 1].forEach((sd) => { mctx.beginPath(); mctx.arc(cx + sd * ex, eyeY + 2, r * 0.16, Math.PI, 0); mctx.stroke(); });
+    } else if (mood === "shock") {
+      [-1, 1].forEach((sd) => { mctx.beginPath(); mctx.arc(cx + sd * ex, eyeY, r * 0.17, 0, 7); mctx.stroke(); mctx.fillRect(cx + sd * ex - 1, eyeY - 1, 2, 2); });
+    } else if (mascot.blink > 0) {
+      [-1, 1].forEach((sd) => mctx.fillRect(cx + sd * ex - r * 0.14, eyeY, r * 0.28, 2));
+    } else {
+      [-1, 1].forEach((sd) => { mctx.beginPath(); mctx.arc(cx + sd * ex, eyeY, r * 0.12, 0, 7); mctx.fill(); });
+    }
+    mctx.beginPath();
+    if (mood === "wow") { mctx.ellipse(cx, cy + r * 0.38, r * 0.22, r * 0.2, 0, 0, 7); mctx.fill(); }
+    else if (mood === "happy") { mctx.arc(cx, cy + r * 0.2, r * 0.25, 0.1, Math.PI - 0.1); mctx.stroke(); }
+    else if (mood === "sad" || mood === "worry") { mctx.arc(cx, cy + r * 0.5, r * 0.2, Math.PI + 0.3, -0.3); mctx.stroke(); }
+    else if (mood === "shock") { mctx.ellipse(cx, cy + r * 0.4, r * 0.12, r * 0.16, 0, 0, 7); mctx.fill(); }
+    else { mctx.moveTo(cx - r * 0.15, cy + r * 0.35); mctx.lineTo(cx + r * 0.15, cy + r * 0.35); mctx.stroke(); }
+    if (mood === "happy" || mood === "wow") { mctx.fillStyle = "rgba(255,255,255,.4)"; [-1, 1].forEach((sd) => { mctx.beginPath(); mctx.arc(cx + sd * r * 0.75, cy + r * 0.2, r * 0.12, 0, 7); mctx.fill(); }); }
+    if (mood === "worry") { mctx.fillStyle = "#7fe9ff"; mctx.beginPath(); mctx.ellipse(cx + r * 0.95, cy - r * 0.5, 2.5, 4, 0, 0, 7); mctx.fill(); }
+  });
+  function sizeMascot() { const w = Math.max(30, $("pLife").clientWidth - 12), h = narrowMode ? 26 : 44; mcv.width = w * DPR; mcv.height = h * DPR; mcv.style.width = w + "px"; mcv.style.height = h + "px"; }
+  addEventListener("resize", () => setTimeout(sizeMascot, 0));
+  // R8-6 rainbow edge glow around the whole screen during fever (CSS)
+  // R8-7 a giant combo number glows behind the stack
+  on("drawUnder", (ctx, W, H) => {
+    if (S.combo < 2 || S.over) return;
+    ctx.save();
+    ctx.globalAlpha = Math.min(0.22, 0.08 + S.combo * 0.02);
+    ctx.fillStyle = S.combo >= 5 ? "#ffd23f" : "#ff2e88";
+    ctx.font = `400 ${Math.floor(W * 0.55)}px Bungee, Impact, sans-serif`;
+    ctx.textAlign = "center"; ctx.textBaseline = "middle";
+    ctx.fillText(String(S.combo), W / 2, H * 0.55 + Math.sin(S.time / 200) * 4);
+    ctx.font = `400 ${Math.floor(W * 0.09)}px Bungee, Impact, sans-serif`;
+    ctx.fillText("COMBO", W / 2, H * 0.55 + W * 0.33);
+    ctx.restore();
+  });
+  // R8-8 the board dips when a piece slams down
+  on("hard", (d) => {
+    if (reduceMotion || d < 2) return;
+    boardWrap.animate([{ transform: "translateY(0)" }, { transform: `translateY(${Math.min(9, 2 + d / 2)}px)` }, { transform: "translateY(0)" }], { duration: 160, easing: "ease-out" });
   });
 
   // Demo board behind the start screen so the first frame already shows the game.
