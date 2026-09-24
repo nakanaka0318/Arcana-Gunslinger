@@ -190,10 +190,12 @@
   @keyframes throb { 50% { transform: scale(1.06); } }
   .keys { display: grid; grid-template-columns: auto auto; gap: 3px 10px; font-size: 11px; color: var(--mute); text-align: left; }
   .keys b { font: 700 11px/1.4 var(--f-num); color: var(--text); }
+  .touch-hint { grid-template-columns: auto auto; gap: 4px 10px; font-size: 12px; color: var(--mute); text-align: left; }
+  .touch-hint b { font-weight: 800; color: var(--text); }
 
   .pad { display: none; grid-template-columns: repeat(6, 1fr); gap: 6px; user-select: none; -webkit-user-select: none; touch-action: none; }
   .pad button {
-    height: 56px; border-radius: 12px; border: 2px solid var(--line);
+    height: 56px; touch-action: none; -webkit-touch-callout: none; border-radius: 12px; border: 2px solid var(--line);
     background: var(--panel); color: var(--text);
     font: 700 14px/1 var(--f-num); letter-spacing: .04em; touch-action: none;
   }
@@ -231,22 +233,54 @@
   }
   .diff li b { display: block; color: var(--text); font-weight: 800; font-size: 14px; }
 
+  .tools { display: flex; gap: 8px; }
+  .touch-hint { display: none; }
+  #board, .board-wrap { touch-action: none; }
+
   @media (max-width: 720px), (pointer: coarse) {
     .pad { display: grid; }
+    .touch-hint { display: grid; }
+    .keys { display: none; }
   }
   @media (max-width: 720px) {
-    :root { --side: 78px; }
-    .stage { gap: 8px; }
-    .panel { padding: 6px; border-radius: 10px; gap: 4px; }
-    .panel h2 { font-size: 9px; letter-spacing: .06em; }
-    .stat .k { font-size: 8px; letter-spacing: .08em; }
-    .stat .v { font-size: 14px; }
-    .reels { gap: 2px; }
-    .reel { height: 26px; font-size: 12px; border-radius: 5px; }
-    .slot-msg, .gauge-label, .lives span { font-size: 9px; }
-    .gauge { height: 12px; }
+    .app { padding-block: 8px 24px; gap: 8px; }
+    .logo { font-size: 24px; }
     .tag { display: none; }
-    .keys { display: none; }
+    .btn { padding: 8px 10px; font-size: 11px; }
+    /* One-screen phone layout: HUD strip above the board, meters below it. */
+    .stage {
+      grid-template-columns: repeat(6, minmax(0, 1fr));
+      grid-template-areas:
+        "hold hold stats stats next next"
+        "board board board board board board"
+        "fever fever slot slot life life";
+      gap: 6px; justify-content: stretch;
+    }
+    .side { display: contents; }
+    #pHold { grid-area: hold; } #pStats { grid-area: stats; } #pNext { grid-area: next; }
+    #pFever { grid-area: fever; } #pSlot { grid-area: slot; } #pLife { grid-area: life; }
+    .board-wrap { grid-area: board; justify-self: center; }
+    .panel { padding: 6px; border-radius: 10px; gap: 3px; justify-content: center; }
+    .panel h2 { font-size: 9px; letter-spacing: .06em; }
+    #pStats { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 2px 4px; }
+    .stat .k { font-size: 7px; letter-spacing: .04em; }
+    .stat .v { font-size: 12px; }
+    #scoreStat { grid-column: span 3; }
+    #scoreStat .v { font-size: 16px; }
+    .reels { gap: 2px; }
+    .reel { height: 22px; font-size: 12px; border-radius: 5px; }
+    .slot-msg, .gauge-label, .lives span { font-size: 9px; }
+    .slot-msg { min-height: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .gauge { height: 12px; }
+    .lives { justify-content: center; }
+    .lives span:not(.heart) { display: none; }
+    .heart { font-size: 22px; }
+    .pad { grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 5px; }
+    .pad button { height: 50px; font-size: 13px; padding: 0; }
+    .pop { font-size: clamp(16px, 6.5vw, 28px); }
+    .pop.huge { font-size: clamp(22px, 9vw, 38px); }
+    .overlay { gap: 10px; padding: 12px; }
+    .overlay h2 { font-size: 26px; }
   }
   @media (prefers-reduced-motion: reduce) {
     body.fever .bg, .gauge-fill, .big { animation: none; }
@@ -261,18 +295,21 @@
       <h1 class="logo">DOPA<span>TRIS</span></h1>
       <p class="tag">ドーパミンがドパドパ出るテトリス</p>
     </div>
-    <button class="btn" id="muteBtn" type="button" aria-pressed="false">SOUND ON</button>
+    <div class="tools">
+      <button class="btn" id="pauseBtn" type="button" aria-label="ポーズ">II</button>
+      <button class="btn" id="muteBtn" type="button" aria-pressed="false">SOUND ON</button>
+    </div>
   </header>
 
   <main class="stage" id="stage">
     <aside class="side">
-      <section class="panel">
+      <section class="panel" id="pHold">
         <h2>HOLD</h2>
         <canvas id="holdCv" aria-label="ホールド中のミノ"></canvas>
       </section>
-      <section class="panel">
+      <section class="panel" id="pStats">
         <div class="stat" id="scoreStat"><span class="k">SCORE</span><span class="v score" id="scoreV">0</span></div>
-        <div class="stat" id="levelStat"><span class="k">LEVEL</span><span class="v" id="levelV">1</span></div>
+        <div class="stat" id="levelStat"><span class="k">LV</span><span class="v" id="levelV">1</span></div>
         <div class="stat"><span class="k">LINES</span><span class="v" id="linesV">0</span></div>
         <div class="stat" id="multStat"><span class="k">COMBO</span><span class="v mult" id="multV">×1.0</span></div>
       </section>
@@ -287,6 +324,13 @@
         <h2>DOPATRIS</h2>
         <p>金ブロック、ボム、スロット、フィーバー。<br>消すたびに脳が光る。</p>
         <button class="big" id="startBtn" type="button">START</button>
+        <div class="touch-hint">
+          <b>タップ</b><span>回転（左半分⟲ / 右半分⟳）</span>
+          <b>左右ドラッグ</b><span>移動</span>
+          <b>下へスワイプ</b><span>ハードドロップ</span>
+          <b>上へスワイプ</b><span>ホールド</span>
+          <b>下のボタン</b><span>ボタンでも操作OK</span>
+        </div>
         <div class="keys">
           <b>← →</b><span>移動</span>
           <b>↑ / X</b><span>右回転</span>
@@ -310,16 +354,16 @@
     </div>
 
     <aside class="side">
-      <section class="panel">
+      <section class="panel" id="pNext">
         <h2>NEXT</h2>
         <canvas id="nextCv" aria-label="次のミノ"></canvas>
       </section>
-      <section class="panel">
+      <section class="panel" id="pFever">
         <h2>FEVER</h2>
         <div class="gauge"><div class="gauge-fill" id="gaugeFill"></div></div>
         <span class="gauge-label" id="gaugeLabel">0%</span>
       </section>
-      <section class="panel">
+      <section class="panel" id="pSlot">
         <h2>SLOT</h2>
         <div class="reels">
           <div class="reel s7" id="r0">7</div>
@@ -328,7 +372,7 @@
         </div>
         <p class="slot-msg" id="slotMsg">消すと回る</p>
       </section>
-      <section class="panel">
+      <section class="panel" id="pLife">
         <h2>LIFE</h2>
         <div class="lives"><span class="heart" id="heart">♥</span><span>セカンドチャンス</span></div>
       </section>
@@ -341,9 +385,8 @@
     <button type="button" data-act="rotL" aria-label="左回転">⟲</button>
     <button type="button" data-act="rotR" aria-label="右回転">⟳</button>
     <button type="button" data-act="down" aria-label="ソフトドロップ">▼</button>
+    <button type="button" data-act="hold" aria-label="ホールド">HOLD</button>
     <button type="button" data-act="drop" class="drop" aria-label="ハードドロップ">DROP</button>
-    <button type="button" data-act="hold" aria-label="ホールド" style="grid-column: span 3">HOLD</button>
-    <button type="button" data-act="pause" aria-label="ポーズ" style="grid-column: span 3">PAUSE</button>
   </div>
 
   <section class="diff">
@@ -664,7 +707,7 @@
     const pts = destroyed * 50 * S.level * (S.fever ? 3 : 1);
     addScore(pts);
     popup(blasts > 1 ? `CHAIN BOOM ×${blasts}` : "BOOM!!", "gold", 40, `${destroyed}マス破壊 +${pts.toLocaleString()}`);
-    sfx.boom(); shake(16); flash();
+    sfx.boom(); shake(16); flash(); buzz(90);
     addGauge(8 * blasts);
     unlock("bomb");
   }
@@ -696,6 +739,7 @@
       if (c.gold) burst(x, r, "#ffd23f", 18, 9, "coin");
     }));
     sfx.clear(n, S.combo);
+    buzz(n >= 4 ? [40, 40, 80] : 20 * n);
     shake(n >= 4 ? 18 : n * 3);
     if (n >= 3 || golds) flash();
 
@@ -812,7 +856,7 @@
       if (a === "7") {
         addScore(7777 * L);
         popup("JACKPOT 777", "gold huge", 35, `+${(7777 * L).toLocaleString()} & 即フィーバー!`);
-        sfx.jackpot(); confetti(220); flash(); shake(12);
+        sfx.jackpot(); confetti(220); flash(); shake(12); buzz([60, 40, 60, 40, 120]);
         msg.textContent = "JACKPOT! 即フィーバー";
         if (!S.fever) { S.gauge = 100; startFever(); } else S.feverT = FEVER_MS;
         unlock("jackpot");
@@ -1053,7 +1097,8 @@
     }
     const nw = nextCv.width / DPR, nh = nextCv.height / DPR;
     nctx.clearRect(0, 0, nw, nh);
-    S.queue.slice(0, 3).forEach((spec, i) => drawMini(nctx, spec, nw / 2, (nh / 3) * (i + 0.5), i === 0 ? pcell : pcell * 0.8));
+    if (narrowMode) S.queue.slice(0, 2).forEach((spec, i) => drawMini(nctx, spec, nw * (i ? 0.77 : 0.3), nh / 2, i ? pcell * 0.75 : pcell));
+    else S.queue.slice(0, 3).forEach((spec, i) => drawMini(nctx, spec, nw / 2, (nh / 3) * (i + 0.5), i === 0 ? pcell : pcell * 0.8));
   }
 
   // ---------- HUD ----------
@@ -1123,6 +1168,48 @@
   });
   document.addEventListener("contextmenu", (e) => { if (e.target.closest(".pad")) e.preventDefault(); });
 
+  // Board gestures: tap = rotate (left half ⟲ / right half ⟳), drag = move, swipe down = drop, swipe up = hold.
+  let gest = null;
+  boardWrap.addEventListener("pointerdown", (e) => {
+    if (e.pointerType === "mouse" || !S.started || S.paused || S.over) return;
+    if (e.target.closest(".overlay")) return;
+    e.preventDefault();
+    gest = { id: e.pointerId, x0: e.clientX, y0: e.clientY, lx: e.clientX, ly: e.clientY, t0: performance.now(), moved: false };
+    try { boardWrap.setPointerCapture(e.pointerId); } catch {}
+  });
+  boardWrap.addEventListener("pointermove", (e) => {
+    if (!gest || e.pointerId !== gest.id) return;
+    const step = Math.max(14, cell * 0.85);
+    let dx = e.clientX - gest.lx;
+    while (dx >= step) { move(1); gest.lx += step; dx -= step; gest.moved = true; }
+    while (dx <= -step) { move(-1); gest.lx -= step; dx += step; gest.moved = true; }
+    const tdx = Math.abs(e.clientX - gest.x0), tdy = e.clientY - gest.y0;
+    let dy = e.clientY - gest.ly;
+    if (tdy > tdx) while (dy >= step) { softDrop(); gest.ly += step; dy -= step; gest.moved = true; }
+  });
+  function endGesture(e) {
+    if (!gest || e.pointerId !== gest.id) return;
+    const g = gest; gest = null;
+    if (e.type === "pointercancel") return;
+    const dt = Math.max(1, performance.now() - g.t0);
+    const dx = e.clientX - g.x0, dy = e.clientY - g.y0;
+    if (dy > 40 && dy > Math.abs(dx) * 1.2 && dy / dt > 0.45) { hardDrop(); buzz(25); }
+    else if (dy < -40 && -dy > Math.abs(dx) * 1.2) hold();
+    else if (!g.moved && Math.abs(dx) < 14 && Math.abs(dy) < 14 && dt < 350) {
+      const r = boardCv.getBoundingClientRect();
+      rotate(e.clientX < r.left + r.width / 2 ? -1 : 1);
+    }
+  }
+  boardWrap.addEventListener("pointerup", endGesture);
+  boardWrap.addEventListener("pointercancel", endGesture);
+
+  function buzz(p) { try { if (navigator.vibrate) navigator.vibrate(p); } catch {} }
+  const unlockAudio = () => { if (A.ctx && A.ctx.state !== "running") A.ctx.resume().catch(() => {}); };
+  document.addEventListener("pointerup", unlockAudio, { passive: true });
+  document.addEventListener("touchend", unlockAudio, { passive: true });
+  document.addEventListener("visibilitychange", () => { if (document.hidden && S.started && !S.over && !S.paused) togglePause(); });
+  $("pauseBtn").addEventListener("click", (e) => { e.currentTarget.blur(); togglePause(); });
+
   function togglePause() {
     if (!S.started || S.over) return;
     S.paused = !S.paused;
@@ -1162,30 +1249,41 @@
   }
 
   // ---------- layout ----------
+  let narrowMode = false;
+  function sizeCanvas(cv, ctx, w, h) {
+    cv.width = Math.round(w * DPR); cv.height = Math.round(h * DPR);
+    cv.style.width = w + "px"; cv.style.height = h + "px";
+    ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
+  }
   function layout() {
     DPR = Math.min(window.devicePixelRatio || 1, 2);
-    const narrow = innerWidth <= 720;
-    const side = narrow ? 78 : 176, gap = narrow ? 8 : 14;
-    const availW = Math.min(980, innerWidth) - 32 - side * 2 - gap * 2 - 8;
-    const padH = getComputedStyle($("pad")).display === "none" ? 0 : 130;
-    const availH = innerHeight - 90 - padH - 24;
+    narrowMode = innerWidth <= 720;
+    if (narrowMode) {
+      pcell = 10;
+      const pw = Math.max(40, $("pHold").clientWidth - 12);
+      sizeCanvas(holdCv, hctx, pw, pcell * 2.6);
+      sizeCanvas(nextCv, nctx, Math.max(40, $("pNext").clientWidth - 12), pcell * 2.6);
+    } else {
+      pcell = 20;
+      const pw = 176 - 24;
+      sizeCanvas(holdCv, hctx, pw, pcell * 3);
+      sizeCanvas(nextCv, nctx, pw, pcell * 8);
+    }
+    let availW, availH;
+    const padH = getComputedStyle($("pad")).display === "none" ? 0 : $("pad").offsetHeight + 8;
+    if (narrowMode) {
+      // Everything except the board itself must fit on one phone screen.
+      const others = document.querySelector(".top").offsetHeight + (stage.offsetHeight - boardWrap.offsetHeight) + padH + 8 + 8 + 16;
+      availW = document.querySelector(".app").clientWidth - 32 - 8;
+      availH = innerHeight - others;
+    } else {
+      availW = Math.min(980, innerWidth) - 32 - 176 * 2 - 14 * 2 - 8;
+      availH = innerHeight - 90 - padH - 24;
+    }
     cell = Math.max(12, Math.min(34, Math.floor(Math.min(availW / COLS, availH / VIS))));
-    const W = COLS * cell, H = VIS * cell;
-    boardCv.width = W * DPR; boardCv.height = H * DPR;
-    boardCv.style.width = W + "px"; boardCv.style.height = H + "px";
-    bctx.setTransform(DPR, 0, 0, DPR, 0, 0);
-
-    pcell = narrow ? 12 : 20;
-    const pw = side - (narrow ? 16 : 24);
-    holdCv.width = pw * DPR; holdCv.height = pcell * 3 * DPR;
-    holdCv.style.width = pw + "px"; holdCv.style.height = pcell * 3 + "px";
-    hctx.setTransform(DPR, 0, 0, DPR, 0, 0);
-    nextCv.width = pw * DPR; nextCv.height = pcell * 8 * DPR;
-    nextCv.style.width = pw + "px"; nextCv.style.height = pcell * 8 + "px";
-    nctx.setTransform(DPR, 0, 0, DPR, 0, 0);
-
-    fxCv.width = innerWidth * DPR; fxCv.height = innerHeight * DPR;
-    fctx.setTransform(DPR, 0, 0, DPR, 0, 0);
+    sizeCanvas(boardCv, bctx, COLS * cell, VIS * cell);
+    sizeCanvas(fxCv, fctx, innerWidth, innerHeight);
+    fxCv.style.width = ""; fxCv.style.height = "";
     drawPreviews();
   }
   addEventListener("resize", layout);
