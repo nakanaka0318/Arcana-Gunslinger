@@ -550,6 +550,7 @@
           <b>左右ドラッグ</b><span>移動</span>
           <b>下へスワイプ</b><span>ハードドロップ</span>
           <b>上へスワイプ</b><span>ホールド</span>
+          <b>UNDO</b><span>一手戻し (20秒に1回)</span>
           <b>下のボタン</b><span>ボタンでも操作OK</span>
         </div>
         <div class="keys">
@@ -559,6 +560,7 @@
           <b>↓</b><span>ソフトドロップ</span>
           <b>SPACE</b><span>流星ハードドロップ</span>
           <b>C / SHIFT</b><span>ホールド</span>
+          <b>U / BS</b><span>一手戻し (20秒に1回)</span>
           <b>P / ESC</b><span>ポーズ</span>
         </div>
       </div>
@@ -651,6 +653,8 @@
         <section><h3>ラウンド8：お祝いビジュアル</h3><ul><li>打ち上げ花火</li><li>星とハートの紙吹雪</li><li>大見出しの後ろで光線が回る</li><li>大見出しが一文字ずつ跳ねる</li><li>リアクションするマスコット「ドパくん」</li><li>フィーバー中は画面の縁が虹色</li><li>盤面の奥に巨大コンボ数字</li><li>ハードドロップで盤面が沈む</li></ul></section>
         <section><h3>ラウンド9：成長と目標</h3><ul><li>16段階の称号</li><li>自己ベストまでのゲージ(25%刻みで告知)</li><li>連続プレイボーナス</li><li>ゲームオーバー10秒以内の即リトライボーナス</li><li>ランクで解放されるスキン(NEON/CANDY/JEWEL/PIXEL)</li><li>累計ライン数の記念</li><li>スロットのリーチ演出と「おしい!」</li><li>リザルトに次の目標</li></ul></section>
         <section><h3>ラウンド10：仕上げ</h3><ul><li>移動・回転の残像</li><li>レベルアップで画面を色が横切る</li><li>フィーバー終了時の成績発表</li><li>8コンボ以上でZONE(周りがモノクロに)</li><li>2.5秒以内の連続消しでQUICK ×1.3</li><li>ドーパミンメーター(満タンでDOPAMINE MAX)</li><li>振動パターンを増やした(Android)</li><li>ときどき虹色の激アツ・プレミアムスピン(777確率4倍)</li></ul></section>
+        <section><h3>追加：一手戻し</h3><ul><li>UNDOボタン / U / Backspace で直前に置いたミノを取り消す</li><li>20秒に1回。チャージ中はボタンが下から満ちていき、使えると光る</li><li>盤面・NEXT・ホールド・スコア・ライン・レベル・コンボが戻る(もらったコイン・XP・実績はそのまま)</li><li>巻き戻し演出(反転フラッシュ・逆再生音)</li></ul></section>
+        <section><h3>追加：サウンド20種</h3><ul><li>BGMがレベルで厚くなる：Lv2スネア / Lv3コードパッド / Lv4シェイカー / Lv5カウンターメロディ</li><li>テトリス・全消し・777・ミッション・レベルアップで拍手</li><li>ミノの種類ごとに着地音の音程が違う(積むと曲になる)</li><li>回転方向で音が変わる / ソフトドロップの上昇音 / 出現のシュッ</li><li>ライン消去のガラス破砕音 / 3コンボからドラムフィル</li><li>スロットのリール停止音と当たり音</li><li>ミッション進捗音 / 時間制ミッション残り5秒のカウント</li><li>バフ開始・終了音 / フィーバー残り3秒のカウントと終了音</li><li>フィーバーゲージ50%・80%の予告音</li><li>ピンチのサイレン / BONUS ROW・ラッキースポット出現音</li><li>スタートのジングル / ポーズ・再開音 / ボタンのクリック音 / ドパくんの鳴き声</li></ul></section>
       </div>
     </details>
   </section>
@@ -2966,6 +2970,148 @@
     undoEls.forEach((el) => { el.style.setProperty("--cd", pct.toFixed(3)); el.classList.toggle("ready", ready); });
     if (txt !== undoTxt) { undoTxt = txt; undoEls[1].textContent = txt; $("undoNote").textContent = S.undoCD > 0 ? `チャージ中 ${txt}` : "U / Backspace"; }
   });
+
+  // ===================== MORE SOUND: 20 new sound types =====================
+  on("fresh", (s) => { s.softN = 0; s.softT = 0; s.g50 = false; s.g80 = false; s.fevSec = 0; s.sirenT = 0; s.mSec = 0; });
+  // S1-S4 the BGM grows layers as the level rises: snare (Lv2), chord pad (Lv3), shaker (Lv4), counter-melody (Lv5)
+  on("beat", (s, w, step, root, ch) => {
+    const lv = S.level;
+    if (lv >= 2 && s % 8 === 4) { noise(0.12, 0.12, w, 1500); tone(190, 0.06, "triangle", 0.08, w); }
+    if (lv >= 3 && s === 0) ch.forEach((n) => tone(mtof(root + 12 + n), (60 / bpm()) * 3.8, "triangle", 0.022, w));
+    if (lv >= 4 && s % 2 === 1) noise(0.02, 0.028, w, 8000);
+    if (lv >= 5 && s % 4 === 2) tone(mtof(root + 19 + ch[Math.floor(step / 4) % 3]), 0.16, "sine", 0.045, w);
+  });
+  // S5 applause for the big moments
+  function applause(sec = 1.2, vol = 0.1) {
+    if (!A.ctx) return;
+    for (let i = 0; i < sec * 55; i++) {
+      const t = Math.random() * sec, fade = 1 - t / sec;
+      noise(0.015 + Math.random() * 0.03, vol * (0.3 + Math.random() * 0.7) * fade, t, 1000 + Math.random() * 3000);
+    }
+  }
+  on("clear", (info) => { if (info.n >= 4) applause(1.6, 0.12); else if (info.combo >= 4) applause(0.8, 0.07); });
+  on("perfect", () => applause(2.2, 0.14));
+  on("slot", (r) => { if (r.join("") === "777") applause(2, 0.13); });
+  on("mission", () => applause(0.7, 0.07));
+  on("level", () => applause(1, 0.08));
+  // S6 every piece type locks on its own note of the current chord, so stacking plays music
+  const LOCK_NOTE = { I: 0, O: 1, T: 2, S: 3, Z: 4, J: 5, L: 6 };
+  on("lock", (placed) => {
+    if (!placed.length) return;
+    const k = LOCK_NOTE[placed[0].v.c] || 0, n = [chordNow[0], chordNow[1], chordNow[2]][k % 3] + 12 * Math.floor(k / 3);
+    tone(mtof(rootNow + 24 + n), 0.14, "triangle", 0.09);
+  });
+  // S7 rotation sounds differ by direction
+  on("rotate", (kx, ky, dir) => tone(dir > 0 ? 1760 : 1175, 0.04, "sine", 0.05, 0.01));
+  // S8 soft drop ticks that climb in pitch
+  on("spawn", () => { S.softN = 0; });
+  on("soft", () => {
+    const t = performance.now(); if (t - S.softT < 28) return; S.softT = t;
+    tone(500 + Math.min(S.softN++, 20) * 40, 0.02, "square", 0.025);
+  });
+  // S9 a soft whoosh as each piece appears
+  on("spawn", () => noise(0.1, 0.022, 0, 4200));
+  // S10 glass shatter layered on line clears
+  on("clear", (info) => {
+    info.rows.forEach((r, i) => {
+      for (let j = 0; j < 5; j++) noise(0.04, 0.06, i * 0.03 + j * 0.018, 3000 + Math.random() * 3500);
+      tone(2400 + Math.random() * 1800, 0.06, "sine", 0.035, i * 0.03);
+    });
+  });
+  // S11 drum fill once a combo reaches 3
+  on("clear", (info) => {
+    if (info.combo < 3) return;
+    [240, 200, 160, 120].forEach((f, i) => tone(f, 0.12, "sine", 0.22, 0.05 + i * 0.06, f * 0.6));
+    [0, 0.06, 0.12, 0.18].forEach((t) => noise(0.05, 0.08, 0.05 + t, 1800));
+  });
+  // S12 slot reels clunk as they stop and ding when they win
+  reels.forEach((el) => {
+    let spinning = false, won = false;
+    new MutationObserver(() => {
+      const sp = el.classList.contains("spin"), w = el.classList.contains("win");
+      if (spinning && !sp) { tone(170, 0.07, "square", 0.08); noise(0.03, 0.06, 0, 2500); }
+      if (!won && w) tone(mtof(96), 0.15, "triangle", 0.08);
+      spinning = sp; won = w;
+    }).observe(el, { attributes: true, attributeFilter: ["class"] });
+  });
+  // S13 mission progress ticks, and a countdown in the last 5 seconds of timed missions
+  let lastProg = 0;
+  const baseRenderMission = renderMission;
+  renderMission = function (fresh) {
+    baseRenderMission(fresh);
+    const m = S.mission;
+    if (!m) { lastProg = 0; return; }
+    if (fresh) { lastProg = 0; [0, 7].forEach((s, i) => tone(mtof(79 + s), 0.08, "triangle", 0.07, i * 0.06)); return; }
+    if (m.prog > lastProg) tone(mtof(76 + Math.round((m.prog / m.goal) * 12)), 0.08, "square", 0.06);
+    lastProg = m.prog;
+  };
+  on("tick", () => {
+    const m = S.mission;
+    if (!m || !m.time) return;
+    const sec = Math.ceil(m.time / 1000);
+    if (sec <= 5 && sec !== S.mSec) { S.mSec = sec; tone(sec <= 2 ? 1320 : 990, 0.05, "square", 0.06); }
+  });
+  // S14 power-up sound when a buff starts, power-down when it ends
+  const baseAddBuff = addBuff;
+  addBuff = function (id, label, ms, cls) {
+    const isNew = !hasBuff(id);
+    const b = baseAddBuff(id, label, ms, cls);
+    if (isNew && id !== "speed") tone(300, 0.35, "sawtooth", 0.06, 0, 1200);
+    return b;
+  };
+  on("buffEnd", (id) => { if (id !== "speed") tone(1000, 0.4, "sawtooth", 0.05, 0, 200); });
+  // S15 fever counts down its last 3 seconds, then powers down
+  on("tick", () => {
+    if (!S.fever) return;
+    const sec = Math.ceil(S.feverT / 1000);
+    if (sec <= 3 && sec !== S.fevSec) { S.fevSec = sec; tone(sec === 1 ? 1568 : 1175, 0.1, "square", 0.08); }
+  });
+  on("fever", () => { S.fevSec = 0; S.g50 = false; S.g80 = false; });
+  on("feverEnd", () => { if (!S.over) tone(900, 0.6, "sawtooth", 0.07, 0, 110); });
+  // S16 rising cue when the fever gauge passes 50% and 80%
+  on("frame", () => {
+    if (S.fever || !S.started || S.over) return;
+    if (S.gauge < 50) { S.g50 = false; S.g80 = false; }
+    if (!S.g50 && S.gauge >= 50) { S.g50 = true; [0, 4, 7].forEach((s, i) => tone(mtof(72 + s), 0.08, "triangle", 0.07, i * 0.05)); }
+    if (!S.g80 && S.gauge >= 80) { S.g80 = true; [0, 4, 7, 12].forEach((s, i) => tone(mtof(79 + s), 0.08, "square", 0.07, i * 0.04)); popup("もうすぐFEVER!", "gold small", 86); }
+  });
+  // S17 warning siren when the stack reaches the top three rows
+  on("tick", (dt) => {
+    let top3 = false;
+    for (let y = HID; y < HID + 3; y++) if (S.board[y].some(Boolean)) top3 = true;
+    if (!top3) { S.sirenT = 0; return; }
+    S.sirenT -= dt;
+    if (S.sirenT <= 0) { S.sirenT = 1400; tone(620, 0.35, "sine", 0.05, 0, 920); tone(920, 0.35, "sine", 0.05, 0.35, 620); }
+  });
+  // S18 chimes when a BONUS ROW or a LUCKY SPOT appears
+  let lastBonusRow = -1, lastSpot = null;
+  on("frame", () => {
+    if (!S.started || S.over) return;
+    if (lastBonusRow < 0 && S.bonusRow >= 0) [0, 4, 7, 12].forEach((s, i) => tone(mtof(84 + s), 0.1, "triangle", 0.07, i * 0.07));
+    if (!lastSpot && S.spot) [0, 12, 19].forEach((s, i) => tone(mtof(88 + s), 0.06, "sine", 0.06, i * 0.05));
+    lastBonusRow = S.bonusRow; lastSpot = S.spot;
+  });
+  // S19 a start jingle, and pause / resume sounds
+  on("start", () => [0, 4, 7, 12, 16, 19, 24].forEach((s, i) => tone(mtof(67 + s), 0.1, "square", 0.08, 0.15 + i * 0.05)));
+  let wasPaused = false;
+  on("frame", () => {
+    if (S.paused === wasPaused) return;
+    wasPaused = S.paused;
+    if (S.paused) { tone(880, 0.1, "triangle", 0.1); tone(660, 0.15, "triangle", 0.1, 0.1); }
+    else { tone(660, 0.1, "triangle", 0.1); tone(880, 0.15, "triangle", 0.1, 0.1); }
+  });
+  // S20 button clicks, and DOPA-kun squeaks when his mood changes
+  document.addEventListener("pointerdown", (e) => {
+    if (e.target.closest(".pad button, .btn, .skin, .big")) tone(1200, 0.02, "square", 0.035);
+  }, { passive: true });
+  const baseSetMood = setMood;
+  setMood = function (m, ms) {
+    if (m !== mascot.mood) {
+      const f = { happy: [700, 1100], wow: [600, 1600], sad: [700, 380], shock: [900, 1800] }[m];
+      if (f) tone(f[0], 0.12, "sine", 0.05, 0.02, f[1]);
+    }
+    baseSetMood(m, ms);
+  };
 
   // Demo board behind the start screen so the first frame already shows the game.
   (function demo() {
