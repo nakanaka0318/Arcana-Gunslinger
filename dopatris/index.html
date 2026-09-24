@@ -309,6 +309,9 @@
   .board-wrap.beat { animation: beat .22s ease-out; }
   @keyframes beat { 0% { box-shadow: 0 0 70px hsl(var(--hue) 100% 65% / .9), 0 0 0 3px rgba(255,255,255,.35); } 100% { box-shadow: 0 0 40px hsl(var(--hue) 90% 55% / .45); } }
   body.fever .board-wrap.beat { animation: none; }
+  /* ---- Round 4 ---- */
+  body.danger .bg { box-shadow: inset 0 0 120px rgba(255,59,92,.45); animation: dangerPulse .9s ease-in-out infinite; }
+  @keyframes dangerPulse { 50% { box-shadow: inset 0 0 60px rgba(255,59,92,.2); } }
   @media (prefers-reduced-motion: reduce) {
     body.fever .bg, .gauge-fill, .big { animation: none; }
   }
@@ -1699,6 +1702,88 @@
       ctx.fillStyle = `hsla(${(r * 18 + S.time * 0.3) % 360} 100% 60% / ${0.5 * (1 - d / 0.25)})`;
       ctx.fillRect(0, r * cell, W, cell);
     }
+  });
+
+  // ===================== ROUND 4: audio dopamine =====================
+  on("fresh", (s) => { s.fuseT = 0; s.moveIdx = 0; });
+  // R4-1 an announcer voice cheers (browser speech; silently skipped where unavailable)
+  let voiceT = 0;
+  function say(text, rate = 1.15, pitch = 1.3) {
+    if (A.muted || !("speechSynthesis" in window)) return;
+    const t = performance.now(); if (t - voiceT < 1100) return; voiceT = t;
+    try {
+      speechSynthesis.cancel();
+      const u = new SpeechSynthesisUtterance(text);
+      u.lang = "ja-JP"; u.rate = rate; u.pitch = pitch; u.volume = 0.9;
+      speechSynthesis.speak(u);
+    } catch {}
+  }
+  on("clear", (info) => {
+    if (info.n >= 4) say("テトリス!", 1.1, 1.5);
+    else if (info.combo >= 4) say(`${info.combo}コンボ!`);
+    else if (info.n === 3) say("すごい!");
+    else if (info.golds) say("ゴールド!");
+  });
+  on("fever", () => setTimeout(() => say("フィーバー!", 1.2, 1.6), 300));
+  on("slot", (res) => { if (res[0] === "7" && res[1] === "7" && res[2] === "7") say("ジャックポット!", 1.1, 1.6); });
+  on("level", (lv) => setTimeout(() => say(`レベル${lv}!`), 600));
+  // R4-2 moving plays notes from the current chord, so steering is music
+  let chordNow = [0, 3, 7], rootNow = 45;
+  on("beat", (s, w, step, root, ch) => { rootNow = root; chordNow = ch; });
+  sfx.move = () => {
+    const i = S.moveIdx++ % 4, n = [chordNow[0], chordNow[1], chordNow[2], chordNow[0] + 12][i];
+    tone(mtof(rootNow + 36 + n), 0.06, "triangle", 0.07);
+  };
+  // R4-3 bass drop on a TETRIS
+  on("clear", (info) => {
+    if (info.n < 4 || !A.ctx) return;
+    noise(0.5, 0.18, 0, 3000);
+    tone(1800, 0.45, "sawtooth", 0.05, 0, 120);
+    tone(55, 0.9, "sine", 0.6, 0.35, 40);
+    tone(110, 0.6, "square", 0.12, 0.35, 55);
+  });
+  // R4-4 fever gets its own lead melody on top of the BGM
+  const RIFF = [12, null, 15, 12, 19, null, 17, 15, 12, null, 10, 12, 15, 17, 19, 24];
+  on("beat", (s, w, step, root) => {
+    if (!S.fever) return;
+    const n = RIFF[s];
+    if (n != null) tone(mtof(root + 24 + n), 0.11, "square", 0.06, w);
+  });
+  // R4-5 golden and bomb pieces announce themselves when they appear
+  on("spawn", (p) => {
+    if (p.special === "gold") [0, 4, 7, 11, 14].forEach((s, i) => tone(mtof(91 + s), 0.08, "sine", 0.07, i * 0.03));
+    else if (p.special === "bomb") { tone(90, 0.3, "sawtooth", 0.12, 0, 60); tone(mtof(62), 0.12, "square", 0.06, 0.12); }
+  });
+  // R4-6 a bomb piece's fuse crackles while you steer it
+  on("tick", (dt) => {
+    if (!S.cur || S.cur.special !== "bomb") return;
+    S.fuseT += dt;
+    if (S.fuseT > 170) { S.fuseT = 0; noise(0.03, 0.06, 0, 5000 + Math.random() * 3000); }
+  });
+  // R4-7 JACKPOT pours out a cascade of coins
+  on("slot", (res) => {
+    if (res.join("") !== "777") return;
+    const r = $("pSlot").getBoundingClientRect(), cx = r.left + r.width / 2, cy = r.top + r.height / 2;
+    for (let i = 0; i < 36; i++) {
+      const w = 0.6 + i * (0.045 - i * 0.0005);
+      tone(mtof(88 + (i % 4) * 2), 0.05, "square", 0.06, w);
+      setTimeout(() => {
+        parts.push({ x: cx, y: cy, vx: (Math.random() - 0.5) * 8, vy: -6 - Math.random() * 6, life: 0, max: 1500,
+          color: "#ffd23f", kind: "coin", size: 6, rot: Math.random() * 6, vr: 0.3 });
+      }, w * 1000);
+    }
+  });
+  // R4-8 a heartbeat thumps when the stack is close to the top
+  let dangerNow = false;
+  on("frame", () => {
+    let d = false;
+    if (S.started && !S.over) for (let y = HID; y < HID + 5; y++) if (S.board[y].some(Boolean)) d = true;
+    if (d !== dangerNow) { dangerNow = d; document.body.classList.toggle("danger", d); }
+  });
+  on("beat", (s, w) => {
+    if (!dangerNow) return;
+    if (s % 8 === 0) tone(62, 0.16, "sine", 0.55, w, 40);
+    if (s % 8 === 1) tone(55, 0.14, "sine", 0.4, w + 0.04, 35);
   });
 
   // Demo board behind the start screen so the first frame already shows the game.
