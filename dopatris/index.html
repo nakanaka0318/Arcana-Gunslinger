@@ -382,6 +382,9 @@
   body.ev-bombparty .board-wrap { background: linear-gradient(135deg, var(--red), #2a1636); }
   body.ev-cascade .board-wrap { background: linear-gradient(135deg, var(--lime), var(--cyan)); }
   body.ev-ifest .board-wrap { background: linear-gradient(135deg, var(--cyan), #3b7bff); }
+  /* ---- Round 7 ---- */
+  body.timestop #board { filter: saturate(.3) hue-rotate(180deg) brightness(1.1); }
+  body.timestop .board-wrap { background: linear-gradient(135deg, #8f7bff, #22e4ff); }
   @media (prefers-reduced-motion: reduce) {
     body.fever .bg, .gauge-fill, .big { animation: none; }
   }
@@ -2224,6 +2227,169 @@
     return true;
   });
   MODS.score.push(() => (S.chain > 0 ? 1 + S.chain : 1));
+
+  // ===================== ROUND 7: new blocks and board gimmicks =====================
+  on("fresh", (s) => { s.bonusRow = -1; s.bonusT = 15000; s.spot = null; s.spotT = 6000; s.pieceCount = 0; s.luckyLock = false; s.lockTimes = []; });
+  Object.assign(SPECIAL_COLOR, { bolt: "#7fe9ff", clock: "#8f7bff", x2: "#ff2e88", gem: "#1de9b6" });
+  MODS.special.push((sp) => {
+    if (sp) return undefined;
+    const r = Math.random();
+    return r < 0.03 ? "bolt" : r < 0.055 ? "clock" : r < 0.095 ? "x2" : r < 0.125 ? "gem" : undefined;
+  });
+  function glyph(ctx, px, py, s, text, color = "#fff") {
+    ctx.fillStyle = color; ctx.font = `700 ${Math.floor(s * 0.55)}px ${getComputedStyle(document.body).getPropertyValue("--f-num") || "monospace"}`;
+    ctx.textAlign = "center"; ctx.textBaseline = "middle"; ctx.fillText(text, px + s / 2, py + s / 2 + 1);
+  }
+  // R7-1 LIGHTNING block: clearing its row also zaps its whole column
+  CELL_DRAW.bolt = (ctx, px, py, s) => {
+    ctx.fillStyle = "#fff"; ctx.beginPath();
+    ctx.moveTo(px + s * 0.58, py + s * 0.12); ctx.lineTo(px + s * 0.3, py + s * 0.55); ctx.lineTo(px + s * 0.5, py + s * 0.55);
+    ctx.lineTo(px + s * 0.4, py + s * 0.9); ctx.lineTo(px + s * 0.72, py + s * 0.42); ctx.lineTo(px + s * 0.52, py + s * 0.42); ctx.closePath(); ctx.fill();
+  };
+  on("clear", (info) => {
+    const cols = [...new Set(info.cells.flat().filter((c) => c.bolt).map((c) => c.x))];
+    if (!cols.length) return;
+    let zapped = 0;
+    cols.forEach((x) => {
+      for (let y = 0; y < ROWS; y++) {
+        if (info.rows.includes(y) || !S.board[y][x]) continue;
+        burst(x, y, "#7fe9ff", 4, 6, "spark"); S.board[y][x] = null; zapped++;
+      }
+      const r = boardCv.getBoundingClientRect(), [cx] = toClient(x, 0);
+      parts.push({ x: cx, y: r.top, life: 0, max: 380, kind: "bolt", upd() {}, drw(ctx, p) {
+        ctx.globalAlpha = 1 - p.life / p.max; ctx.strokeStyle = "#dff9ff"; ctx.lineWidth = 3; ctx.shadowColor = "#7fe9ff"; ctx.shadowBlur = 18;
+        ctx.beginPath(); let yy = r.top; ctx.moveTo(p.x, yy);
+        while (yy < r.bottom) { yy += 18; ctx.lineTo(p.x + (Math.random() - 0.5) * cell * 0.8, yy); }
+        ctx.stroke(); ctx.shadowBlur = 0; } });
+    });
+    const pts = zapped * 100 * S.level; addScore(pts);
+    popup("THUNDER!", "cyan", 30, `縦一列を消した +${pts.toLocaleString()}`);
+    noise(0.4, 0.3, 0, 2500); tone(3000, 0.3, "sawtooth", 0.06, 0, 200); rgbSplit(6);
+  });
+  // R7-2 CLOCK block: clearing it stops time for 6 seconds
+  CELL_DRAW.clock = (ctx, px, py, s) => {
+    ctx.strokeStyle = "#fff"; ctx.lineWidth = Math.max(1.5, s * 0.08);
+    ctx.beginPath(); ctx.arc(px + s / 2, py + s / 2, s * 0.28, 0, 7); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(px + s / 2, py + s / 2); ctx.lineTo(px + s / 2, py + s * 0.3);
+    ctx.moveTo(px + s / 2, py + s / 2); ctx.lineTo(px + s * 0.66, py + s / 2); ctx.stroke();
+  };
+  MODS.gravity.push(() => (hasBuff("timestop") ? 60 : 1));
+  on("clear", (info) => {
+    if (!info.cells.flat().some((c) => c.clock)) return;
+    addBuff("timestop", "TIME STOP", 6000, "");
+    popup("TIME STOP!", "cyan huge", 36, "6秒間ミノが落ちない");
+    [72, 67, 64, 60].forEach((m, i) => tone(mtof(m), 0.25, "sine", 0.12, i * 0.1));
+    document.body.classList.add("timestop");
+  });
+  on("buffEnd", (id) => { if (id === "timestop") document.body.classList.remove("timestop"); });
+  on("start", () => document.body.classList.remove("timestop"));
+  // R7-3 ×2 block: doubles the score of the clear it is part of (stacks)
+  CELL_DRAW.x2 = (ctx, px, py, s) => glyph(ctx, px, py, s, "×2");
+  on("clearCalc", (info) => {
+    const n = info.cells.flat().filter((c) => c.x2).length;
+    if (!n) return;
+    info.pts *= Math.pow(2, n); info.tags.push(`×2 BLOCK ×${Math.pow(2, n)}`);
+    tone(mtof(84), 0.1, "square", 0.1); tone(mtof(96), 0.2, "square", 0.1, 0.1);
+  });
+  // R7-4 GEM block: coins and XP when cleared
+  CELL_DRAW.gem = (ctx, px, py, s) => {
+    const cx = px + s / 2, cy = py + s / 2, r = s * 0.3, tw = 0.8 + 0.2 * Math.sin(S.time / 120);
+    ctx.fillStyle = "#e0fff8"; ctx.beginPath();
+    ctx.moveTo(cx, cy - r * tw); ctx.lineTo(cx + r, cy - r * 0.2); ctx.lineTo(cx, cy + r); ctx.lineTo(cx - r, cy - r * 0.2); ctx.closePath(); ctx.fill();
+  };
+  on("clear", (info) => {
+    const n = info.cells.flat().filter((c) => c.gem).length;
+    if (!n) return;
+    addCoins(5 * n, toClient(4.5, info.rows[0])); addXP(20 * n);
+    popup("GEM!", "lime", 25, `コイン+${5 * n}`);
+    [0, 12, 7, 19].forEach((s, i) => tone(mtof(84 + s), 0.08, "sine", 0.1, i * 0.04));
+  });
+  // R7-5 BONUS ROW: a glowing row pays ×3 if you clear it
+  on("tick", (dt) => {
+    if (S.bonusRow >= 0) return;
+    S.bonusT -= dt;
+    if (S.bonusT > 0) return;
+    S.bonusRow = ROWS - 1 - ((Math.random() * 6) | 0);
+    popup("BONUS ROW!", "gold small", 70, "光る段を消すと×3");
+  });
+  on("drawUnder", (ctx, W) => {
+    if (S.bonusRow < HID) return;
+    const a = 0.18 + 0.12 * Math.sin(S.time / 150);
+    ctx.fillStyle = `rgba(255,210,63,${a})`; ctx.fillRect(0, (S.bonusRow - HID) * cell, W, cell);
+    ctx.strokeStyle = "rgba(255,210,63,.8)"; ctx.lineWidth = 2; ctx.strokeRect(1, (S.bonusRow - HID) * cell + 1, W - 2, cell - 2);
+  });
+  on("clearCalc", (info) => {
+    if (S.bonusRow < 0 || !info.rows.includes(S.bonusRow)) return;
+    info.pts *= 3; info.tags.push("BONUS ROW ×3");
+    sfx.coin(); setTimeout(sfx.coin, 120); setTimeout(sfx.coin, 240);
+  });
+  on("afterClear", (rows) => {
+    if (S.bonusRow < 0) return;
+    if (rows.includes(S.bonusRow)) { S.bonusRow = -1; S.bonusT = 12000 + Math.random() * 10000; return; }
+    S.bonusRow += rows.filter((r) => r > S.bonusRow).length;
+  });
+  // R7-6 LUCKY SPOT: cover the blinking star with a block for a prize
+  function pickSpot() {
+    const opts = [];
+    for (let x = 0; x < COLS; x++) {
+      let y = ROWS - 1; while (y >= HID && S.board[y][x]) y--;
+      if (y >= HID + 6) opts.push({ x, y });
+    }
+    S.spot = opts.length ? opts[(Math.random() * opts.length) | 0] : null;
+    S.spotT = 20000;
+  }
+  on("tick", (dt) => {
+    S.spotT -= dt;
+    if (S.spot && S.board[S.spot.y][S.spot.x]) { S.spot = null; S.spotT = 3000; }
+    if (S.spotT <= 0) pickSpot();
+  });
+  on("lock", (placed) => {
+    if (!S.spot) return;
+    if (!placed.some((p) => p.x === S.spot.x && p.y === S.spot.y)) return;
+    const pts = 800 * S.level; addScore(pts);
+    const [cx, cy] = toClient(S.spot.x, S.spot.y);
+    burstAt(cx, cy, "#ffd23f", 30, 5); ring(cx, cy, "#ffd23f", cell * 3);
+    floater(`LUCKY! +${pts.toLocaleString()}`, S.spot.x, S.spot.y, "big");
+    addCoins(2, [cx, cy]);
+    [0, 4, 7, 12, 16].forEach((s, i) => tone(mtof(84 + s), 0.07, "square", 0.08, i * 0.04));
+    S.spot = null; S.spotT = 5000;
+  });
+  on("drawUnder", (ctx) => {
+    if (!S.spot || S.spot.y < HID) return;
+    const cx = (S.spot.x + 0.5) * cell, cy = (S.spot.y - HID + 0.5) * cell, r = cell * (0.28 + 0.08 * Math.sin(S.time / 100));
+    ctx.fillStyle = `rgba(255,210,63,${0.55 + 0.35 * Math.sin(S.time / 100)})`;
+    ctx.beginPath();
+    for (let i = 0; i < 10; i++) { const a = -Math.PI / 2 + (i * Math.PI) / 5, rr = i % 2 ? r * 0.45 : r; ctx.lineTo(cx + Math.cos(a) * rr, cy + Math.sin(a) * rr); }
+    ctx.closePath(); ctx.fill();
+  });
+  // R7-7 every 7th piece is a LUCKY PIECE: clear a line with it for ×7
+  on("spawn", (p) => { S.pieceCount++; if (S.pieceCount % 7 === 0) { p.lucky = true; tone(mtof(91), 0.2, "triangle", 0.1); } });
+  on("drawOver", (ctx) => {
+    if (!S.cur || !S.cur.lucky) return;
+    ctx.lineWidth = 3;
+    eachCell(S.cur, (x, y) => {
+      if (y < HID) return;
+      ctx.strokeStyle = `hsl(${(S.time * 0.5 + x * 40 + y * 40) % 360} 100% 65%)`;
+      ctx.strokeRect(x * cell + 1.5, (y - HID) * cell + 1.5, cell - 3, cell - 3);
+    });
+  });
+  on("preLock", (p) => { S.luckyLock = !!(p && p.lucky); });
+  on("clearCalc", (info) => {
+    if (!S.luckyLock) return;
+    info.pts *= 7; info.tags.push("LUCKY 7 ×7"); S.luckyLock = false;
+    setTimeout(() => { popup("LUCKY 7!!", "gold huge", 30, "スコア7倍"); fireworks(3); }, 150);
+  });
+  on("noClear", () => { if (S.luckyLock) { S.luckyLock = false; popup("おしい…", "cyan small", 60, "ラッキーミノ"); } });
+  // R7-8 SPEED STREAK: place pieces quickly for a ×1.2 flow bonus
+  MODS.score.push(() => (hasBuff("speed") ? 1.2 : 1));
+  on("lock", () => {
+    const now = S.time;
+    S.lockTimes = S.lockTimes.filter((t) => now - t < 6000); S.lockTimes.push(now);
+    if (S.lockTimes.length >= 6) {
+      if (!hasBuff("speed")) { popup("SPEED STREAK!", "cyan small", 78, "テンポよく置いて×1.2"); tone(mtof(88), 0.12, "sawtooth", 0.07, 0, mtof(100)); }
+      addBuff("speed", "SPEED ×1.2", 2000, "lime");
+    }
+  });
 
   // Demo board behind the start screen so the first frame already shows the game.
   (function demo() {
