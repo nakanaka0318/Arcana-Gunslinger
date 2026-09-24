@@ -312,6 +312,57 @@
   /* ---- Round 4 ---- */
   body.danger .bg { box-shadow: inset 0 0 120px rgba(255,59,92,.45); animation: dangerPulse .9s ease-in-out infinite; }
   @keyframes dangerPulse { 50% { box-shadow: inset 0 0 60px rgba(255,59,92,.2); } }
+  /* ---- Round 5 ---- */
+  .meta { display: flex; align-items: center; gap: 8px; margin-top: 6px; font: 700 11px/1 var(--f-num); }
+  .rank { color: var(--cyan); letter-spacing: .06em; }
+  .xp { width: 70px; height: 6px; border-radius: 3px; background: #0c0717; border: 1px solid var(--line); overflow: hidden; }
+  .xp span { display: block; height: 100%; width: 0%; background: linear-gradient(90deg, var(--cyan), var(--lime)); transition: width .4s; }
+  .coins { color: var(--gold); }
+  .rank.bump, .coins.bump { animation: bump .25s ease-out; }
+  .mission {
+    position: absolute; left: 8px; right: 8px; top: 8px; z-index: 2; pointer-events: none;
+    background: rgba(10, 6, 18, .62); border: 1px solid rgba(125,255,90,.45); border-radius: 8px; padding: 4px 7px;
+    display: flex; flex-direction: column; gap: 3px;
+  }
+  .mission.bump { animation: bump .3s ease-out; }
+  .mission.done { border-color: var(--gold); box-shadow: 0 0 18px rgba(255,210,63,.6); }
+  .m-text { font: 800 11px/1.2 var(--f-body); color: var(--lime); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .m-bar { height: 4px; border-radius: 2px; background: rgba(255,255,255,.12); overflow: hidden; }
+  .m-bar div { height: 100%; width: 0%; background: var(--lime); transition: width .25s; }
+  .buffs { position: absolute; left: 8px; top: 50px; z-index: 2; display: flex; flex-direction: column; gap: 4px; pointer-events: none; align-items: flex-start; }
+  .buff { font: 700 10px/1 var(--f-num); letter-spacing: .04em; padding: 4px 6px; border-radius: 6px; background: rgba(34,228,255,.85); color: #0a0612; }
+  .buff.gold { background: rgba(255,210,63,.92); }
+  .buff.pink { background: rgba(255,46,136,.92); color: #fff; }
+  .buff.lime { background: rgba(125,255,90,.9); }
+  .chest {
+    position: absolute; right: 12px; top: 46px; z-index: 3; width: 46px; height: 38px; pointer-events: none;
+    background: linear-gradient(#b8651e, #7a3a0c); border: 3px solid var(--gold); border-radius: 6px 6px 4px 4px;
+    box-shadow: 0 0 24px rgba(255,210,63,.7);
+  }
+  .chest::before { content: ""; position: absolute; left: -3px; right: -3px; top: -3px; height: 14px; background: linear-gradient(#d9822e, #9c4e14); border: 3px solid var(--gold); border-radius: 8px 8px 2px 2px; transform-origin: 0 100%; transition: transform .3s; }
+  .chest::after { content: ""; position: absolute; left: 50%; top: 8px; width: 8px; height: 10px; margin-left: -4px; background: var(--gold); border-radius: 2px; }
+  .chest.shaking { animation: chestShake .12s linear infinite; }
+  .chest.open::before { transform: rotate(-40deg) translateY(-6px); }
+  .chest.open { box-shadow: 0 -10px 40px rgba(255,240,150,.95); }
+  @keyframes chestShake { 25% { transform: rotate(-6deg); } 75% { transform: rotate(6deg); } }
+  .result { display: grid; grid-template-columns: auto auto; gap: 4px 14px; align-items: center; justify-items: start; }
+  .grade { grid-row: span 4; font: 400 64px/1 var(--f-display); color: var(--gold); text-shadow: 4px 4px 0 var(--pink), 0 0 30px rgba(255,210,63,.6); animation: gradeIn .6s cubic-bezier(.2,1.8,.4,1) .9s both; }
+  .grade.gS { color: #fff; text-shadow: 4px 4px 0 var(--pink), 0 0 40px var(--gold); }
+  .grade.gC { color: var(--mute); }
+  @keyframes gradeIn { 0% { opacity: 0; transform: scale(3) rotate(-20deg); } 100% { opacity: 1; transform: none; } }
+  .rrow { display: flex; gap: 10px; font: 700 12px/1 var(--f-num); color: var(--mute); animation: rrow .3s ease-out both; }
+  .rrow b { color: var(--text); }
+  @keyframes rrow { from { opacity: 0; transform: translateX(-10px); } }
+  @media (max-width: 720px) {
+    .meta { margin-top: 3px; font-size: 9px; gap: 5px; }
+    .xp { width: 44px; }
+    .mission { left: 4px; right: 4px; top: 4px; padding: 3px 5px; }
+    .m-text { font-size: 9px; }
+    .buffs { top: 36px; left: 4px; }
+    .buff { font-size: 8px; padding: 3px 4px; }
+    .chest { top: 36px; right: 6px; transform: scale(.8); }
+    .grade { font-size: 48px; }
+  }
   @media (prefers-reduced-motion: reduce) {
     body.fever .bg, .gauge-fill, .big { animation: none; }
   }
@@ -325,6 +376,7 @@
     <div>
       <h1 class="logo">DOPA<span>TRIS</span></h1>
       <p class="tag">ドーパミンがドパドパ出るテトリス</p>
+      <div class="meta"><span class="rank" id="rankChip">RANK 1</span><span class="xp" aria-hidden="true"><span id="xpFill"></span></span><span class="coins" id="coinChip">◎ 0</span></div>
     </div>
     <div class="tools">
       <button class="btn" id="pauseBtn" type="button" aria-label="ポーズ">II</button>
@@ -349,6 +401,9 @@
     <div class="board-wrap" id="boardWrap">
       <canvas id="board" aria-label="ゲーム盤面"></canvas>
       <div class="flash" id="flash"></div>
+      <div class="mission" id="mission" hidden><div class="m-text" id="mText"></div><div class="m-bar"><div id="mFill"></div></div></div>
+      <div class="buffs" id="buffs"></div>
+      <div class="chest" id="chest" hidden></div>
       <div class="pops" id="pops"></div>
 
       <div class="overlay" id="startOv">
@@ -380,6 +435,7 @@
         <h2>GAME OVER</h2>
         <div class="final" id="finalScore">0</div>
         <p id="finalInfo"></p>
+        <div class="result" id="resultExtra"></div>
         <button class="big" id="retryBtn" type="button">もう一回!</button>
       </div>
     </div>
@@ -1785,6 +1841,233 @@
     if (s % 8 === 0) tone(62, 0.16, "sine", 0.55, w, 40);
     if (s % 8 === 1) tone(55, 0.14, "sine", 0.4, w + 0.04, 35);
   });
+
+  // ===================== ROUND 5: reward systems =====================
+  const meta = { xp: store.get("dopatris-xp", 0), rank: store.get("dopatris-rank", 1), coins: store.get("dopatris-coins", 0) };
+  const xpNeed = (r) => 200 + r * 150;
+  on("fresh", (s) => {
+    s.coins = 0; s.xpGain = 0; s.linesSinceChest = 0; s.chests = 0; s.saver = true;
+    s.mission = null; s.missionsDone = 0; s.buffs = []; s.fevers = 0;
+  });
+  function saveMeta() { store.set("dopatris-xp", meta.xp); store.set("dopatris-rank", meta.rank); store.set("dopatris-coins", meta.coins); }
+  function renderMeta() {
+    $("rankChip").textContent = `RANK ${meta.rank}`;
+    $("xpFill").style.width = Math.min(100, (meta.xp / xpNeed(meta.rank)) * 100) + "%";
+    $("coinChip").textContent = `◎ ${meta.coins.toLocaleString()}`;
+  }
+  function bumpEl(el) { el.classList.remove("bump"); void el.offsetWidth; el.classList.add("bump"); }
+
+  // R5-1 coins: a wallet that fills up across games
+  function addCoins(n, from) {
+    S.coins += n; meta.coins += n; saveMeta();
+    const t = $("coinChip").getBoundingClientRect(), tx = t.left + t.width / 2, ty = t.top + t.height / 2;
+    const [sx, sy] = from || toClient(4.5, HID + 8);
+    for (let i = 0; i < Math.min(n, 14); i++) {
+      parts.push({ x: sx, y: sy, vx: (Math.random() - 0.5) * 7, vy: -3 - Math.random() * 4, life: 0, max: 1800, delay: 250 + i * 25, kind: "coinfly", color: "#ffd23f", size: 5,
+        upd(p, k) {
+          if (p.life < p.delay) { p.x += p.vx * k; p.y += p.vy * k; p.vy += 0.25 * k; return; }
+          const dx = tx - p.x, dy = ty - p.y, d = Math.hypot(dx, dy), sp = Math.min(d, 9 * k);
+          p.x += (dx / (d || 1)) * sp; p.y += (dy / (d || 1)) * sp;
+          if (d < 8) { p.life = p.max; sfx.blip(); renderMeta(); bumpEl($("coinChip")); }
+        },
+        drw(ctx, p) { ctx.globalAlpha = 1; ctx.fillStyle = "#ffd23f"; ctx.strokeStyle = "#b86b00"; ctx.lineWidth = 1.5; ctx.beginPath(); ctx.arc(p.x, p.y, p.size, 0, 7); ctx.fill(); ctx.stroke(); } });
+    }
+    if (meta.coins >= 100) unlock("coins100");
+  }
+  on("clear", (info) => { if (info.golds) addCoins(info.golds * 3, toClient(4.5, info.rows[0])); });
+  on("slot", (res) => {
+    const r = $("pSlot").getBoundingClientRect(), at = [r.left + r.width / 2, r.top + r.height / 2];
+    if (res[0] === res[1] && res[1] === res[2]) addCoins(res[0] === "7" ? 30 : 8, at);
+    else if (res[0] === res[1] || res[1] === res[2] || res[0] === res[2]) addCoins(1, at);
+  });
+
+  // R5-2 XP and a persistent player rank that levels up mid-game
+  function addXP(n) {
+    S.xpGain += n; meta.xp += n;
+    while (meta.xp >= xpNeed(meta.rank)) {
+      meta.xp -= xpNeed(meta.rank); meta.rank++;
+      const r = meta.rank;
+      setTimeout(() => { popup(`RANK UP! ${r}`, "gold huge", 32, rankTitle(r)); fireworks(5); sfx.fanfare(); bumpEl($("rankChip")); }, 700);
+      unlock("rankup");
+    }
+    saveMeta(); renderMeta();
+  }
+  // Titles are expanded in a later round; this is the base list.
+  function rankTitle(r) { return ["見習い", "ルーキー", "ブロック使い", "ラインハンター", "コンボ職人", "フィーバー王", "ドーパミン中毒", "伝説"][Math.min(7, Math.floor((r - 1) / 3))]; }
+  on("clear", (info) => addXP(info.n * 10 + info.combo * 5 + (info.n >= 4 ? 30 : 0)));
+  on("fever", () => addXP(30));
+
+  // Buffs: timed bonuses shown as chips on the board (events in later rounds use these too)
+  function addBuff(id, label, ms, cls = "") {
+    const b = S.buffs.find((x) => x.id === id);
+    if (b) { b.t = Math.max(b.t, ms); b.max = Math.max(b.max, ms); return b; }
+    const nb = { id, label, t: ms, max: ms, cls };
+    S.buffs.push(nb); return nb;
+  }
+  const hasBuff = (id) => S.buffs.some((b) => b.id === id);
+  on("tick", (dt) => {
+    S.buffs.forEach((b) => { b.t -= dt; });
+    const ended = S.buffs.filter((b) => b.t <= 0);
+    S.buffs = S.buffs.filter((b) => b.t > 0);
+    ended.forEach((b) => emit("buffEnd", b.id));
+  });
+  let buffHtml = "";
+  on("frame", () => {
+    const html = S.started && !S.over ? S.buffs.map((b) => `<span class="buff ${b.cls}">${b.label} ${Math.ceil(b.t / 1000)}s</span>`).join("") : "";
+    if (html !== buffHtml) { $("buffs").innerHTML = html; buffHtml = html; }
+  });
+
+  // R5-3 missions: always one short goal on screen, with a reward
+  const MISSIONS = [
+    { t: "ラインを{n}本消せ", n: [4, 6, 8], ev: "clear", f: (i) => i.n },
+    { t: "{n}コンボを決めろ", n: [2, 3, 4], ev: "clear", f: (i) => i.combo, max: true },
+    { t: "ハードドロップ{n}回", n: [6, 10, 14], ev: "hard", f: () => 1 },
+    { t: "ホールドを{n}回使え", n: [2, 3, 4], ev: "hold", f: () => 1 },
+    { t: "ボムを{n}回爆発させろ", n: [1, 1, 2], ev: "bomb", f: () => 1 },
+    { t: "金ブロックを{n}個消せ", n: [1, 2, 3], ev: "clear", f: (i) => i.golds },
+    { t: "2ライン以上を{n}回同時消し", n: [1, 2, 3], ev: "clear", f: (i) => (i.n >= 2 ? 1 : 0) },
+    { t: "20秒で{n}ライン!", n: [3, 4, 5], ev: "clear", f: (i) => i.n, time: 20000 },
+    { t: "スロットでペア以上を{n}回", n: [1, 2, 2], ev: "slot", f: (r) => (r[0] === r[1] || r[1] === r[2] || r[0] === r[2] ? 1 : 0) },
+  ];
+  function newMission() {
+    const tier = Math.min(2, Math.floor(S.missionsDone / 2));
+    let def;
+    do { def = MISSIONS[(Math.random() * MISSIONS.length) | 0]; } while (S.mission && def === S.mission.def);
+    S.mission = { def, goal: def.n[tier], prog: 0, time: def.time || 0 };
+    renderMission(true);
+  }
+  function renderMission(fresh) {
+    const m = S.mission, el = $("mission");
+    if (!m) { el.hidden = true; return; }
+    el.hidden = false;
+    $("mText").textContent = "MISSION  " + m.def.t.replace("{n}", m.goal) + (m.time ? `  ${Math.ceil(m.time / 1000)}s` : "");
+    $("mFill").style.width = Math.min(100, (m.prog / m.goal) * 100) + "%";
+    if (fresh) bumpEl(el);
+  }
+  function missionEvent(ev, a) {
+    const m = S.mission;
+    if (!m || m.def.ev !== ev || !S.started || S.over) return;
+    const v = m.def.f(...a) || 0;
+    m.prog = m.def.max ? Math.max(m.prog, v) : m.prog + v;
+    if (m.prog >= m.goal) completeMission(); else renderMission();
+  }
+  ["clear", "hard", "hold", "bomb", "slot"].forEach((ev) => on(ev, (...a) => missionEvent(ev, a)));
+  function completeMission() {
+    S.missionsDone++;
+    const pts = 2000 * S.level; addScore(pts);
+    popup("MISSION CLEAR!", "lime huge", 30, `+${pts.toLocaleString()} ・ コイン+5 ・ フィーバー+25`);
+    addCoins(5, (() => { const r = $("mission").getBoundingClientRect(); return [r.left + r.width / 2, r.top + r.height / 2]; })());
+    addGauge(25); addXP(60);
+    sfx.fanfare(); fireworks(2); buzz([20, 20, 60]);
+    $("mFill").style.width = "100%"; $("mission").classList.add("done");
+    S.mission = null;
+    setTimeout(() => { $("mission").classList.remove("done"); if (S.started && !S.over) newMission(); }, 1600);
+    if (S.missionsDone >= 3) unlock("mission3");
+    emit("mission");
+  }
+  on("tick", (dt) => {
+    const m = S.mission;
+    if (!m || !m.time) return;
+    const before = Math.ceil(m.time / 1000);
+    m.time -= dt;
+    if (m.time <= 0) { popup("おしい! 次のミッション!", "cyan small", 20); S.mission = null; setTimeout(() => S.started && !S.over && newMission(), 900); renderMission(); }
+    else if (Math.ceil(m.time / 1000) !== before) renderMission();
+  });
+  on("start", () => setTimeout(() => S.started && !S.over && newMission(), 1500));
+
+  // R5-4 treasure chest every 8 lines
+  const CHEST_REWARDS = [
+    ["コイン +12", () => addCoins(12, chestPos())],
+    ["スコア +3,000×Lv", () => addScore(3000 * S.level)],
+    ["フィーバー +50%", () => addGauge(50)],
+    ["次の3個がボム!", () => { S.queue.slice(0, 3).forEach((q) => { q.special = "bomb"; }); drawPreviews(); }],
+    ["スロット無料スピン", () => spinSlot()],
+    ["下2列を消去!", () => clearBottom(2)],
+  ];
+  const chestPos = () => { const r = $("chest").getBoundingClientRect(); return [r.left + r.width / 2, r.top + r.height / 2]; };
+  function clearBottom(n) {
+    if (S.clearing) { setTimeout(() => clearBottom(n), 300); return; }
+    for (let i = 0; i < n; i++) {
+      const row = S.board[ROWS - 1];
+      row.forEach((c, x) => c && burst(x, ROWS - 1, COLORS[c.c], 5, 7));
+      S.board.splice(ROWS - 1, 1); S.board.unshift(Array(COLS).fill(null));
+    }
+    if (S.cur) while (collide(S.cur.m, S.cur.x, S.cur.y) && S.cur.y > 0) S.cur.y--;
+    sfx.boom(); shake(10);
+  }
+  function openChest() {
+    const el = $("chest");
+    el.hidden = false; el.className = "chest shaking";
+    tone(mtof(60), 0.1, "square", 0.08); tone(mtof(64), 0.1, "square", 0.08, 0.3); tone(mtof(67), 0.1, "square", 0.08, 0.6);
+    setTimeout(() => {
+      if (!S.started || S.over) { el.hidden = true; return; }
+      el.className = "chest open";
+      const [label, fn] = CHEST_REWARDS[(Math.random() * CHEST_REWARDS.length) | 0];
+      fn(); addXP(20);
+      const [cx, cy] = chestPos();
+      burstAt(cx, cy, "#ffd23f", 40, 6); burstAt(cx, cy, "#fff", 16, 3);
+      popup("TREASURE!", "gold", 36, label);
+      sfx.jackpot(); buzz([30, 30, 60]);
+      S.chests++; unlock("chest");
+      setTimeout(() => { el.hidden = true; }, 1400);
+    }, 1100);
+  }
+  on("clear", (info) => {
+    S.linesSinceChest += info.n;
+    if (S.linesSinceChest >= 8) { S.linesSinceChest -= 8; setTimeout(openChest, 500); }
+  });
+
+  // R5-5 first game of the day doubles your score for 60 seconds
+  MODS.score.push(() => (hasBuff("daily") ? 2 : 1));
+  on("start", () => {
+    const today = new Date().toDateString();
+    if (store.get("dopatris-daily", "") === today) return;
+    store.set("dopatris-daily", today);
+    addBuff("daily", "DAILY ×2", 60000, "gold");
+    setTimeout(() => popup("今日の初プレイ!", "gold", 58, "60秒間スコア2倍"), 900);
+  });
+
+  // R5-6 combo saver: once per game a 3+ combo survives a miss
+  on("noClear", (placed, lost) => {
+    if (lost < 3 || !S.saver) return;
+    S.saver = false; S.combo = lost;
+    popup("COMBO SAVER!", "cyan", 50, `${lost}コンボを守った! (1回限り)`);
+    tone(mtof(84), 0.08, "square", 0.1); tone(mtof(91), 0.2, "square", 0.1, 0.08);
+  });
+
+  // R5-7 ten more achievements
+  Object.assign(ACH, {
+    spin: ["スピンマスター", "SPINを決めた"], clutch: ["崖っぷち", "CLUTCHで消した"], chest: ["トレジャー", "宝箱を開けた"],
+    mission3: ["ミッション達成者", "1ゲームで3ミッション"], combo10: ["コンボの鬼", "10コンボを達成"], coins100: ["小金持ち", "コインを100枚貯めた"],
+    record: ["記録更新", "プレイ中に自己ベスト更新"], fever3: ["フィーバー中毒", "1ゲームで3回フィーバー"], lv10: ["レベル10", "レベル10に到達"],
+    rankup: ["ランクアップ", "プレイヤーランクが上がった"],
+  });
+  on("clearCalc", (info) => { if (info.tags.some((t) => t.includes("SPIN"))) unlock("spin"); if (info.tags.some((t) => t.includes("CLUTCH"))) unlock("clutch"); });
+  on("noClear", () => { if (S.pendingSpin) unlock("spin"); });
+  on("clear", (info) => { if (info.combo >= 10) unlock("combo10"); });
+  on("score", () => { if (S.recordShown) unlock("record"); });
+  on("fever", () => { if (++S.fevers >= 3) unlock("fever3"); });
+  on("level", (lv) => { if (lv >= 10) unlock("lv10"); });
+
+  // R5-8 animated result screen: count-up, grade, rewards
+  on("over", () => {
+    const grade = S.score >= 300000 ? "S" : S.score >= 100000 ? "A" : S.score >= 30000 ? "B" : "C";
+    addXP(Math.floor(S.score / 500));
+    const rows = [
+      ["MISSIONS", S.missionsDone], ["CHESTS", S.chests], ["COINS", `+${S.coins}`], ["XP", `+${S.xpGain}`],
+    ];
+    $("resultExtra").innerHTML = `<div class="grade g${grade}">${grade}</div>` +
+      rows.map(([k, v], i) => `<div class="rrow" style="animation-delay:${0.5 + i * 0.18}s"><span>${k}</span><b>${v}</b></div>`).join("");
+    const el = $("finalScore"), target = S.score, t0 = performance.now();
+    (function count(now) {
+      const t = Math.min(1, (now - t0) / 1200);
+      el.textContent = Math.floor(target * (1 - Math.pow(1 - t, 3))).toLocaleString();
+      if (t < 1 && !$("overOv").hidden) requestAnimationFrame(count);
+    })(t0);
+    for (let i = 0; i < 12; i++) tone(mtof(72 + i * 2), 0.04, "square", 0.05, i * 0.09);
+    setTimeout(() => { if (grade === "S" || grade === "A") { confetti(140); fireworks(4); } tone(mtof(grade === "S" ? 96 : 84), 0.4, "triangle", 0.15); }, 1200);
+  });
+  renderMeta();
 
   // Demo board behind the start screen so the first frame already shows the game.
   (function demo() {
