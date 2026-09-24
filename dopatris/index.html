@@ -448,6 +448,32 @@
     .toast .t3 { display: none; }
     .toast:nth-last-child(n+3) { display: none; }
   }
+  /* ---- Round 10 ---- */
+  .sweep {
+    position: fixed; inset: 0; z-index: 18; pointer-events: none;
+    background: linear-gradient(90deg, transparent, hsl(var(--hue) 100% 65% / .55), rgba(255,255,255,.5), hsl(calc(var(--hue) + 60) 100% 65% / .55), transparent);
+    animation: sweep .75s ease-in-out forwards;
+  }
+  @keyframes sweep { from { transform: translateX(-100%); } to { transform: translateX(100%); } }
+  body.zone .bg { filter: grayscale(1) brightness(.5); }
+  body.zone #stars { opacity: .25; }
+  body.zone .side, body.zone .top { filter: grayscale(.8) brightness(.7); }
+  body.zone .board-wrap { background: #fff; box-shadow: 0 0 60px rgba(255,255,255,.7); }
+  .dopa { display: flex; flex-direction: column; gap: 2px; margin-top: 2px; }
+  .dopa span { font: 700 9px/1 var(--f-num); letter-spacing: .1em; color: var(--pink); }
+  .dbar { height: 6px; border-radius: 3px; background: #0c0717; overflow: hidden; }
+  .dbar div { height: 100%; width: 0%; background: linear-gradient(90deg, #c86bff, var(--pink)); transition: width .3s; }
+  .reel.premium { background: linear-gradient(135deg, #ff2e88, #ffd23f, #7dff5a, #22e4ff, #c86bff); background-size: 300% 300%; animation: premium .5s linear infinite; }
+  @keyframes premium { to { background-position: 300% 0; } }
+  @media (max-width: 720px) { .dopa span { font-size: 7px; } .dbar { height: 4px; } }
+  .more { margin-top: 12px; border: 1px solid var(--line); border-radius: 10px; background: color-mix(in srgb, var(--panel) 85%, transparent); padding: 10px 12px; }
+  .more summary { cursor: pointer; font: 400 15px/1.3 var(--f-display); color: var(--gold); }
+  .more h3 { margin: 12px 0 6px; font-size: 14px; color: var(--text); }
+  .more p, .more li { font-size: 12px; line-height: 1.6; color: var(--mute); }
+  .more p { margin: 0 0 4px; }
+  .more ul { margin: 0; padding-left: 18px; }
+  .more li b { color: var(--text); }
+  .rounds { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 4px 16px; }
   @media (prefers-reduced-motion: reduce) {
     body.fever .bg, .gauge-fill, .big { animation: none; }
   }
@@ -539,6 +565,7 @@
         <h2>FEVER</h2>
         <div class="gauge"><div class="gauge-fill" id="gaugeFill"></div></div>
         <span class="gauge-label" id="gaugeLabel">0%</span>
+        <div class="dopa"><span>DOPAMINE</span><div class="dbar"><div id="dopaFill"></div></div></div>
       </section>
       <section class="panel" id="pSlot">
         <h2>SLOT</h2>
@@ -581,6 +608,31 @@
       <li><b>実績アンロック</b>プレイ中に11個のトロフィーが次々と解除される。</li>
       <li><b>レベルごとのテーマチェンジ</b>レベルが上がるたびに背景色とBGMのキーが変わり、テンポも上がる。</li>
     </ol>
+    <details class="more">
+      <summary>さらに追加した演出 80(8個 × 10ラウンド)</summary>
+      <div class="design">
+      <h3>ドーパミンが途切れない設計</h3>
+      <p>ごほうびの間隔を3つの時間スケールで重ねています。</p>
+      <ul>
+        <li><b>毎秒</b>：動かす・回す・置くたびに音と光が返ってくる(操作音が音楽になる、衝撃波、残像)。</li>
+        <li><b>数秒〜数十秒</b>：ライン消し、スロット、ミッション、宝箱(8ライン毎)、ラッキーミノ(7個毎)、BONUS ROW、ラッキースポット。9秒ごほうびが無いとディレクターがサプライズギフトを出す。</li>
+        <li><b>30〜40秒</b>：ルーレットで選ばれるランダムイベントがプレイの手触りそのものを変える(速い/遅い/連鎖/金/ボム/棒祭り)。</li>
+        <li><b>ゲームをまたいで</b>：XPとランク、称号、スキン解放、コイン、累計記録、デイリーボーナス、連続プレイボーナス、次の目標の提示。</li>
+      </ul>
+    </div>
+      <div class="rounds">
+        <section><h3>ラウンド1：スコアの手応え</h3><ul><li>消した場所から得点が浮かび上がる</li><li>加算中のスコアが光る</li><li>プレイ中に自己ベストを超えると花火</li><li>スコアの節目(1万,2.5万…)で花火</li><li>消したブロックがスコア欄へ吸い込まれる</li><li>3コンボ以上で盤面の両脇に炎</li><li>LINES欄に「+n」チップ</li><li>コンボが続くと上昇チャイムと倍率が発光</li></ul></section>
+        <section><h3>ラウンド2：操作の気持ちよさ</h3><ul><li>回転で押し込むとSPINボーナス×2</li><li>着地の衝撃波リング</li><li>ソフトドロップの火花</li><li>ホールドでHOLD欄へワープ</li><li>NEXT欄がミノを送るたびに跳ねる</li><li>出現したミノが白く光ってポップイン</li><li>上ギリギリで消すとCLUTCH ×1.5</li><li>壁蹴り回転で「KICK!」</li></ul></section>
+        <section><h3>ラウンド3：盤面の演出</h3><ul><li>背景のワープ星空(レベル・コンボ・フィーバーで加速)</li><li>BGMのキックに合わせて枠が脈打つ</li><li>消えた段をレーザーが貫く</li><li>消した後にブロックを光の波が走る</li><li>3段以上でズームパンチ</li><li>大技でRGBずれフラッシュ</li><li>積み上がるほど盤面が赤く熱を帯びる</li><li>テトリス・全消しで虹の波</li></ul></section>
+        <section><h3>ラウンド4：音のごほうび</h3><ul><li>実況ボイス(テトリス!/フィーバー!など)</li><li>左右移動が今のコードの音階を奏でる</li><li>テトリスでベースドロップ</li><li>フィーバー中だけのリードメロディ</li><li>金・ボムのミノ出現時の効果音</li><li>ボムの導火線がチリチリ鳴る</li><li>ジャックポットでコインの滝</li><li>ピンチで心音が鳴る</li></ul></section>
+        <section><h3>ラウンド5：ごほうびシステム</h3><ul><li>コインの財布(飛んでくるコイン)</li><li>XPとプレイヤーランク(ゲームをまたいで成長)</li><li>常に1つのミッション(達成で報酬)</li><li>8ラインごとに宝箱</li><li>その日の初プレイは60秒スコア2倍</li><li>1ゲーム1回だけコンボを守るCOMBO SAVER</li><li>実績を10個追加(合計21)</li><li>リザルト画面(カウントアップ・評価S〜C)</li></ul></section>
+        <section><h3>ラウンド6：ドーパミン・ディレクター</h3><ul><li>9秒ごほうびが無いとサプライズギフト</li><li>30〜40秒ごとにイベントルーレット→カウントダウン</li><li>RUSH TIME(速い・×2)</li><li>SLOW MOTION(遅い・×1.5)</li><li>GOLD RUSH(全ミノに金)</li><li>BOMB PARTY(ボム大量)</li><li>I-MINO FESTIVAL(棒5連続・テトリス×2)</li><li>CASCADE TIME(浮きブロック落下で連鎖)</li></ul></section>
+        <section><h3>ラウンド7：新ブロックと仕掛け</h3><ul><li>稲妻ブロック(縦一列も消える)</li><li>時計ブロック(6秒時間停止)</li><li>×2ブロック(その消去が2倍、重ねると4倍)</li><li>宝石ブロック(コイン+XP)</li><li>光るBONUS ROW(消すと×3)</li><li>ラッキースポット(★をふさぐと賞金)</li><li>7個目ごとのラッキーミノ(消せば×7)</li><li>テンポよく置くとSPEED STREAK ×1.2</li></ul></section>
+        <section><h3>ラウンド8：お祝いビジュアル</h3><ul><li>打ち上げ花火</li><li>星とハートの紙吹雪</li><li>大見出しの後ろで光線が回る</li><li>大見出しが一文字ずつ跳ねる</li><li>リアクションするマスコット「ドパくん」</li><li>フィーバー中は画面の縁が虹色</li><li>盤面の奥に巨大コンボ数字</li><li>ハードドロップで盤面が沈む</li></ul></section>
+        <section><h3>ラウンド9：成長と目標</h3><ul><li>16段階の称号</li><li>自己ベストまでのゲージ(25%刻みで告知)</li><li>連続プレイボーナス</li><li>ゲームオーバー10秒以内の即リトライボーナス</li><li>ランクで解放されるスキン(NEON/CANDY/JEWEL/PIXEL)</li><li>累計ライン数の記念</li><li>スロットのリーチ演出と「おしい!」</li><li>リザルトに次の目標</li></ul></section>
+        <section><h3>ラウンド10：仕上げ</h3><ul><li>移動・回転の残像</li><li>レベルアップで画面を色が横切る</li><li>フィーバー終了時の成績発表</li><li>8コンボ以上でZONE(周りがモノクロに)</li><li>2.5秒以内の連続消しでQUICK ×1.3</li><li>ドーパミンメーター(満タンでDOPAMINE MAX)</li><li>振動パターンを増やした(Android)</li><li>ときどき虹色の激アツ・プレミアムスピン(777確率4倍)</li></ul></section>
+      </div>
+    </details>
   </section>
 </div>
 
@@ -1052,7 +1104,7 @@
     if (S.spinning) return;
     S.spinning = true;
     const id = ++S.slotId;
-    const r = Math.random(), jp = S.fever ? 0.09 : 0.045;
+    const r = Math.random(), jp = (S.fever ? 0.09 : 0.045) * (S.premium ? 4 : 1);
     let res;
     if (r < jp) res = ["7", "7", "7"];
     else if (r < jp + 0.12) { const s = SYMS[1 + ((Math.random() * 5) | 0)]; res = [s, s, s]; }
@@ -2733,6 +2785,92 @@
   });
   applySkin(skin);
   renderMeta(); renderLife();
+
+  // ===================== ROUND 10: polish and extras =====================
+  on("fresh", (s) => { s.ghosts = []; s.feverStart = 0; s.zone = false; s.lastClearAt = -99999; s.premium = false; s.dopaMaxes = 0; });
+  // R10-1 afterimages trail the piece as you move and spin it
+  function snapGhost() {
+    if (!S.cur || reduceMotion) return;
+    const cells = []; eachCell(S.cur, (x, y, v) => cells.push([x, y, COLORS[v.c]]));
+    S.ghosts.push({ cells, life: 1 }); if (S.ghosts.length > 6) S.ghosts.shift();
+  }
+  on("move", snapGhost); on("rotate", snapGhost);
+  on("drawOver", (ctx) => {
+    S.ghosts = S.ghosts.filter((g) => (g.life -= 0.1) > 0);
+    for (const g of S.ghosts) {
+      ctx.globalAlpha = g.life * 0.3;
+      for (const [x, y, c] of g.cells) if (y >= HID) { ctx.fillStyle = c; ctx.fillRect(x * cell + 2, (y - HID) * cell + 2, cell - 4, cell - 4); }
+    }
+    ctx.globalAlpha = 1;
+  });
+  // R10-2 a colour sweep wipes across the screen on level up
+  on("level", () => {
+    if (reduceMotion) return;
+    const el = document.createElement("div");
+    el.className = "sweep"; document.body.appendChild(el);
+    el.addEventListener("animationend", () => el.remove());
+  });
+  // R10-3 fever ends with a tally of what it earned
+  on("fever", () => { S.feverStart = S.score; });
+  on("feverEnd", () => {
+    if (S.over) return;
+    const got = S.score - S.feverStart;
+    popup("FEVER RESULT", "gold", 40, `フィーバー中に +${got.toLocaleString()}`);
+    for (let i = 0; i < 10; i++) tone(mtof(76 + i), 0.05, "square", 0.06, i * 0.05);
+    if (got > 20000 * S.level) rockets(3);
+  });
+  // R10-4 ZONE: an 8+ combo drains the colour from everything except the board
+  on("clear", (info) => {
+    if (info.combo < 8 || S.zone) return;
+    S.zone = true; document.body.classList.add("zone");
+    popup("ZONE!!", "huge", 36, "集中モード: 世界が止まって見える");
+    tone(40, 1.2, "sine", 0.5, 0, 30);
+  });
+  function endZone() { if (!S.zone) return; S.zone = false; document.body.classList.remove("zone"); }
+  on("noClear", () => { if (S.combo === 0) endZone(); });
+  on("over", endZone); on("start", () => document.body.classList.remove("zone"));
+  on("beat", (s, w) => { if (S.zone && s % 4 === 0) tone(46, 0.3, "sine", 0.45, w, 35); });
+  // R10-5 QUICK: another clear within 2.5 s pays ×1.3
+  on("clearCalc", (info) => {
+    if (S.time - S.lastClearAt < 2500) { info.pts *= 1.3; info.tags.push("QUICK ×1.3"); }
+    S.lastClearAt = S.time;
+  });
+  // R10-6 a dopamine meter: fill it with a burst of rewards for DOPAMINE MAX
+  on("frame", () => {
+    const f = $("dopaFill"); if (!f) return;
+    f.style.width = S.dopa + "%";
+    if (S.started && !S.over && S.dopa >= 100) {
+      S.dopa = 55; S.dopaMaxes++;
+      const pts = 5000 * S.level; addScore(pts); addCoins(5);
+      popup("DOPAMINE MAX!!", "gold huge", 34, `+${pts.toLocaleString()} ・ コイン+5`);
+      rockets(4); confetti(80); sfx.jackpot(); buzz([50, 30, 50, 30, 150]);
+      say && say("ドーパミン、マックス!", 1.1, 1.5);
+    }
+  });
+  // R10-7 more haptic patterns on phones (Android; iPhone browsers ignore vibration)
+  on("level", () => buzz([20, 40, 20, 40, 80]));
+  on("fever", () => buzz([60, 40, 60, 40, 60, 40, 200]));
+  on("perfect", () => buzz([100, 50, 100, 50, 300]));
+  on("mission", () => buzz([15, 15, 15, 15, 60]));
+  on("eventStart", () => buzz([30, 60, 30, 60, 30]));
+  on("hold", () => buzz(8));
+  on("lock", () => buzz(6));
+  // R10-8 PREMIUM spins: sometimes the reels glow rainbow first, and jackpot odds are ×4
+  const reachSpin = spinSlot;
+  spinSlot = function () {
+    if (S.spinning) return;
+    S.premium = Math.random() < 0.12;
+    if (S.premium) {
+      reels.forEach((el) => el.classList.add("premium"));
+      popup("激アツ!!", "gold", 74, "プレミアムスピン: 777確率4倍");
+      [0, 4, 7, 11, 14, 19].forEach((s, i) => tone(mtof(84 + s), 0.08, "triangle", 0.1, i * 0.04));
+    }
+    reachSpin();
+  };
+  on("slot", () => { S.premium = false; reels.forEach((el) => el.classList.remove("premium")); });
+
+  // The first state was built before the rounds registered their fields; give it those fields too.
+  emit("fresh", S);
 
   // Demo board behind the start screen so the first frame already shows the game.
   (function demo() {
