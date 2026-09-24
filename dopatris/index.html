@@ -300,6 +300,10 @@
   }
   @keyframes chip { 0% { opacity: 0; transform: translateY(8px) scale(.5); } 20% { opacity: 1; transform: none; } 100% { opacity: 0; transform: translateY(-16px); } }
   #multStat.hot .v { color: #fff; text-shadow: 0 0 14px var(--pink), 0 0 30px var(--pink); }
+  /* ---- Round 2 ---- */
+  .panel.kick { animation: kick .28s ease-out; }
+  @keyframes kick { 30% { transform: translateY(-3px) scale(1.04); border-color: var(--cyan); } }
+  .floater.kick { font-size: 12px; color: var(--cyan); text-shadow: 0 0 8px var(--cyan); animation-duration: .6s; }
   @media (prefers-reduced-motion: reduce) {
     body.fever .bg, .gauge-fill, .big { animation: none; }
   }
@@ -1507,6 +1511,92 @@
     if (info.combo < 2) return;
     setTimeout(() => sfx.chime(info.combo), 200);
     const m = $("multStat"); m.classList.add("hot"); clearTimeout(m._t); m._t = setTimeout(() => m.classList.remove("hot"), 900);
+  });
+
+  // ===================== ROUND 2: handling feel =====================
+  on("fresh", (s) => { s.lastRot = false; s.pendingSpin = null; s.spawnFx = 0; s.lastDrop = 0; s.kickT = 0; });
+  sfx.spin = () => { [0, 5, 10, 15].forEach((s, i) => tone(mtof(76 + s), 0.08, "triangle", 0.12, i * 0.03)); };
+  sfx.clutch = () => { tone(mtof(55), 0.3, "sawtooth", 0.14, 0, mtof(79)); tone(mtof(79), 0.3, "square", 0.1, 0.25); };
+  function ring(cx, cy, color, r1, ms = 420, width = 3) {
+    parts.push({ x: cx, y: cy, life: 0, max: ms, color, kind: "ring",
+      upd() {}, drw(ctx, p) {
+        const t = p.life / p.max; ctx.globalAlpha = 1 - t; ctx.strokeStyle = p.color; ctx.lineWidth = width * (1 - t) + 0.5;
+        ctx.beginPath(); ctx.arc(p.x, p.y, 4 + r1 * (1 - Math.pow(1 - t, 3)), 0, 7); ctx.stroke();
+      } });
+  }
+
+  // R2-1 SPIN bonus: rotate into a slot the piece could not slide into
+  on("rotate", () => { S.lastRot = true; });
+  on("move", () => { S.lastRot = false; });
+  on("soft", () => { S.lastRot = false; });
+  on("hard", (d) => { S.lastDrop = d; if (d > 0) S.lastRot = false; });
+  on("preLock", (p) => {
+    S.pendingSpin = S.lastRot && p && collide(p.m, p.x - 1, p.y) && collide(p.m, p.x + 1, p.y) && collide(p.m, p.x, p.y - 1) ? p.type : null;
+    S.lastRot = false;
+  });
+  on("clearCalc", (info) => {
+    if (!S.pendingSpin) return;
+    info.pts *= 2; info.tags.push(`${S.pendingSpin}-SPIN ×2`);
+    sfx.spin(); S.pendingSpin = null;
+  });
+  on("noClear", () => {
+    if (!S.pendingSpin) return;
+    const p = 150 * S.level; addScore(p);
+    popup(`${S.pendingSpin}-SPIN!`, "cyan", 55, `+${p.toLocaleString()}`); sfx.spin(); S.pendingSpin = null;
+  });
+  // R2-2 landing shockwave, bigger for long drops
+  on("lock", (placed) => {
+    if (!placed.length) return;
+    const bx = placed.reduce((a, p) => a + p.x, 0) / placed.length, by = Math.max(...placed.map((p) => p.y));
+    const [cx, cy] = toClient(bx, by + 0.5);
+    ring(cx, cy, "#ffffff", cell * (1.2 + Math.min(S.lastDrop, 18) / 6), 380, 3);
+    if (S.lastDrop > 10) ring(cx, cy, COLORS[placed[0].v.c], cell * 5, 600, 5);
+    S.lastDrop = 0;
+  });
+  // R2-3 sparks spray off the bottom while soft dropping
+  on("soft", () => {
+    if (!S.cur) return;
+    const bottom = {};
+    eachCell(S.cur, (x, y) => { if (!(x in bottom) || bottom[x] < y) bottom[x] = y; });
+    for (const x in bottom) { const [cx, cy] = toClient(+x, bottom[x] + 0.9); burstAt(cx, cy, "#fff3a8", 2, 2.2); }
+  });
+  // R2-4 hold warps the piece into the HOLD box with a spiral
+  on("hold", () => {
+    const r = holdCv.getBoundingClientRect(), tx = r.left + r.width / 2, ty = r.top + r.height / 2;
+    const [sx, sy] = toClient(4.5, HID + 3);
+    for (let i = 0; i < 26; i++) {
+      const a0 = (i / 26) * Math.PI * 2;
+      parts.push({ x: sx, y: sy, life: 0, max: 520, a0, color: i % 2 ? "#22e4ff" : "#c86bff", kind: "warp",
+        upd(p) { const t = p.life / p.max, e = t * t * (3 - 2 * t), rad = 40 * Math.sin(t * Math.PI);
+          p.x = sx + (tx - sx) * e + Math.cos(p.a0 + t * 9) * rad; p.y = sy + (ty - sy) * e + Math.sin(p.a0 + t * 9) * rad; },
+        drw(ctx, p) { ctx.fillStyle = p.color; ctx.fillRect(p.x - 2, p.y - 2, 4, 4); } });
+    }
+    const box = $("pHold"); box.classList.remove("kick"); void box.offsetWidth; box.classList.add("kick");
+  });
+  // R2-5 the NEXT box bounces every time it feeds a piece
+  on("spawn", () => { const box = $("pNext"); box.classList.remove("kick"); void box.offsetWidth; box.classList.add("kick"); });
+  // R2-6 new pieces pop in with a white flash
+  on("spawn", () => { S.spawnFx = 1; });
+  on("drawOver", (ctx) => {
+    if (!S.cur || S.spawnFx <= 0) return;
+    S.spawnFx = Math.max(0, S.spawnFx - 0.08);
+    ctx.fillStyle = `rgba(255,255,255,${S.spawnFx * 0.8})`;
+    eachCell(S.cur, (x, y) => { if (y >= HID) { const g = (1 - S.spawnFx) * cell * 0.3; ctx.fillRect(x * cell - g, (y - HID) * cell - g, cell + g * 2, cell + g * 2); } });
+  });
+  // R2-7 CLUTCH: clearing lines while the stack is near the top
+  on("clearCalc", (info) => {
+    let danger = false;
+    for (let y = 0; y < HID + 5; y++) if (S.board[y].some(Boolean)) danger = true;
+    if (!danger) return;
+    info.pts *= 1.5; info.tags.push("CLUTCH! ×1.5");
+    setTimeout(sfx.clutch, 120);
+  });
+  // R2-8 wall kicks get a little "KICK!" sparkle
+  on("rotate", (kx, ky) => {
+    if (!kx && !ky) return;
+    const t = performance.now(); if (t - S.kickT < 400) return; S.kickT = t;
+    if (S.cur) floater("KICK!", S.cur.x + 1, S.cur.y, "kick");
+    tone(2200, 0.05, "triangle", 0.06);
   });
 
   // Demo board behind the start screen so the first frame already shows the game.
