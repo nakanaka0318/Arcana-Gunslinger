@@ -54,7 +54,7 @@
     background-size: 28px 28px;
     mask-image: linear-gradient(to bottom, transparent, #000 40%, #000 80%, transparent);
   }
-  body.fever .bg { animation: huespin 1.6s linear infinite; }
+  body.fever .bg { filter: saturate(1.7) brightness(1.15); }
   @keyframes huespin { to { filter: hue-rotate(360deg); } }
 
   .app {
@@ -139,7 +139,7 @@
     box-shadow: 0 0 40px hsl(var(--hue) 90% 55% / .45);
   }
   body.fever .board-wrap {
-    background: conic-gradient(from var(--spin, 0deg), var(--pink), var(--gold), var(--lime), var(--cyan), #9b5cff, var(--pink));
+    background: conic-gradient(var(--pink), var(--gold), var(--lime), var(--cyan), #9b5cff, var(--pink));
     box-shadow: 0 0 60px rgba(255,210,63,.6);
   }
   #board { display: block; border-radius: 6px; background: #0b0716; }
@@ -310,8 +310,8 @@
   @keyframes beat { 0% { box-shadow: 0 0 70px hsl(var(--hue) 100% 65% / .9), 0 0 0 3px rgba(255,255,255,.35); } 100% { box-shadow: 0 0 40px hsl(var(--hue) 90% 55% / .45); } }
   body.fever .board-wrap.beat { animation: none; }
   /* ---- Round 4 ---- */
-  body.danger .bg { box-shadow: inset 0 0 120px rgba(255,59,92,.45); animation: dangerPulse .9s ease-in-out infinite; }
-  @keyframes dangerPulse { 50% { box-shadow: inset 0 0 60px rgba(255,59,92,.2); } }
+  body.danger::before { content: ""; position: fixed; inset: 0; z-index: 1; pointer-events: none; box-shadow: inset 0 0 120px rgba(255,59,92,.45); animation: dangerPulse .9s ease-in-out infinite; }
+  @keyframes dangerPulse { 50% { opacity: .4; } }
   /* ---- Round 5 ---- */
   .meta { display: flex; align-items: center; gap: 8px; margin-top: 6px; font: 700 11px/1 var(--f-num); }
   .rank { color: var(--cyan); letter-spacing: .06em; }
@@ -410,8 +410,9 @@
   #mascot { display: block; margin: 0 auto; }
   body.fever::after {
     content: ""; position: fixed; inset: 0; pointer-events: none; z-index: 19;
-    box-shadow: inset 0 0 50px 8px #ff2e88; animation: edge 1.2s linear infinite;
+    box-shadow: inset 0 0 50px 8px #ff2e88, inset 0 0 110px 24px rgba(34,228,255,.35); animation: edgeO 1.2s ease-in-out infinite;
   }
+  @keyframes edgeO { 50% { opacity: .45; } }
   @keyframes edge { 0% { box-shadow: inset 0 0 50px 8px #ff2e88; } 33% { box-shadow: inset 0 0 50px 8px #ffd23f; } 66% { box-shadow: inset 0 0 50px 8px #22e4ff; } 100% { box-shadow: inset 0 0 50px 8px #ff2e88; } }
   /* ---- Round 9 ---- */
   .title { color: var(--mute); font-weight: 700; }
@@ -512,6 +513,19 @@
   /* No long-press text selection (blue highlight) or copy / save-image menu on the game screen. */
   body, canvas, button { -webkit-user-select: none; user-select: none; -webkit-touch-callout: none; }
   .diff, .diff * { -webkit-user-select: text; user-select: text; -webkit-touch-callout: default; }
+  /* ---- performance ---- */
+  .beatglow { position: absolute; inset: 0; border-radius: 10px; pointer-events: none; opacity: 0; box-shadow: 0 0 60px hsl(var(--hue) 100% 65% / .9), 0 0 0 3px rgba(255,255,255,.35); }
+  .gauge-fill { animation: none; }
+  body.fever .gauge-fill { animation: slide 1.2s linear infinite; }
+  /* light-effects mode (switched on automatically when frames get slow) */
+  body.lowfx .bg::after, body.lowfx .rays { display: none; }
+  body.lowfx .overlay { backdrop-filter: none; }
+  body.lowfx.fever::after, body.lowfx.danger::before, body.lowfx .big { animation: none; }
+  body.lowfx .pop { text-shadow: 2px 2px 0 var(--pink); }
+  /* ---- T-SPIN ---- */
+  .pop.tspin { color: #fff; -webkit-text-stroke: 1px #3a0f6b; text-shadow: 0 0 18px #c86bff, 0 0 40px #9b5cff, 4px 4px 0 #7a2bff; }
+  .pop.tspin small { color: #f1d8ff; }
+  .tsflash { position: fixed; inset: 0; z-index: 17; pointer-events: none; background: radial-gradient(circle, rgba(200,107,255,0) 25%, rgba(200,107,255,.55)); }
   @media (prefers-reduced-motion: reduce) {
     body.fever .bg, .gauge-fill, .big { animation: none; }
   }
@@ -556,6 +570,7 @@
 
     <div class="board-wrap" id="boardWrap">
       <canvas id="board" aria-label="ゲーム盤面"></canvas>
+      <div class="beatglow" id="beatGlow"></div>
       <div class="flash" id="flash"></div>
       <div class="mission" id="mission" hidden><div class="m-text" id="mText"></div><div class="m-bar"><div id="mFill"></div></div></div>
       <div class="buffs" id="buffs"></div>
@@ -677,6 +692,8 @@
         <section><h3>ラウンド8：お祝いビジュアル</h3><ul><li>打ち上げ花火</li><li>星とハートの紙吹雪</li><li>大見出しの後ろで光線が回る</li><li>大見出しが一文字ずつ跳ねる</li><li>リアクションするマスコット「ドパくん」</li><li>フィーバー中は画面の縁が虹色</li><li>盤面の奥に巨大コンボ数字</li><li>ハードドロップで盤面が沈む</li></ul></section>
         <section><h3>ラウンド9：成長と目標</h3><ul><li>16段階の称号</li><li>自己ベストまでのゲージ(25%刻みで告知)</li><li>連続プレイボーナス</li><li>ゲームオーバー10秒以内の即リトライボーナス</li><li>ランクで解放されるスキン(NEON/CANDY/JEWEL/PIXEL)</li><li>累計ライン数の記念</li><li>スロットのリーチ演出と「おしい!」</li><li>リザルトに次の目標</li></ul></section>
         <section><h3>ラウンド10：仕上げ</h3><ul><li>移動・回転の残像</li><li>レベルアップで画面を色が横切る</li><li>フィーバー終了時の成績発表</li><li>8コンボ以上でZONE(周りがモノクロに)</li><li>2.5秒以内の連続消しでQUICK ×1.3</li><li>ドーパミンメーター(満タンでDOPAMINE MAX)</li><li>振動パターンを増やした(Android)</li><li>ときどき虹色の激アツ・プレミアムスピン(777確率4倍)</li></ul></section>
+        <section><h3>追加：T-SPIN</h3><ul><li>最後の操作が回転で、Tの中心の四隅のうち3つが埋まっていればT-SPIN(Tが向いている側の2隅も埋まっていれば正式、そうでなければMINI)</li><li>倍率：MINI ×2 / SINGLE ×4 / DOUBLE ×6 / TRIPLE ×10、ラインなしのT-SPINでも +400×Lv</li><li>T-T(連続T-SPIN)：T-SPINで消すたびに ×0.5 ずつ上乗せ。普通の1〜3ライン消しで途切れる(テトリスでは途切れない)</li><li>決めた瞬間に一瞬止まるヒットストップ、巨大なTの光、紫のフラッシュ、専用サウンドと実況</li><li>大きいほどフィーバー・コイン・XPが増え、TSTかT-T 3連続で即フィーバー</li><li>実績4つとT-SPINミッションを追加、リザルトにT-SPIN回数</li></ul></section>
+        <section><h3>追加：軽量化</h3><ul><li>全画面の光や影のアニメーションを軽い方式に変更</li><li>パーティクルと星空は画面を1倍密度で描画、同時表示数に上限</li><li>重くなると自動で「軽い演出モード」に切り替わり、なめらかに戻ると元に戻る</li></ul></section>
         <section><h3>追加：BREAK</h3><ul><li>BREAKボタン / B / Backspace で前に置いたミノを粉砕(20秒に1回)</li><li>金色に光るゴースト：そこに落とすとラインが消える</li><li>ごほうびの頻度アップ：サプライズ6秒・イベント18〜28秒・宝箱6ラインごと</li><li>スマホの下のボタンは HOLD / BREAK / DROP だけ(移動と回転は盤面をタッチ)</li><li>イベントのルーレットは画面上部のバナーに表示(盤面を隠さない)</li></ul></section>
         <section><h3>追加：サウンド20種</h3><ul><li>BGMがレベルで厚くなる：Lv2スネア / Lv3コードパッド / Lv4シェイカー / Lv5カウンターメロディ</li><li>テトリス・全消し・777・ミッション・レベルアップで拍手</li><li>ミノの種類ごとに着地音の音程が違う(積むと曲になる)</li><li>回転方向で音が変わる / ソフトドロップの上昇音 / 出現のシュッ</li><li>ライン消去のガラス破砕音 / 3コンボからドラムフィル</li><li>スロットのリール停止音と当たり音</li><li>ミッション進捗音 / 時間制ミッション残り5秒のカウント</li><li>バフ開始・終了音 / フィーバー残り3秒のカウントと終了音</li><li>フィーバーゲージ50%・80%の予告音</li><li>ピンチのサイレン / BONUS ROW・ラッキースポット出現音</li><li>スタートのジングル / ポーズ・再開音 / ボタンのクリック音 / ドパくんの鳴き声</li></ul></section>
       </div>
@@ -1040,7 +1057,7 @@
     addScore(pts);
 
     const [en, jp] = PRAISE[n] || [`${n} LINES!!!!!`, "超・神!!!"];
-    popup(en, n >= 4 ? "gold huge" : n >= 3 ? "lime" : "", 42, `${jp} +${pts.toLocaleString()}`);
+    if (!info.tspin) popup(en, n >= 4 ? "gold huge" : n >= 3 ? "lime" : "", 42, `${jp} +${pts.toLocaleString()}`);   // a T-SPIN gets its own headline
     if (S.combo >= 2) setTimeout(() => popup(`${S.combo} COMBO`, "cyan", 62, `×${mult.toFixed(1)}`), 160);
     if (golds) {
       setTimeout(() => popup(golds > 1 ? `GOLD ×${golds}!!` : "GOLD!!", "gold", 25), 280);
@@ -1119,7 +1136,7 @@
     document.documentElement.style.setProperty("--hue", String((280 + (S.level - 1) * 47) % 360));
     setTimeout(() => popup(`LEVEL ${S.level}`, "lime", 75, "テーマチェンジ! テンポアップ!"), 450);
     sfx.level();
-    $("levelStat").classList.remove("bump"); void $("levelStat").offsetWidth; $("levelStat").classList.add("bump");
+    pulseEl($("levelStat"), "bump");
     if (S.level >= 5) unlock("lv5");
     emit("level", S.level);
   }
@@ -1233,6 +1250,22 @@
     emit("ach", k);
   }
 
+  // ---------- performance helpers ----------
+  let frameNo = 0, lowfx = false, fxDirty = false;
+  let rectFrame = -1, rectCache = null;
+  function boardRect() { if (rectFrame !== frameNo) { rectCache = boardCv.getBoundingClientRect(); rectFrame = frameNo; } return rectCache; }
+  const partCap = () => (lowfx ? 450 : 1400);
+  function setText(el, v) { if (el._t !== v) { el._t = v; el.textContent = v; } }
+  function setWidth(el, v) { if (el._w !== v) { el._w = v; el.style.width = v; } }
+  // Restart a short animation without forcing a layout (uses the Web Animations API, compositor-only properties).
+  const PULSES = {
+    bump: [[{ transform: "scale(1)" }, { transform: "scale(1.25)", offset: 0.4 }, { transform: "scale(1)" }], 250],
+    kick: [[{ transform: "none" }, { transform: "translateY(-3px) scale(1.04)", offset: 0.3 }, { transform: "none" }], 280],
+    fade: [[{ opacity: 0.75 }, { opacity: 0 }], 350],
+    glow: [[{ opacity: 1 }, { opacity: 0 }], 220],
+  };
+  function pulseEl(el, kind) { if (!el || !el.animate) return; const [k, d] = PULSES[kind]; el.animate(k, { duration: d, easing: "ease-out" }); }
+
   // ---------- juice ----------
   function popup(text, cls = "", yPct = 45, sub = "") {
     const el = document.createElement("div");
@@ -1244,12 +1277,12 @@
     el.addEventListener("animationend", () => el.remove());
     return el;
   }
-  function flash() { flashEl.classList.remove("go"); void flashEl.offsetWidth; flashEl.classList.add("go"); }
+  function flash() { pulseEl(flashEl, "fade"); }
   function shake(v) { S.shake = Math.max(S.shake, reduceMotion ? v * 0.2 : v); }
 
   let parts = [];
   function toClient(bx, by) {
-    const r = boardCv.getBoundingClientRect();
+    const r = boardRect();
     return [r.left + (bx + 0.5) * cell, r.top + (by - HID + 0.5) * cell];
   }
   function burst(bx, by, color, n, speed, kind = "sq") {
@@ -1277,8 +1310,11 @@
   }
   function stepFx(dt) {
     const k = dt / 16.67;
-    fctx.clearRect(0, 0, fxCv.width / DPR, fxCv.height / DPR);
+    if (parts.length || fxDirty) fctx.clearRect(0, 0, fxCv.width, fxCv.height);
     parts = parts.filter((p) => (p.life += dt) < p.max);
+    const cap = partCap();
+    if (parts.length > cap) parts.splice(0, parts.length - cap);
+    fxDirty = parts.length > 0;
     for (const p of parts) {
       if (p.upd) { p.upd(p, k, dt); if (p.drw) { fctx.globalAlpha = Math.max(0, 1 - p.life / p.max); p.drw(fctx, p); continue; } }
       else p.vy += (p.kind === "confetti" ? 0.05 : p.kind === "spark" ? 0.12 : 0.3) * k;
@@ -1442,7 +1478,7 @@
     $("linesV").textContent = S.lines;
     const mult = S.combo > 0 ? 1 + (S.combo - 1) * 0.5 : 1;
     $("multV").textContent = `×${(mult * (S.fever ? 3 : 1)).toFixed(1)}`;
-    if (bump) { const m = $("multStat"); m.classList.remove("bump"); void m.offsetWidth; m.classList.add("bump"); }
+    if (bump) pulseEl($("multStat"), "bump");
   }
   function renderHud(dt) {
     if (S.disp < S.score) {
@@ -1450,10 +1486,9 @@
     }
     const txt = Math.floor(S.disp).toLocaleString();
     if (txt !== lastHud) { $("scoreV").textContent = txt; lastHud = txt; }
-    $("gaugeFill").style.width = S.gauge + "%";
-    $("gaugeLabel").textContent = S.fever ? `FEVER ${(S.feverT / 1000).toFixed(1)}s` : `${Math.floor(S.gauge)}%`;
-    $("multV").textContent = `×${((S.combo > 0 ? 1 + (S.combo - 1) * 0.5 : 1) * (S.fever ? 3 : 1)).toFixed(1)}`;
-    if (S.fever) boardWrap.style.setProperty("--spin", `${(S.time * 0.3) % 360}deg`);
+    setWidth($("gaugeFill"), Math.round(S.gauge) + "%");
+    setText($("gaugeLabel"), S.fever ? `FEVER ${(S.feverT / 1000).toFixed(1)}s` : `${Math.floor(S.gauge)}%`);
+    setText($("multV"), `×${((S.combo > 0 ? 1 + (S.combo - 1) * 0.5 : 1) * (S.fever ? 3 : 1)).toFixed(1)}`);
   }
 
   // ---------- input ----------
@@ -1619,9 +1654,9 @@
     }
     cell = Math.max(12, Math.min(34, Math.floor(Math.min(availW / COLS, availH / VIS))));
     sizeCanvas(boardCv, bctx, COLS * cell, VIS * cell);
-    sizeCanvas(fxCv, fctx, innerWidth, innerHeight);
+    // full-screen effect layers draw at 1x density: particles do not need retina sharpness, and it quarters the pixels to paint
+    fxCv.width = innerWidth; fxCv.height = innerHeight; fctx.setTransform(1, 0, 0, 1, 0, 0);
     if (typeof sizeMascot === "function") sizeMascot();
-    fxCv.style.width = ""; fxCv.style.height = "";
     drawPreviews();
   }
   addEventListener("resize", layout);
@@ -1639,12 +1674,15 @@
   let noPieceT = 0;
   function frameBody(now) {
     const dt = Math.min(50, now - last); last = now;
+    frameNo++;
     S.time += dt;
     // Safety net: a broken number must never freeze the game.
     if (!Number.isFinite(S.score)) S.score = Number.isFinite(S.disp) ? Math.floor(S.disp) : 0;
     if (!Number.isFinite(S.disp)) S.disp = S.score;
     if (!Number.isFinite(S.level) || S.level < 1) S.level = 1 + Math.floor((S.lines || 0) / 10);
-    if (S.started && !S.paused && !S.over) {
+    // hit-stop: a brief freeze-frame on big moments (effects keep playing, gameplay waits)
+    if (S.hitstop > 0) S.hitstop -= dt;
+    else if (S.started && !S.paused && !S.over) {
       if (S.fever) {
         S.feverT -= dt;
         S.gauge = Math.max(0, (S.feverT / FEVER_MS) * 100);
@@ -1671,7 +1709,7 @@
       }
     }
     drawBoard();
-    if (S.fever || S.queue.some((q) => q.special)) drawPreviews();
+    if (frameNo % 6 === 0 && (S.fever || S.queue.some((q) => q.special))) drawPreviews();
     renderHud(dt);
     emit("frame", dt);
     stepFx(dt);
@@ -1710,7 +1748,7 @@
     }
   }
   const FW = ["#ff2e88", "#ffd23f", "#7dff5a", "#22e4ff", "#c86bff", "#ffffff"];
-  function fireworks(count = 4, area = boardCv.getBoundingClientRect()) {
+  function fireworks(count = 4, area = boardRect()) {
     for (let i = 0; i < count; i++) setTimeout(() => {
       const x = area.left + area.width * (0.15 + Math.random() * 0.7), y = area.top + area.height * (0.1 + Math.random() * 0.45);
       const c = FW[(Math.random() * FW.length) | 0];
@@ -1745,7 +1783,7 @@
   // R1-5 cleared blocks fly into the score counter
   on("clear", (info) => {
     const tr = $("scoreV").getBoundingClientRect(), tx = tr.left + tr.width / 2, ty = tr.top + tr.height / 2;
-    info.cells.flat().slice(0, 40).forEach((c, i) => {
+    info.cells.flat().slice(0, lowfx ? 10 : 30).forEach((c, i) => {
       const [cx, cy] = toClient(c.x, c.y);
       const a = Math.random() * Math.PI * 2;
       parts.push({ x: cx, y: cy, vx: Math.cos(a) * 4, vy: Math.sin(a) * 4, life: 0, max: 2200, delay: 180 + i * 12,
@@ -1755,16 +1793,17 @@
           const dx = tx - p.x, dy = ty - p.y, d = Math.hypot(dx, dy);
           const sp = Math.min(d, (6 + (p.life - p.delay) * 0.03) * k);
           p.x += (dx / (d || 1)) * sp; p.y += (dy / (d || 1)) * sp;
-          if (d < 10) { p.life = p.max; sfx.blip(); scoreStatEl.classList.remove("bump"); void scoreStatEl.offsetWidth; scoreStatEl.classList.add("bump"); }
+          if (d < 10) { p.life = p.max; sfx.blip(); pulseEl(scoreStatEl, "bump"); }
         },
-        drw(ctx, p) { ctx.globalAlpha = 1; ctx.fillStyle = p.color; ctx.shadowColor = p.color; ctx.shadowBlur = 8; ctx.beginPath(); ctx.arc(p.x, p.y, p.size, 0, 7); ctx.fill(); ctx.shadowBlur = 0; },
+        drw(ctx, p) { ctx.globalAlpha = 0.35; ctx.fillStyle = p.color; ctx.beginPath(); ctx.arc(p.x, p.y, p.size * 2, 0, 7); ctx.fill(); ctx.globalAlpha = 1; ctx.beginPath(); ctx.arc(p.x, p.y, p.size, 0, 7); ctx.fill(); },
       });
     });
   });
   // R1-6 combo flames lick up the sides of the board
   on("frame", (dt) => {
     if (!S.started || S.over || S.paused || S.combo < 3 || reduceMotion) return;
-    const r = boardCv.getBoundingClientRect(), n = Math.min(6, S.combo - 1) * (dt / 16.67);
+    if (lowfx) return;
+    const r = boardRect(), n = Math.min(6, S.combo - 1) * (dt / 16.67);
     for (let i = 0; i < n; i++) {
       const left = Math.random() < 0.5;
       parts.push({ x: left ? r.left - 4 + Math.random() * 8 : r.right - 4 + Math.random() * 8, y: r.bottom - Math.random() * r.height * 0.7,
@@ -1849,10 +1888,10 @@
           p.x = sx + (tx - sx) * e + Math.cos(p.a0 + t * 9) * rad; p.y = sy + (ty - sy) * e + Math.sin(p.a0 + t * 9) * rad; },
         drw(ctx, p) { ctx.fillStyle = p.color; ctx.fillRect(p.x - 2, p.y - 2, 4, 4); } });
     }
-    const box = $("pHold"); box.classList.remove("kick"); void box.offsetWidth; box.classList.add("kick");
+    pulseEl($("pHold"), "kick");
   });
   // R2-5 the NEXT box bounces every time it feeds a piece
-  on("spawn", () => { const box = $("pNext"); box.classList.remove("kick"); void box.offsetWidth; box.classList.add("kick"); });
+  on("spawn", () => pulseEl($("pNext"), "kick"));
   // R2-6 new pieces pop in with a white flash
   on("spawn", () => { S.spawnFx = 1; });
   on("drawOver", (ctx) => {
@@ -1881,10 +1920,15 @@
   on("fresh", (s) => { s.lasers = []; s.wave = null; s.rainbow = null; });
   // R3-1 warp starfield behind everything; faster with level, combo and fever
   const starCv = $("stars"), sctx = starCv.getContext("2d");
-  const stars = Array.from({ length: 140 }, () => ({ x: Math.random(), y: Math.random(), z: 0.2 + Math.random() * 0.8 }));
-  function sizeStars() { starCv.width = innerWidth * DPR; starCv.height = innerHeight * DPR; sctx.setTransform(DPR, 0, 0, DPR, 0, 0); }
+  const stars = Array.from({ length: 100 }, () => ({ x: Math.random(), y: Math.random(), z: 0.2 + Math.random() * 0.8 }));
+  let starsCleared = false;
+  function sizeStars() { starCv.width = innerWidth; starCv.height = innerHeight; sctx.setTransform(1, 0, 0, 1, 0, 0); }
   addEventListener("resize", sizeStars); sizeStars();
   on("frame", (dt) => {
+    if (lowfx) { if (!starsCleared) { sctx.clearRect(0, 0, innerWidth, innerHeight); starsCleared = true; } return; }
+    starsCleared = false;
+    if (frameNo % 2) return;
+    dt *= 2;
     const w = innerWidth, h = innerHeight, playing = S.started && !S.over && !S.paused;
     const speed = reduceMotion ? 0.02 : (playing ? 0.05 + S.level * 0.02 + S.combo * 0.05 + (S.fever ? 0.5 : 0) : 0.03);
     sctx.clearRect(0, 0, w, h);
@@ -1901,11 +1945,12 @@
   // R3-2 the board frame pulses on the kick drum
   on("beat", (s, w) => {
     if (s % 4 !== 0 || reduceMotion) return;
-    setTimeout(() => { boardWrap.classList.remove("beat"); void boardWrap.offsetWidth; boardWrap.classList.add("beat"); }, Math.max(0, w * 1000));
+    if (lowfx || S.fever) return;
+    setTimeout(() => pulseEl($("beatGlow"), "glow"), Math.max(0, w * 1000));
   });
   // R3-3 laser beams slice through cleared rows
   on("clear", (info) => {
-    const r = boardCv.getBoundingClientRect();
+    const r = boardRect();
     info.rows.forEach((row, i) => {
       const [, cy] = toClient(0, row);
       parts.push({ x: 0, y: cy, life: -i * 40, max: 420, color: info.n >= 4 ? "#ffd23f" : "#22e4ff", kind: "laser",
@@ -1922,7 +1967,7 @@
     tone(2400, 0.25, "sawtooth", 0.05, 0, 300);
   });
   // R3-4 a shimmer wave washes over the stack after each clear
-  on("afterClear", () => { S.wave = { t: 0 }; });
+  on("afterClear", () => { if (!lowfx) S.wave = { t: 0 }; });
   on("drawOver", (ctx, W, H) => {
     if (!S.wave) return;
     S.wave.t += 16;
@@ -2068,7 +2113,7 @@
     $("xpFill").style.width = Math.min(100, (meta.xp / xpNeed(meta.rank)) * 100) + "%";
     $("coinChip").textContent = `◎ ${meta.coins.toLocaleString()}`;
   }
-  function bumpEl(el) { el.classList.remove("bump"); void el.offsetWidth; el.classList.add("bump"); }
+  function bumpEl(el) { pulseEl(el, "bump"); }
 
   // R5-1 coins: a wallet that fills up across games
   function addCoins(n, from) {
@@ -2407,7 +2452,7 @@
     return r < 0.03 ? "bolt" : r < 0.055 ? "clock" : r < 0.095 ? "x2" : r < 0.125 ? "gem" : undefined;
   });
   function glyph(ctx, px, py, s, text, color = "#fff") {
-    ctx.fillStyle = color; ctx.font = `700 ${Math.floor(s * 0.55)}px ${getComputedStyle(document.body).getPropertyValue("--f-num") || "monospace"}`;
+    ctx.fillStyle = color; ctx.font = `700 ${Math.floor(s * 0.55)}px "Chakra Petch", ui-monospace, monospace`;
     ctx.textAlign = "center"; ctx.textBaseline = "middle"; ctx.fillText(text, px + s / 2, py + s / 2 + 1);
   }
   // R7-1 LIGHTNING block: clearing its row also zaps its whole column
@@ -2425,7 +2470,7 @@
         if (info.rows.includes(y) || !S.board[y][x]) continue;
         burst(x, y, "#7fe9ff", 4, 6, "spark"); S.board[y][x] = null; zapped++;
       }
-      const r = boardCv.getBoundingClientRect(), [cx] = toClient(x, 0);
+      const r = boardRect(), [cx] = toClient(x, 0);
       parts.push({ x: cx, y: r.top, life: 0, max: 380, kind: "bolt", upd() {}, drw(ctx, p) {
         ctx.globalAlpha = 1 - p.life / p.max; ctx.strokeStyle = "#dff9ff"; ctx.lineWidth = 3; ctx.shadowColor = "#7fe9ff"; ctx.shadowBlur = 18;
         ctx.beginPath(); let yy = r.top; ctx.moveTo(p.x, yy);
@@ -2709,7 +2754,7 @@
     if (!S.started || best <= 0) { el.hidden = true; return; }
     el.hidden = false;
     const pct = Math.min(100, (S.disp / best) * 100);
-    $("bestFill").style.width = pct + "%";
+    setWidth($("bestFill"), Math.round(pct) + "%");
     const txt = S.score > best ? "BEST更新中!" : `BESTまで ${(best - Math.floor(S.disp)).toLocaleString()}`;
     if ($("bestText").textContent !== txt) $("bestText").textContent = txt;
     el.classList.toggle("beat", S.score > best);
@@ -2839,7 +2884,7 @@
   on("fresh", (s) => { s.ghosts = []; s.feverStart = 0; s.zone = false; s.lastClearAt = -99999; s.premium = false; s.dopaMaxes = 0; });
   // R10-1 afterimages trail the piece as you move and spin it
   function snapGhost() {
-    if (!S.cur || reduceMotion) return;
+    if (!S.cur || reduceMotion || lowfx) return;
     const cells = []; eachCell(S.cur, (x, y, v) => cells.push([x, y, COLORS[v.c]]));
     S.ghosts.push({ cells, life: 1 }); if (S.ghosts.length > 6) S.ghosts.shift();
   }
@@ -2887,7 +2932,7 @@
   // R10-6 a dopamine meter: fill it with a burst of rewards for DOPAMINE MAX
   on("frame", () => {
     const f = $("dopaFill"); if (!f) return;
-    f.style.width = S.dopa + "%";
+    setWidth(f, Math.round(S.dopa) + "%");
     if (S.started && !S.over && S.dopa >= 100) {
       S.dopa = 55; S.dopaMaxes++;
       const pts = 5000 * S.level; addScore(pts); addCoins(5);
@@ -3122,7 +3167,8 @@
     const ready = S.started && !S.over && S.breakCD <= 0 && S.lastPid > 0;
     const pct = S.started ? 1 - S.breakCD / BREAK_CD : 1;
     const txt = S.started && !S.over && S.breakCD > 0 ? `${Math.ceil(S.breakCD / 1000)}s` : "BREAK";
-    breakEls.forEach((el) => { el.style.setProperty("--cd", pct.toFixed(3)); el.classList.toggle("ready", ready); });
+    const cd = pct.toFixed(2);
+    breakEls.forEach((el) => { if (el._cd !== cd) { el._cd = cd; el.style.setProperty("--cd", cd); } if (el._rd !== ready) { el._rd = ready; el.classList.toggle("ready", ready); } });
     if (txt !== breakTxt) { breakTxt = txt; breakEls[1].textContent = txt; $("breakNote").textContent = txt === "BREAK" ? "B / Backspace" : `チャージ中 ${txt}`; }
   });
 
@@ -3162,6 +3208,140 @@
   on("start", stopHomeCountdown);
   $("homeBtn").addEventListener("click", goHome);
   addEventListener("keydown", (e) => { if (S.over && (e.code === "KeyH" || e.code === "Escape")) goHome(); });
+
+  // ===================== PERFORMANCE: automatic light-effects mode =====================
+  // Watches the frame time. If frames stay slow (under ~42 fps) for 1.5 s, it switches to light effects:
+  // fewer particles, no starfield, no flames/afterimages/shimmer, cheaper popups. It switches back after 6 s of smooth frames.
+  let ftAvg = 16.7, slowT = 0, fastT = 0;
+  function setLowFx(v) { lowfx = v; document.body.classList.toggle("lowfx", v); }
+  on("frame", (dt) => {
+    ftAvg = ftAvg * 0.94 + dt * 0.06;
+    if (!lowfx) { slowT = ftAvg > 24 ? slowT + dt : 0; if (slowT > 1500) { setLowFx(true); slowT = 0; } }
+    else { fastT = ftAvg < 17.5 ? fastT + dt : 0; if (fastT > 6000) { setLowFx(false); fastT = 0; } }
+  });
+  // body classes are reset by goHome(); keep the light mode flag in sync
+  on("start", () => document.body.classList.toggle("lowfx", lowfx));
+  // at most 7 popups on screen: the oldest go first
+  const cappedPopup = popup;
+  popup = function (...a) {
+    const el = cappedPopup(...a);
+    const all = pops.querySelectorAll(".pop, .rays");
+    for (let i = 0; i < all.length - (lowfx ? 4 : 7); i++) all[i].remove();
+    return el;
+  };
+
+  // ===================== T-SPIN: the biggest reward in the game =====================
+  // Detection uses the 3-corner rule: the last move was a rotation and 3 of the 4 corners around the T's centre are
+  // filled. If both corners on the side the T points to are filled it is a full T-SPIN, otherwise a MINI.
+  // Score: MINI ×2, SINGLE ×4, DOUBLE ×6, TRIPLE ×10 on top of the normal line score.
+  // T-T (back-to-back): every T-SPIN clear in a row adds another ×0.5; a plain 1-3 line clear breaks the streak (TETRIS does not).
+  const TS_MULT = { 1: 4, 2: 6, 3: 10 };
+  const TS_NAME = ["", "SINGLE", "DOUBLE", "TRIPLE"];
+  on("fresh", (s) => { s.tRot = false; s.tSpin = null; s.tt = 0; s.tspins = 0; s.hitstop = 0; });
+  Object.assign(ACH, {
+    tspin: ["Tスピン!", "初めてT-SPINを決めた"], tsd: ["TSD", "T-SPIN DOUBLEを決めた"],
+    tst: ["TST", "T-SPIN TRIPLEを決めた"], tt3: ["T-Tマスター", "T-SPINを3回連続で決めた"],
+  });
+  MISSIONS.push({ t: "T-SPINを{n}回決めろ", n: [1, 1, 2], ev: "tspin", f: () => 1 });
+  on("tspin", (...a) => missionEvent("tspin", a));
+  on("spawn", () => { S.tRot = false; });
+  on("rotate", () => { S.tRot = true; });
+  on("move", () => { S.tRot = false; });
+  on("soft", () => { S.tRot = false; });
+  on("hard", (d) => { if (d > 0) S.tRot = false; });
+  function tSpinKind(p) {
+    if (!p || p.type !== "T" || !S.tRot) return null;
+    const cx = p.x + 1, cy = p.y + 1, m = p.m;
+    const occ = (x, y) => x < 0 || x >= COLS || y >= ROWS || (y >= 0 && !!S.board[y][x]);
+    const corners = [[cx - 1, cy - 1], [cx + 1, cy - 1], [cx - 1, cy + 1], [cx + 1, cy + 1]];
+    if (corners.filter(([x, y]) => occ(x, y)).length < 3) return null;
+    let front;
+    if (m[0][1] && !m[2][1]) front = [corners[0], corners[1]];        // pointing up
+    else if (m[1][2] && !m[1][0]) front = [corners[1], corners[3]];   // right
+    else if (m[2][1] && !m[0][1]) front = [corners[2], corners[3]];   // down
+    else front = [corners[0], corners[2]];                            // left
+    return front.every(([x, y]) => occ(x, y)) ? "full" : "mini";
+  }
+  on("preLock", (p) => {
+    S.tSpin = tSpinKind(p);
+    if (S.tSpin) S.pendingSpin = null;   // the generic SPIN bonus steps aside for a real T-SPIN
+    S.tRot = false;
+  });
+  on("clearCalc", (info) => {
+    if (!S.tSpin) { if (info.n < 4) S.tt = 0; return; }
+    const mini = S.tSpin === "mini", n = info.n;
+    const mult = mini ? 2 : TS_MULT[n] || 10;
+    S.tt++;
+    const ttMult = 1 + (S.tt - 1) * 0.5;
+    info.pts *= mult * ttMult;
+    info.tags.push(`T-SPIN ×${mult}`);
+    if (S.tt >= 2) info.tags.push(`T-T ×${ttMult.toFixed(1)}`);
+    info.tspin = { mini, n, mult, tt: S.tt };
+  });
+  on("clear", (info) => { if (info.tspin) { tspinParty(info.tspin, info.pts); S.tSpin = null; } });
+  on("noClear", () => {
+    if (!S.tSpin) return;
+    const mini = S.tSpin === "mini", pts = (mini ? 100 : 400) * S.level;
+    addScore(pts);
+    tspinParty({ mini, n: 0, mult: 1, tt: S.tt }, pts);
+    S.tSpin = null;
+  });
+
+  sfx.tspin = (L) => {
+    if (!A.ctx) return;
+    noise(0.35, 0.2, 0, 1200);                                                     // whoosh
+    tone(180, 0.35, "sawtooth", 0.1, 0, 1400 + L * 300);                          // rising sweep
+    const chord = [0, 3, 7, 10, 14].slice(0, 2 + Math.min(L, 3));                  // choir stack
+    chord.forEach((st, i) => { tone(mtof(62 + st), 0.9, "sawtooth", 0.05, 0.28); tone(mtof(62 + st) * 1.006, 0.9, "sawtooth", 0.04, 0.28); });
+    tone(55, 0.8, "sine", 0.55, 0.28, 38);                                         // sub drop
+    [0, 7, 12, 15, 19, 24, 27, 31].slice(0, 3 + L * 1.5).forEach((st, i) => tone(mtof(84 + st), 0.12, "triangle", 0.08, 0.3 + i * 0.05));  // bells
+  };
+  function tspinParty(t, pts) {
+    const L = (t.mini ? 1 : t.n === 0 ? 1 : t.n + 1) + (t.tt >= 2 ? 1 : 0);
+    const name = t.n === 0 ? (t.mini ? "T-SPIN MINI" : "T-SPIN!") : `T-SPIN ${t.mini ? "MINI " : ""}${TS_NAME[t.n]}`;
+    S.tspins++;
+    // freeze-frame, then everything at once
+    S.hitstop = 110 + L * 60;
+    const sub = `${t.n ? "×" + t.mult : "+" + pts.toLocaleString()}${t.tt >= 2 ? `  T-T ×${(1 + (t.tt - 1) * 0.5).toFixed(1)}` : ""}${t.n ? "  +" + pts.toLocaleString() : ""}`;
+    popup(name, "tspin huge", 34, sub);
+    if (t.tt >= 2) setTimeout(() => popup(`T-T ${t.tt}連続!!`, "gold huge", 58, "BACK TO BACK"), 280);
+    sfx.tspin(L);
+    say(t.n ? `ティースピン、${["", "シングル", "ダブル", "トリプル"][t.n]}!` : "ティースピン!", 1.1, 1.3 + L * 0.08);
+    // a giant glowing T bursts out of the piece's centre
+    const [cx, cy] = S.lastT || toClient(4.5, HID + 10);
+    const big = cell * (3 + L);
+    parts.push({ x: cx, y: cy, life: 0, max: 650 + L * 100, kind: "bigT", upd() {}, drw(ctx, p) {
+      const k = p.life / p.max, s = big * (0.4 + k * 0.9), w = s / 3;
+      ctx.globalAlpha = (1 - k) * 0.9; ctx.fillStyle = k < 0.15 ? "#ffffff" : "#c86bff";
+      ctx.fillRect(p.x - s / 2, p.y - s / 2, s, w); ctx.fillRect(p.x - w / 2, p.y - s / 2, w, s);
+    } });
+    for (let i = 0; i < 2 + Math.min(L, 3); i++) setTimeout(() => ring(cx, cy, i % 2 ? "#ffffff" : "#c86bff", cell * (3 + i * 2), 520, 5), i * 90);
+    const n = (lowfx ? 14 : 30) * Math.min(L, 4);
+    burstAt(cx, cy, "#c86bff", n, 7); burstAt(cx, cy, "#ffffff", n / 2, 4);
+    // screen-wide purple flash, colour split, zoom punch
+    const fl = document.createElement("div"); fl.className = "tsflash"; document.body.appendChild(fl);
+    fl.animate([{ opacity: 1 }, { opacity: 0 }], { duration: 500 + L * 100, easing: "ease-out" }).onfinish = () => fl.remove();
+    rgbSplit(4 + L * 2); shake(8 + L * 4); flash();
+    if (!reduceMotion) boardWrap.animate([{ transform: "scale(1)" }, { transform: `scale(${1.03 + L * 0.015})` }, { transform: "scale(1)" }], { duration: 320, easing: "ease-out" });
+    buzz([30, 30, 30, 30, 60 + L * 30]);
+    setMood("wow", 2000);
+    // rewards grow with the size of the T-spin
+    addGauge(12 * L); addCoins(2 * L); addXP(20 * L);
+    if (L >= 3) rockets(Math.min(5, L));
+    if (t.n === 3 || t.tt >= 3) { if (!S.fever) { S.gauge = 100; startFever(); } confetti(120); applause(1.6, 0.12); }
+    unlock("tspin"); if (t.n === 2 && !t.mini) unlock("tsd"); if (t.n === 3) unlock("tst"); if (t.tt >= 3) unlock("tt3");
+    emit("tspin", t);
+  }
+  // remember where the T's centre was, for the effects
+  on("preLock", (p) => { S.lastT = p && p.type === "T" ? toClient(p.x + 1, p.y + 1) : null; });
+  // the result screen counts your T-spins
+  on("over", () => {
+    if (!S.tspins) return;
+    const row = document.createElement("div");
+    row.className = "rrow"; row.style.animationDelay = "1.2s";
+    row.innerHTML = `<span>T-SPINS</span><b>${S.tspins}</b>`;
+    $("resultExtra").insertBefore(row, $("resultExtra").querySelector(".goals"));
+  });
 
   // The first state was built before the rounds registered their fields; give it those fields too.
   emit("fresh", S);
