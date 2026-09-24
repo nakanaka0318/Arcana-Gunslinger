@@ -474,6 +474,20 @@
   .more ul { margin: 0; padding-left: 18px; }
   .more li b { color: var(--text); }
   .rounds { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 4px 16px; }
+  /* ---- Undo ---- */
+  .undo-btn, .pad button.undo {
+    background: linear-gradient(to top, rgba(34,228,255,.35) calc(var(--cd, 1) * 100%), var(--panel) calc(var(--cd, 1) * 100%));
+  }
+  .undo-btn { width: 100%; font-family: var(--f-body); font-weight: 800; letter-spacing: .02em; text-transform: none; }
+  .undo-btn.ready, .pad button.undo.ready { border-color: var(--cyan); box-shadow: 0 0 14px rgba(34,228,255,.55); }
+  .undo-note { font: 700 10px/1 var(--f-num); color: var(--mute); letter-spacing: .06em; }
+  .pad button.undo { font-size: 11px; }
+  @media (max-width: 720px) {
+    #pUndo { display: none; }
+    .pad { grid-template-columns: repeat(8, minmax(0, 1fr)); gap: 4px; }
+    .pad button { font-size: 12px; }
+    .pad button.undo { font-size: 9px; }
+  }
   @media (prefers-reduced-motion: reduce) {
     body.fever .bg, .gauge-fill, .big { animation: none; }
   }
@@ -508,6 +522,11 @@
         <div class="stat" id="levelStat"><span class="k">LV</span><span class="v" id="levelV">1</span></div>
         <div class="stat"><span class="k">LINES</span><span class="v" id="linesV">0</span></div>
         <div class="stat" id="multStat"><span class="k">COMBO</span><span class="v mult" id="multV">×1.0</span></div>
+      </section>
+      <section class="panel" id="pUndo">
+        <h2>UNDO</h2>
+        <button class="btn undo-btn" id="undoBtn" type="button">一手戻す</button>
+        <span class="undo-note" id="undoNote">U / Backspace</span>
       </section>
     </aside>
 
@@ -591,6 +610,7 @@
     <button type="button" data-act="rotR" aria-label="右回転">⟳</button>
     <button type="button" data-act="down" aria-label="ソフトドロップ">▼</button>
     <button type="button" data-act="hold" aria-label="ホールド">HOLD</button>
+    <button type="button" data-act="undo" class="undo" aria-label="一手戻し">UNDO</button>
     <button type="button" data-act="drop" class="drop" aria-label="ハードドロップ">DROP</button>
   </div>
 
@@ -2871,6 +2891,81 @@
 
   // The first state was built before the rounds registered their fields; give it those fields too.
   emit("fresh", S);
+
+  // ===================== UNDO: take back the last piece, once every 20 seconds =====================
+  // Rewinds the board, queue, hold, score, lines, level and combo to the moment before the last piece locked.
+  // Coins, XP, achievements and mission progress you earned are kept.
+  const UNDO_CD = 20000;
+  on("fresh", (s) => { s.undoCD = 0; s.undoSnap = null; s.undos = 0; });
+  // Score as it was when the piece appeared, so drop bonuses from the undone piece are taken back too.
+  on("spawn", () => { S.spawnScore = S.score; });
+  ACH.undo = ["タイムトラベラー", "一手戻しを使った"];
+  sfx.rewind = () => {
+    tone(1400, 0.35, "sawtooth", 0.07, 0, 180);
+    tone(700, 0.35, "square", 0.05, 0.05, 90);
+    for (let i = 0; i < 6; i++) tone(mtof(84 - i * 3), 0.05, "triangle", 0.08, 0.3 + i * 0.04);
+    tone(mtof(72), 0.12, "sine", 0.12, 0.6); tone(mtof(79), 0.2, "sine", 0.12, 0.68);
+  };
+  sfx.deny = () => { tone(180, 0.08, "square", 0.08); tone(140, 0.12, "square", 0.08, 0.09); };
+  sfx.undoReady = () => { tone(mtof(88), 0.08, "triangle", 0.1); tone(mtof(95), 0.18, "triangle", 0.1, 0.08); };
+  on("preLock", (p) => {
+    if (!p) return;
+    S.undoSnap = {
+      board: S.board.map((r) => r.map((c) => (c ? { ...c } : null))),
+      spec: { type: p.type, special: p.special, idx: p.idx },
+      queue: S.queue.map((q) => ({ ...q })), bag: S.bag.slice(),
+      holdSpec: S.holdSpec ? { ...S.holdSpec } : null, canHold: S.canHold,
+      score: S.spawnScore ?? S.score, lines: S.lines, level: S.level, combo: S.combo, gauge: S.gauge, fever: S.fever,
+      linesSinceChest: S.linesSinceChest, bonusRow: S.bonusRow, spot: S.spot ? { ...S.spot } : null, pieceCount: S.pieceCount,
+    };
+  });
+  on("tick", (dt) => {
+    if (S.undoCD <= 0) return;
+    S.undoCD = Math.max(0, S.undoCD - dt);
+    if (S.undoCD === 0) { sfx.undoReady(); popup("UNDO READY", "cyan small", 88, "一手戻しが使える"); }
+  });
+  function undo() {
+    if (!S.started || S.over || S.paused) return;
+    if (S.clearing) { setTimeout(undo, CLEAR_MS); return; }
+    if (S.undoCD > 0) { sfx.deny(); popup(`あと${Math.ceil(S.undoCD / 1000)}秒`, "cyan small", 88, "一手戻しはチャージ中"); return; }
+    const u = S.undoSnap;
+    if (!u) { sfx.deny(); popup("まだ戻せません", "cyan small", 88, "ミノを1つ置いてから"); return; }
+    const oldLevel = S.level;
+    S.board = u.board; S.queue = u.queue; S.bag = u.bag; S.holdSpec = u.holdSpec;
+    S.score = u.score; S.disp = u.score; S.lines = u.lines; S.level = u.level; S.combo = u.combo;
+    if (!S.fever && !u.fever) S.gauge = u.gauge;
+    S.linesSinceChest = u.linesSinceChest; S.bonusRow = u.bonusRow; S.spot = u.spot; S.pieceCount = u.pieceCount - 1;
+    S.pendingSpin = null; S.luckyLock = false; S.lastRot = false; S.chain = 0; S.trails = []; S.ghosts = [];
+    if (S.level !== oldLevel) document.documentElement.style.setProperty("--hue", String((280 + (S.level - 1) * 47) % 360));
+    S.cur = null;
+    spawnFrom(u.spec);
+    S.canHold = u.canHold;
+    S.undoSnap = null; S.undoCD = UNDO_CD; S.undos++;
+    updateHud(); drawPreviews(); lastHud = "";
+    // rewind effects: colour-inverted flicker, sparks streaming upward, reverse whoosh
+    popup("REWIND!", "cyan huge", 45, "一手戻した (20秒後にまた使える)");
+    sfx.rewind(); buzz([15, 30, 15, 30, 15]);
+    boardCv.animate([{ filter: "invert(1) hue-rotate(180deg)" }, { filter: "none" }, { filter: "invert(.6)" }, { filter: "none" }], { duration: 420 });
+    const r = boardCv.getBoundingClientRect();
+    for (let i = 0; i < 40; i++) {
+      parts.push({ x: r.left + Math.random() * r.width, y: r.bottom - Math.random() * r.height * 0.3, vy: -6 - Math.random() * 8, life: 0, max: 600, color: i % 2 ? "#22e4ff" : "#c86bff", kind: "rew",
+        upd(p, k) { p.y += p.vy * k; }, drw(ctx, p) { ctx.fillStyle = p.color; ctx.fillRect(p.x, p.y, 2, 14); } });
+    }
+    unlock("undo");
+  }
+  actions.undo = undo;
+  KEYMAP.KeyU = "undo"; KEYMAP.Backspace = "undo";
+  $("undoBtn").addEventListener("click", (e) => { e.currentTarget.blur(); undo(); });
+  // cooldown display on both undo buttons
+  const undoEls = [$("undoBtn"), document.querySelector('.pad [data-act="undo"]')];
+  let undoTxt = "";
+  on("frame", () => {
+    const ready = S.started && !S.over && S.undoCD <= 0 && !!S.undoSnap;
+    const pct = S.started ? 1 - S.undoCD / UNDO_CD : 1;
+    const txt = !S.started || S.over ? "UNDO" : S.undoCD > 0 ? `${Math.ceil(S.undoCD / 1000)}s` : "UNDO";
+    undoEls.forEach((el) => { el.style.setProperty("--cd", pct.toFixed(3)); el.classList.toggle("ready", ready); });
+    if (txt !== undoTxt) { undoTxt = txt; undoEls[1].textContent = txt; $("undoNote").textContent = S.undoCD > 0 ? `チャージ中 ${txt}` : "U / Backspace"; }
+  });
 
   // Demo board behind the start screen so the first frame already shows the game.
   (function demo() {
