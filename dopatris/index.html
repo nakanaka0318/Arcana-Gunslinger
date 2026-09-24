@@ -364,17 +364,30 @@
     .grade { font-size: 48px; }
   }
   /* ---- Round 6 ---- */
+  /* The event roulette is a banner at the top of the screen, off the board. */
   .roulette {
-    position: absolute; left: 50%; top: 38%; transform: translate(-50%, -50%); z-index: 4; pointer-events: none;
-    min-width: 80%; padding: 12px 14px; text-align: center; border-radius: 12px;
-    background: rgba(10,6,18,.88); border: 3px solid var(--cyan); box-shadow: 0 0 30px rgba(34,228,255,.6);
+    position: fixed; left: 50%; top: calc(env(safe-area-inset-top, 0px) + 8px); transform: translateX(-50%); z-index: 26; pointer-events: none;
+    width: min(560px, calc(100% - 24px)); padding: 8px 14px; border-radius: 12px;
+    display: grid; grid-template-columns: auto 1fr auto; align-items: center; gap: 12px;
+    background: rgba(10,6,18,.94); border: 3px solid var(--cyan); box-shadow: 0 0 30px rgba(34,228,255,.6);
+    animation: bannerIn .3s cubic-bezier(.2,1.6,.4,1);
   }
-  .roulette.landed { border-color: var(--gold); box-shadow: 0 0 40px rgba(255,210,63,.8); animation: bump .3s ease-out; }
-  .r-label { font: 700 10px/1 var(--f-num); letter-spacing: .2em; color: var(--mute); }
-  .r-name { font: 400 clamp(16px, 4.5vw, 24px)/1.2 var(--f-display); color: var(--text); margin-top: 4px; }
+  @keyframes bannerIn { from { transform: translate(-50%, -140%); } }
+  .roulette.landed { border-color: var(--gold); box-shadow: 0 0 40px rgba(255,210,63,.8); }
+  .roulette.clear { border-color: var(--lime); box-shadow: 0 0 30px rgba(125,255,90,.6); }
+  .r-label { font: 700 9px/1.2 var(--f-num); letter-spacing: .14em; color: var(--mute); max-width: 5.5em; }
+  .r-main { min-width: 0; }
+  .r-name { font: 400 clamp(15px, 4.2vw, 22px)/1.15 var(--f-display); color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   .roulette.landed .r-name { color: var(--gold); }
-  .r-desc { font-size: 11px; color: var(--mute); margin-top: 2px; }
-  .r-count { font: 400 28px/1 var(--f-display); color: var(--pink); min-height: 28px; margin-top: 4px; }
+  .roulette.clear .r-name { color: var(--lime); }
+  .r-desc { font-size: 11px; color: var(--mute); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .r-count { font: 400 26px/1 var(--f-display); color: var(--pink); min-width: 1.2em; text-align: center; }
+  @media (max-width: 720px) {
+    .roulette { padding: 6px 10px; gap: 8px; border-width: 2px; }
+    .r-label { font-size: 7px; }
+    .r-desc { font-size: 9px; }
+    .r-count { font-size: 20px; }
+  }
   body.ev-rush .bg { filter: saturate(1.6) hue-rotate(-40deg); }
   body.ev-slow .bg { filter: saturate(.6) brightness(.8); }
   body.ev-slow #board { filter: saturate(.75) brightness(1.1); }
@@ -543,7 +556,6 @@
       <div class="flash" id="flash"></div>
       <div class="mission" id="mission" hidden><div class="m-text" id="mText"></div><div class="m-bar"><div id="mFill"></div></div></div>
       <div class="buffs" id="buffs"></div>
-      <div class="roulette" id="roulette" hidden><div class="r-label">RANDOM EVENT</div><div class="r-name" id="rName"></div><div class="r-desc" id="rDesc"></div><div class="r-count" id="rCount"></div></div>
       <div class="chest" id="chest" hidden></div>
       <div class="pops" id="pops"></div>
 
@@ -662,13 +674,14 @@
         <section><h3>ラウンド8：お祝いビジュアル</h3><ul><li>打ち上げ花火</li><li>星とハートの紙吹雪</li><li>大見出しの後ろで光線が回る</li><li>大見出しが一文字ずつ跳ねる</li><li>リアクションするマスコット「ドパくん」</li><li>フィーバー中は画面の縁が虹色</li><li>盤面の奥に巨大コンボ数字</li><li>ハードドロップで盤面が沈む</li></ul></section>
         <section><h3>ラウンド9：成長と目標</h3><ul><li>16段階の称号</li><li>自己ベストまでのゲージ(25%刻みで告知)</li><li>連続プレイボーナス</li><li>ゲームオーバー10秒以内の即リトライボーナス</li><li>ランクで解放されるスキン(NEON/CANDY/JEWEL/PIXEL)</li><li>累計ライン数の記念</li><li>スロットのリーチ演出と「おしい!」</li><li>リザルトに次の目標</li></ul></section>
         <section><h3>ラウンド10：仕上げ</h3><ul><li>移動・回転の残像</li><li>レベルアップで画面を色が横切る</li><li>フィーバー終了時の成績発表</li><li>8コンボ以上でZONE(周りがモノクロに)</li><li>2.5秒以内の連続消しでQUICK ×1.3</li><li>ドーパミンメーター(満タンでDOPAMINE MAX)</li><li>振動パターンを増やした(Android)</li><li>ときどき虹色の激アツ・プレミアムスピン(777確率4倍)</li></ul></section>
-        <section><h3>追加：BREAK</h3><ul><li>BREAKボタン / B / Backspace で前に置いたミノを粉砕(20秒に1回)</li><li>金色に光るゴースト：そこに落とすとラインが消える</li><li>ごほうびの頻度アップ：サプライズ6秒・イベント18〜28秒・宝箱6ラインごと</li><li>スマホの下のボタンは HOLD / BREAK / DROP だけ(移動と回転は盤面をタッチ)</li></ul></section>
+        <section><h3>追加：BREAK</h3><ul><li>BREAKボタン / B / Backspace で前に置いたミノを粉砕(20秒に1回)</li><li>金色に光るゴースト：そこに落とすとラインが消える</li><li>ごほうびの頻度アップ：サプライズ6秒・イベント18〜28秒・宝箱6ラインごと</li><li>スマホの下のボタンは HOLD / BREAK / DROP だけ(移動と回転は盤面をタッチ)</li><li>イベントのルーレットは画面上部のバナーに表示(盤面を隠さない)</li></ul></section>
         <section><h3>追加：サウンド20種</h3><ul><li>BGMがレベルで厚くなる：Lv2スネア / Lv3コードパッド / Lv4シェイカー / Lv5カウンターメロディ</li><li>テトリス・全消し・777・ミッション・レベルアップで拍手</li><li>ミノの種類ごとに着地音の音程が違う(積むと曲になる)</li><li>回転方向で音が変わる / ソフトドロップの上昇音 / 出現のシュッ</li><li>ライン消去のガラス破砕音 / 3コンボからドラムフィル</li><li>スロットのリール停止音と当たり音</li><li>ミッション進捗音 / 時間制ミッション残り5秒のカウント</li><li>バフ開始・終了音 / フィーバー残り3秒のカウントと終了音</li><li>フィーバーゲージ50%・80%の予告音</li><li>ピンチのサイレン / BONUS ROW・ラッキースポット出現音</li><li>スタートのジングル / ポーズ・再開音 / ボタンのクリック音 / ドパくんの鳴き声</li></ul></section>
       </div>
     </details>
   </section>
 </div>
 
+<div class="roulette" id="roulette" hidden><div class="r-label">RANDOM EVENT</div><div class="r-main"><div class="r-name" id="rName"></div><div class="r-desc" id="rDesc"></div></div><div class="r-count" id="rCount"></div></div>
 <div class="toasts" id="toasts" aria-live="polite"></div>
 <canvas id="fx" aria-hidden="true"></canvas>
 
@@ -2315,6 +2328,7 @@
   function startRoulette() {
     S.rouletting = true;
     const el = $("roulette"), pick = EVENTS[(Math.random() * EVENTS.length) | 0];
+    clearTimeout(bannerT);
     el.hidden = false; el.className = "roulette";
     let i = 0, delay = 60, elapsed = 0;
     (function spin() {
@@ -2333,11 +2347,19 @@
       setTimeout(spin, delay);
     })();
   }
+  let bannerT = null;
+  function eventBanner(name, desc, cls, count) {
+    const el = $("roulette");
+    clearTimeout(bannerT);
+    el.hidden = false; el.className = "roulette " + cls;
+    $("rName").textContent = name; $("rDesc").textContent = desc; $("rCount").textContent = count;
+    bannerT = setTimeout(() => { if (!S.rouletting) el.hidden = true; }, 1800);
+  }
   function startEvent(ev) {
     S.event = ev;
     addBuff(ev.id, ev.name, ev.ms, ev.cls);
     document.body.classList.add("ev-" + ev.id);
-    popup(ev.name, "gold huge", 40, ev.desc + " START!");
+    eventBanner(ev.name, ev.desc + "  START!", "landed", "GO!");
     sfx.fever(); flash(); buzz([20, 20, 20, 20, 60]);
     say && say(ev.name.includes("RUSH") ? "ラッシュタイム!" : "イベント開始!");
     emit("eventStart", ev.id);
@@ -2346,7 +2368,7 @@
     if (!S.event || S.event.id !== id) return;
     document.body.classList.remove("ev-" + id);
     const pts = 1000 * S.level; addScore(pts);
-    popup("EVENT CLEAR!", "lime", 45, `+${pts.toLocaleString()}`);
+    eventBanner("EVENT CLEAR!", `${S.event.name} 終了 +${pts.toLocaleString()}`, "clear", "");
     sfx.fanfare(); addXP(40);
     S.event = null; S.eventCD = 18000 + Math.random() * 10000;
     emit("eventEnd", id);
