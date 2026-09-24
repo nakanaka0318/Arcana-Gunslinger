@@ -509,6 +509,9 @@
     .goals div:last-child { display: none; }
     .home-count { font-size: 9px; }
   }
+  /* No long-press text selection (blue highlight) or copy / save-image menu on the game screen. */
+  body, canvas, button { -webkit-user-select: none; user-select: none; -webkit-touch-callout: none; }
+  .diff, .diff * { -webkit-user-select: text; user-select: text; -webkit-touch-callout: default; }
   @media (prefers-reduced-motion: reduce) {
     body.fever .bg, .gauge-fill, .big { animation: none; }
   }
@@ -1497,7 +1500,9 @@
     const up = () => { b.classList.remove("on"); release(act); };
     b.addEventListener("pointerup", up); b.addEventListener("pointercancel", up); b.addEventListener("pointerleave", up);
   });
-  document.addEventListener("contextmenu", (e) => { if (e.target.closest(".pad")) e.preventDefault(); });
+  // Long-press menus (copy, save image) are blocked everywhere except the feature list at the bottom.
+  document.addEventListener("contextmenu", (e) => { if (!e.target.closest(".diff")) e.preventDefault(); });
+  document.addEventListener("selectstart", (e) => { if (!(e.target.closest && e.target.closest(".diff"))) e.preventDefault(); });
 
   // Board gestures: tap = rotate (left half ⟲ / right half ⟳), drag = move, swipe down = drop, swipe up = hold.
   let gest = null;
