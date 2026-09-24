@@ -379,7 +379,6 @@
   body.ev-slow .bg { filter: saturate(.6) brightness(.8); }
   body.ev-slow #board { filter: saturate(.75) brightness(1.1); }
   body.ev-goldrush .board-wrap { background: linear-gradient(135deg, var(--gold), #ff9a2e); }
-  body.ev-bombparty .board-wrap { background: linear-gradient(135deg, var(--red), #2a1636); }
   body.ev-cascade .board-wrap { background: linear-gradient(135deg, var(--lime), var(--cyan)); }
   body.ev-ifest .board-wrap { background: linear-gradient(135deg, var(--cyan), #3b7bff); }
   /* ---- Round 7 ---- */
@@ -491,6 +490,16 @@
     .pad button { font-size: 12px; }
     .pad button.brk { font-size: 9px; }
   }
+  /* ---- Home ---- */
+  .over-btns { display: flex; gap: 10px; align-items: center; justify-content: center; flex-wrap: wrap; }
+  .home-btn { font-family: var(--f-body); font-weight: 800; font-size: 15px; letter-spacing: .02em; text-transform: none; padding: 12px 16px; }
+  .home-count { font-size: 11px; color: var(--mute); }
+  @media (max-width: 720px) {
+    .over-btns { flex-wrap: nowrap; gap: 8px; }
+    .home-btn { padding: 10px 12px; font-size: 13px; }
+    .goals div:last-child { display: none; }
+    .home-count { font-size: 9px; }
+  }
   @media (prefers-reduced-motion: reduce) {
     body.fever .bg, .gauge-fill, .big { animation: none; }
   }
@@ -578,7 +587,11 @@
         <div class="final" id="finalScore">0</div>
         <p id="finalInfo"></p>
         <div class="result" id="resultExtra"></div>
-        <button class="big" id="retryBtn" type="button">もう一回!</button>
+        <div class="over-btns">
+          <button class="big" id="retryBtn" type="button">もう一回!</button>
+          <button class="btn home-btn" id="homeBtn" type="button">ホームへ</button>
+        </div>
+        <p class="home-count" id="homeCount"></p>
       </div>
     </div>
 
@@ -627,7 +640,7 @@
       <li><b>フィーバータイム</b>ゲージ満タンで10秒間スコア3倍。ブロックが虹色に光り、BGMが加速する。</li>
       <li><b>無限コンボ倍率</b>連続で消すたび倍率が+0.5ずつ上がり続け、効果音の音程もどんどん上がる。</li>
       <li><b>ゴールデンブロック</b>金色のマスを含む列を消すと +1000×Lv、コインが噴き出す。</li>
-      <li><b>ボムブロック</b>着地した瞬間に周囲3×3を吹き飛ばす。ボム同士は誘爆する。</li>
+      <li><b>同じ色でPOP・自動連鎖</b>同じ色の仲間が6個つながると消え、周りが塗り替わって勝手に連鎖する。</li>
       <li><b>ラッキースロット</b>ライン消去のたびにスロットが回る。777でジャックポット＆即フィーバー。</li>
       <li><b>流星ハードドロップ</b>光の軌跡を残して落下し、落下距離×2×Lvのボーナス。</li>
       <li><b>褒め言葉と画面演出</b>「ナイス!」「神!!」のポップアップ、画面シェイク、フラッシュ、パーティクル。</li>
@@ -702,7 +715,6 @@
     fever:   ["フィーバー!", "初めてフィーバーに突入"],
     jackpot: ["ジャックポット", "スロットで777"],
     gold:    ["ゴールドハンター", "金ブロックを消した"],
-    bomb:    ["爆弾魔", "ボムを爆発させた"],
     pc:      ["パーフェクト", "盤面を全消しした"],
     lv5:     ["レベル5", "レベル5に到達"],
     s100k:   ["10万点", "スコア100,000突破"],
@@ -849,7 +861,7 @@
   const shuffle = (a) => { for (let i = a.length - 1; i > 0; i--) { const j = (Math.random() * (i + 1)) | 0; [a[i], a[j]] = [a[j], a[i]]; } return a; };
   function randSpecial() {
     const r = Math.random(), gp = S.fever ? 0.28 : 0.1;
-    let sp = r < gp ? "gold" : r < gp + 0.07 ? "bomb" : null;
+    let sp = r < gp ? "gold" : null;
     for (const f of MODS.special) { const v = f(sp); if (v !== undefined) sp = v; }
     return sp;
   }
@@ -1174,10 +1186,10 @@
         popup("STAR ×3", "gold", 35, "次の3個に金ブロック!");
         sfx.coin(); drawPreviews();
       } else if (a === "♥") {
-        S.queue[0].special = "bomb";
-        msg.textContent = "♥♥♥ 次はボム!";
-        popup("BOMB DELIVERY", "gold", 35, "次のミノにボム!");
-        sfx.coin(); drawPreviews();
+        addGauge(50);
+        msg.textContent = "♥♥♥ フィーバー+50%";
+        popup("HEART ×3", "gold", 35, "フィーバーゲージ+50%");
+        sfx.coin();
       } else {
         const p = (a === "♦" ? 3000 : 1500) * L;
         addScore(p);
@@ -1201,7 +1213,7 @@
 
   // ---------- achievements ----------
   function unlock(k) {
-    if (unlocked.has(k)) return;
+    if (!ACH[k] || unlocked.has(k)) return;
     unlocked.add(k); store.set("dopatris-ach", [...unlocked]);
     const [t, d] = ACH[k];
     const el = document.createElement("div");
@@ -1613,6 +1625,11 @@
   }
   let last = performance.now();
   function frame(now) {
+    requestAnimationFrame(frame);
+    try { frameBody(now); } catch (e) { console.error("frame", e); }
+  }
+  let noPieceT = 0;
+  function frameBody(now) {
     const dt = Math.min(50, now - last); last = now;
     S.time += dt;
     // Safety net: a broken number must never freeze the game.
@@ -1650,7 +1667,11 @@
     renderHud(dt);
     emit("frame", dt);
     stepFx(dt);
-    requestAnimationFrame(frame);
+    // Watchdog: if an error ever leaves the game with no falling piece, bring the next one in.
+    if (S.started && !S.paused && !S.over && !S.clearing && !S.cur) {
+      noPieceT += dt;
+      if (noPieceT > 500) { noPieceT = 0; spawnNext(); }
+    } else noPieceT = 0;
   }
 
   // ==== DOPAMINE ROUNDS ====
@@ -2107,7 +2128,6 @@
     { t: "{n}コンボを決めろ", n: [2, 3, 4], ev: "clear", f: (i) => i.combo, max: true },
     { t: "ハードドロップ{n}回", n: [6, 10, 14], ev: "hard", f: () => 1 },
     { t: "ホールドを{n}回使え", n: [2, 3, 4], ev: "hold", f: () => 1 },
-    { t: "ボムを{n}回爆発させろ", n: [1, 1, 2], ev: "bomb", f: () => 1 },
     { t: "金ブロックを{n}個消せ", n: [1, 2, 3], ev: "clear", f: (i) => i.golds },
     { t: "2ライン以上を{n}回同時消し", n: [1, 2, 3], ev: "clear", f: (i) => (i.n >= 2 ? 1 : 0) },
     { t: "20秒で{n}ライン!", n: [3, 4, 5], ev: "clear", f: (i) => i.n, time: 20000 },
@@ -2164,7 +2184,7 @@
     ["コイン +12", () => addCoins(12, chestPos())],
     ["スコア +3,000×Lv", () => addScore(3000 * S.level)],
     ["フィーバー +50%", () => addGauge(50)],
-    ["次の3個がボム!", () => { S.queue.slice(0, 3).forEach((q) => { q.special = "bomb"; }); drawPreviews(); }],
+    ["次の3個が金!", () => { S.queue.slice(0, 3).forEach((q) => { q.special = "gold"; }); drawPreviews(); }],
     ["スロット無料スピン", () => spinSlot()],
     ["下2列を消去!", () => clearBottom(2)],
   ];
@@ -2299,7 +2319,6 @@
     { id: "rush", name: "RUSH TIME", desc: "落下スピードUP・スコア×2", ms: 15000, cls: "pink" },
     { id: "slow", name: "SLOW MOTION", desc: "ゆっくり落下・スコア×1.5", ms: 15000, cls: "" },
     { id: "goldrush", name: "GOLD RUSH", desc: "全部のミノに金ブロック", ms: 14000, cls: "gold" },
-    { id: "bombparty", name: "BOMB PARTY", desc: "ボムが大量発生", ms: 15000, cls: "pink" },
     { id: "ifest", name: "I-MINO FESTIVAL", desc: "棒が5本連続・テトリス×2", ms: 18000, cls: "" },
     { id: "cascade", name: "CASCADE TIME", desc: "同じ色6個で消える・連鎖しまくり", ms: 18000, cls: "lime" },
   ];
@@ -2354,10 +2373,9 @@
   bpm = () => baseBpm() * (hasBuff("rush") ? 1.2 : hasBuff("slow") ? 0.75 : 1);
   // R6-5 GOLD RUSH: every piece carries a gold block
   // R6-6 BOMB PARTY: bombs everywhere
-  MODS.special.push(() => (hasBuff("goldrush") ? "gold" : hasBuff("bombparty") && Math.random() < 0.45 ? "bomb" : undefined));
+  MODS.special.push(() => (hasBuff("goldrush") ? "gold" : undefined));
   on("eventStart", (id) => {
     if (id === "goldrush") S.queue.forEach((q) => { q.special = "gold"; });
-    if (id === "bombparty") S.queue.forEach((q, i) => { if (i % 2 === 0) q.special = "bomb"; });
     // R6-7 I-MINO FESTIVAL: five I pieces in a row, TETRIS pays double
     if (id === "ifest") S.queue.forEach((q) => { q.type = "I"; q.special = null; });
     drawPreviews();
@@ -3290,18 +3308,56 @@
     if (txt !== breakTxt) { breakTxt = txt; breakEls[1].textContent = txt; $("breakNote").textContent = txt === "BREAK" ? "B / Backspace" : `チャージ中 ${txt}`; }
   });
 
+  // ===================== HOME: game over returns to the home (start) screen =====================
+  // Bomb pieces are removed from the game; this last filter makes sure nothing can hand one out.
+  MODS.special.push((sp) => (sp === "bomb" ? null : undefined));
+  const HOME_AFTER = 15;
+  let homeTimer = null;
+  function stopHomeCountdown() { clearInterval(homeTimer); homeTimer = null; $("homeCount").textContent = ""; }
+  function goHome() {
+    stopHomeCountdown();
+    const slotId = S.slotId;
+    S = fresh();
+    S.slotId = slotId + 1;
+    setDemo();
+    document.body.className = "";
+    document.documentElement.style.setProperty("--hue", "280");
+    $("overOv").hidden = true; $("pauseOv").hidden = true; $("startOv").hidden = false;
+    $("mission").hidden = true; $("roulette").hidden = true; $("chest").hidden = true;
+    $("heart").classList.remove("used");
+    $("slotMsg").textContent = "消すと回る";
+    reels.forEach((el) => { el.className = "reel s7"; el.textContent = "7"; });
+    pops.innerHTML = ""; lastHud = "";
+    updateHud(); drawPreviews(); renderSkins(); renderLife(); renderMeta();
+    [0, 4, 7].forEach((st, i) => tone(mtof(72 + st), 0.1, "triangle", 0.08, i * 0.06));
+    $("startBtn").focus();
+  }
+  on("over", () => {
+    let left = HOME_AFTER;
+    $("homeCount").textContent = `${left}秒後にホームへ戻ります`;
+    homeTimer = setInterval(() => {
+      left--;
+      if (left <= 0) { goHome(); return; }
+      $("homeCount").textContent = `${left}秒後にホームへ戻ります`;
+    }, 1000);
+  });
+  on("start", stopHomeCountdown);
+  $("homeBtn").addEventListener("click", goHome);
+  addEventListener("keydown", (e) => { if (S.over && (e.code === "KeyH" || e.code === "Escape")) goHome(); });
+
   // The first state was built before the rounds registered their fields; give it those fields too.
   emit("fresh", S);
 
   // Demo board behind the start screen so the first frame already shows the game.
-  (function demo() {
+  function setDemo() {
     const rows = ["TTT.IIIIJJ", "ZZSSOOLJJJ", "LZZSSOOL.L", "LLLTZZ.TTT"];
     rows.forEach((r, i) => [...r].forEach((ch, x) => {
-      if (ch !== ".") S.board[ROWS - rows.length + i][x] = { c: ch, gold: i === 1 && x === 4, bomb: i === 2 && x === 2 };
+      if (ch !== ".") S.board[ROWS - rows.length + i][x] = { c: ch, gold: i === 1 && x === 4, gem: i === 2 && x === 2 };
     }));
-    S.queue = [{ type: "T", special: "gold", idx: 0.5 }, { type: "I", special: null, idx: 0 }, { type: "S", special: "bomb", idx: 0.2 }];
+    S.queue = [{ type: "T", special: "gold", idx: 0.5 }, { type: "I", special: null, idx: 0 }, { type: "S", special: "x2", idx: 0.2 }];
     S.holdSpec = { type: "L", special: null, idx: 0 };
-  })();
+  }
+  setDemo();
 
   // Test handle, only with #debug in the URL.
   if (location.hash === "#debug") window.__dopa = { get S() { return S; }, groupsIn, breakLast, ev: (id) => startEvent(EVENTS.find((e) => e.id === id)), collide, rot, hardDrop, start, emit, startFever, HOOKS, parts: () => parts.length };
