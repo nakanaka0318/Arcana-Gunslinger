@@ -363,6 +363,25 @@
     .chest { top: 36px; right: 6px; transform: scale(.8); }
     .grade { font-size: 48px; }
   }
+  /* ---- Round 6 ---- */
+  .roulette {
+    position: absolute; left: 50%; top: 38%; transform: translate(-50%, -50%); z-index: 4; pointer-events: none;
+    min-width: 80%; padding: 12px 14px; text-align: center; border-radius: 12px;
+    background: rgba(10,6,18,.88); border: 3px solid var(--cyan); box-shadow: 0 0 30px rgba(34,228,255,.6);
+  }
+  .roulette.landed { border-color: var(--gold); box-shadow: 0 0 40px rgba(255,210,63,.8); animation: bump .3s ease-out; }
+  .r-label { font: 700 10px/1 var(--f-num); letter-spacing: .2em; color: var(--mute); }
+  .r-name { font: 400 clamp(16px, 4.5vw, 24px)/1.2 var(--f-display); color: var(--text); margin-top: 4px; }
+  .roulette.landed .r-name { color: var(--gold); }
+  .r-desc { font-size: 11px; color: var(--mute); margin-top: 2px; }
+  .r-count { font: 400 28px/1 var(--f-display); color: var(--pink); min-height: 28px; margin-top: 4px; }
+  body.ev-rush .bg { filter: saturate(1.6) hue-rotate(-40deg); }
+  body.ev-slow .bg { filter: saturate(.6) brightness(.8); }
+  body.ev-slow #board { filter: saturate(.75) brightness(1.1); }
+  body.ev-goldrush .board-wrap { background: linear-gradient(135deg, var(--gold), #ff9a2e); }
+  body.ev-bombparty .board-wrap { background: linear-gradient(135deg, var(--red), #2a1636); }
+  body.ev-cascade .board-wrap { background: linear-gradient(135deg, var(--lime), var(--cyan)); }
+  body.ev-ifest .board-wrap { background: linear-gradient(135deg, var(--cyan), #3b7bff); }
   @media (prefers-reduced-motion: reduce) {
     body.fever .bg, .gauge-fill, .big { animation: none; }
   }
@@ -403,6 +422,7 @@
       <div class="flash" id="flash"></div>
       <div class="mission" id="mission" hidden><div class="m-text" id="mText"></div><div class="m-bar"><div id="mFill"></div></div></div>
       <div class="buffs" id="buffs"></div>
+      <div class="roulette" id="roulette" hidden><div class="r-label">RANDOM EVENT</div><div class="r-name" id="rName"></div><div class="r-desc" id="rDesc"></div><div class="r-count" id="rCount"></div></div>
       <div class="chest" id="chest" hidden></div>
       <div class="pops" id="pops"></div>
 
@@ -2069,6 +2089,142 @@
   });
   renderMeta();
 
+  // ===================== ROUND 6: the Dopamine Director =====================
+  // Keeps rewards flowing: it measures the time since the last reward and the time since the last event,
+  // and fills any dry stretch with a surprise gift or a random timed event picked by a roulette.
+  on("fresh", (s) => { s.dry = 0; s.dopa = 30; s.eventCD = 22000; s.event = null; s.rouletting = false; s.chain = 0; s.surprises = 0; });
+
+  // Popups stack into free lanes instead of piling on top of each other.
+  const basePopup = popup;
+  popup = function (text, cls = "", yPct = 45, sub = "") {
+    const now = performance.now();
+    const busy = [...pops.querySelectorAll(".pop")].filter((e) => now - (e._t || 0) < 700).map((e) => parseFloat(e.style.top));
+    let y = yPct, tries = 0;
+    while (busy.some((b) => Math.abs(b - y) < 11) && tries++ < 8) y = y + (tries % 2 ? 12 * tries : -12 * tries);
+    const el = basePopup(text, cls, Math.max(10, Math.min(90, y)), sub);
+    el._t = now;
+    return el;
+  };
+
+  // R6-1 dry-spell detector: 9 seconds without a reward triggers a surprise gift
+  ["clear", "bomb", "slot", "mission", "fever", "perfect", "ach"].forEach((ev) => on(ev, () => { S.dry = 0; S.dopa = Math.min(100, S.dopa + 12); }));
+  const GIFTS = [
+    ["コイン +3", () => addCoins(3)],
+    ["次のミノが金に!", () => { S.queue[0].special = "gold"; drawPreviews(); }],
+    ["フィーバー +20%", () => addGauge(20)],
+    ["ボーナススピン!", () => spinSlot()],
+    ["ボーナス +500×Lv", () => addScore(500 * S.level)],
+  ];
+  function surprise() {
+    const [label, fn] = GIFTS[(Math.random() * GIFTS.length) | 0];
+    fn(); S.surprises++;
+    popup("SURPRISE!", "lime", 48, label);
+    const [cx, cy] = toClient(4.5, HID + 9);
+    burstAt(cx, cy, "#7dff5a", 24, 4); burstAt(cx, cy, "#ffd23f", 12, 2);
+    [0, 7, 12, 16].forEach((s, i) => tone(mtof(79 + s), 0.1, "triangle", 0.1, i * 0.05));
+  }
+  on("tick", (dt) => {
+    S.dry += dt;
+    S.dopa = Math.max(0, S.dopa - dt * 0.004);
+    if (S.dry > 9000 && !S.clearing) { S.dry = 0; surprise(); }
+    if (!S.event && !S.rouletting) { S.eventCD -= dt; if (S.eventCD <= 0) startRoulette(); }
+  });
+
+  // Random events: each runs as a timed buff.
+  const EVENTS = [
+    { id: "rush", name: "RUSH TIME", desc: "落下スピードUP・スコア×2", ms: 15000, cls: "pink" },
+    { id: "slow", name: "SLOW MOTION", desc: "ゆっくり落下・スコア×1.5", ms: 15000, cls: "" },
+    { id: "goldrush", name: "GOLD RUSH", desc: "全部のミノに金ブロック", ms: 14000, cls: "gold" },
+    { id: "bombparty", name: "BOMB PARTY", desc: "ボムが大量発生", ms: 15000, cls: "pink" },
+    { id: "ifest", name: "I-MINO FESTIVAL", desc: "棒が5本連続・テトリス×2", ms: 18000, cls: "" },
+    { id: "cascade", name: "CASCADE TIME", desc: "浮いたブロックが落ちて連鎖", ms: 18000, cls: "lime" },
+  ];
+  // R6-2 an event roulette spins before each event, then counts down
+  function startRoulette() {
+    S.rouletting = true;
+    const el = $("roulette"), pick = EVENTS[(Math.random() * EVENTS.length) | 0];
+    el.hidden = false; el.className = "roulette";
+    let i = 0, delay = 60, elapsed = 0;
+    (function spin() {
+      if (!S.started || S.over) { el.hidden = true; S.rouletting = false; return; }
+      const ev = elapsed > 1500 ? pick : EVENTS[i++ % EVENTS.length];
+      $("rName").textContent = ev.name; $("rDesc").textContent = ev.desc;
+      tone(1200 + (i % 2) * 300, 0.03, "square", 0.05);
+      if (ev === pick && elapsed > 1500) {
+        el.classList.add("landed");
+        [0, 4, 7, 12].forEach((s, k) => tone(mtof(76 + s), 0.12, "square", 0.1, k * 0.06));
+        ["3", "2", "1"].forEach((c, k) => setTimeout(() => { $("rCount").textContent = c; tone(880, 0.08, "square", 0.08); }, 500 + k * 330));
+        setTimeout(() => { $("rCount").textContent = ""; el.hidden = true; S.rouletting = false; if (S.started && !S.over) startEvent(pick); }, 1500);
+        return;
+      }
+      elapsed += delay; delay = Math.min(260, delay * 1.12);
+      setTimeout(spin, delay);
+    })();
+  }
+  function startEvent(ev) {
+    S.event = ev;
+    addBuff(ev.id, ev.name, ev.ms, ev.cls);
+    document.body.classList.add("ev-" + ev.id);
+    popup(ev.name, "gold huge", 40, ev.desc + " START!");
+    sfx.fever(); flash(); buzz([20, 20, 20, 20, 60]);
+    say && say(ev.name.includes("RUSH") ? "ラッシュタイム!" : "イベント開始!");
+    emit("eventStart", ev.id);
+  }
+  on("buffEnd", (id) => {
+    if (!S.event || S.event.id !== id) return;
+    document.body.classList.remove("ev-" + id);
+    const pts = 1000 * S.level; addScore(pts);
+    popup("EVENT CLEAR!", "lime", 45, `+${pts.toLocaleString()}`);
+    sfx.fanfare(); addXP(40);
+    S.event = null; S.eventCD = 28000 + Math.random() * 14000;
+    emit("eventEnd", id);
+  });
+  on("over", () => { if (S.event) document.body.classList.remove("ev-" + S.event.id); $("roulette").hidden = true; });
+  on("start", () => EVENTS.forEach((e) => document.body.classList.remove("ev-" + e.id)));
+
+  // R6-3 RUSH TIME: faster gravity, double score, faster music
+  // R6-4 SLOW MOTION: slower gravity and music, ×1.5 score
+  MODS.gravity.push(() => (hasBuff("rush") ? 0.45 : hasBuff("slow") ? 2.6 : 1));
+  MODS.score.push(() => (hasBuff("rush") ? 2 : hasBuff("slow") ? 1.5 : 1));
+  const baseBpm = bpm;
+  bpm = () => baseBpm() * (hasBuff("rush") ? 1.2 : hasBuff("slow") ? 0.75 : 1);
+  // R6-5 GOLD RUSH: every piece carries a gold block
+  // R6-6 BOMB PARTY: bombs everywhere
+  MODS.special.push(() => (hasBuff("goldrush") ? "gold" : hasBuff("bombparty") && Math.random() < 0.45 ? "bomb" : undefined));
+  on("eventStart", (id) => {
+    if (id === "goldrush") S.queue.forEach((q) => { q.special = "gold"; });
+    if (id === "bombparty") S.queue.forEach((q, i) => { if (i % 2 === 0) q.special = "bomb"; });
+    // R6-7 I-MINO FESTIVAL: five I pieces in a row, TETRIS pays double
+    if (id === "ifest") S.queue.forEach((q) => { q.type = "I"; q.special = null; });
+    drawPreviews();
+  });
+  MODS.score.push((info) => (hasBuff("ifest") && info.n >= 4 ? 2 : 1));
+  // R6-8 CASCADE TIME: after a clear, loose blocks fall and can chain into more clears
+  on("afterClear", () => {
+    if (!hasBuff("cascade")) { S.chain = 0; return; }
+    let moved = false;
+    for (let x = 0; x < COLS; x++) {
+      const col = [];
+      for (let y = ROWS - 1; y >= 0; y--) if (S.board[y][x]) col.push(S.board[y][x]);
+      for (let y = ROWS - 1, i = 0; y >= 0; y--, i++) {
+        const nv = col[i] || null;
+        if (S.board[y][x] !== nv) moved = true;
+        S.board[y][x] = nv;
+      }
+    }
+    if (!moved) { S.chain = 0; return; }
+    const full = [];
+    for (let r = 0; r < ROWS; r++) if (S.board[r].every(Boolean)) full.push(r);
+    if (!full.length) { S.chain = 0; popup("DROP!", "lime small", 60); tone(300, 0.15, "sine", 0.2, 0, 120); return; }
+    S.chain++;
+    popup(`CHAIN ×${S.chain + 1}`, "lime huge", 55, "連鎖!");
+    [0, 5, 7, 12].forEach((s, i) => tone(mtof(72 + S.chain * 3 + s), 0.1, "square", 0.1, i * 0.05));
+    scoreClear(full);
+    S.clearing = { rows: full, t: 0 };
+    return true;
+  });
+  MODS.score.push(() => (S.chain > 0 ? 1 + S.chain : 1));
+
   // Demo board behind the start screen so the first frame already shows the game.
   (function demo() {
     const rows = ["TTT.IIIIJJ", "ZZSSOOLJJJ", "LZZSSOOL.L", "LLLTZZ.TTT"];
@@ -2080,7 +2236,7 @@
   })();
 
   // Test handle, only with #debug in the URL.
-  if (location.hash === "#debug") window.__dopa = { get S() { return S; }, collide, rot, hardDrop, start, emit, startFever, HOOKS, parts: () => parts.length };
+  if (location.hash === "#debug") window.__dopa = { get S() { return S; }, ev: (id) => startEvent(EVENTS.find((e) => e.id === id)), collide, rot, hardDrop, start, emit, startFever, HOOKS, parts: () => parts.length };
 
   layout();
   requestAnimationFrame(frame);
