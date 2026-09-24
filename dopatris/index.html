@@ -474,19 +474,22 @@
   .more ul { margin: 0; padding-left: 18px; }
   .more li b { color: var(--text); }
   .rounds { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 4px 16px; }
-  /* ---- Undo ---- */
-  .undo-btn, .pad button.undo {
-    background: linear-gradient(to top, rgba(34,228,255,.35) calc(var(--cd, 1) * 100%), var(--panel) calc(var(--cd, 1) * 100%));
+  /* ---- CHAIN + BREAK ---- */
+  .chainflash { position: fixed; inset: 0; z-index: 17; pointer-events: none; background: radial-gradient(circle, hsl(var(--ch) 100% 60% / .0) 30%, hsl(var(--ch) 100% 60% / .45)); animation: chainflash .45s ease-out forwards; }
+  @keyframes chainflash { from { opacity: 1; } to { opacity: 0; } }
+  .brk-btn, .pad button.brk {
+    background: linear-gradient(to top, rgba(255,154,46,.45) calc(var(--cd, 1) * 100%), var(--panel) calc(var(--cd, 1) * 100%));
   }
-  .undo-btn { width: 100%; font-family: var(--f-body); font-weight: 800; letter-spacing: .02em; text-transform: none; }
-  .undo-btn.ready, .pad button.undo.ready { border-color: var(--cyan); box-shadow: 0 0 14px rgba(34,228,255,.55); }
-  .undo-note { font: 700 10px/1 var(--f-num); color: var(--mute); letter-spacing: .06em; }
-  .pad button.undo { font-size: 11px; }
+  .brk-btn { width: 100%; font-family: var(--f-body); font-weight: 800; letter-spacing: .02em; text-transform: none; }
+  .brk-btn.ready, .pad button.brk.ready { border-color: #ff9a2e; box-shadow: 0 0 14px rgba(255,154,46,.7); animation: brkReady 1s ease-in-out infinite; }
+  @keyframes brkReady { 50% { box-shadow: 0 0 22px rgba(255,154,46,.95); } }
+  .brk-note { font: 700 10px/1 var(--f-num); color: var(--mute); letter-spacing: .06em; }
+  .pad button.brk { font-size: 10px; }
   @media (max-width: 720px) {
-    #pUndo { display: none; }
+    #pBreak { display: none; }
     .pad { grid-template-columns: repeat(8, minmax(0, 1fr)); gap: 4px; }
     .pad button { font-size: 12px; }
-    .pad button.undo { font-size: 9px; }
+    .pad button.brk { font-size: 9px; }
   }
   @media (prefers-reduced-motion: reduce) {
     body.fever .bg, .gauge-fill, .big { animation: none; }
@@ -523,10 +526,10 @@
         <div class="stat"><span class="k">LINES</span><span class="v" id="linesV">0</span></div>
         <div class="stat" id="multStat"><span class="k">COMBO</span><span class="v mult" id="multV">×1.0</span></div>
       </section>
-      <section class="panel" id="pUndo">
-        <h2>UNDO</h2>
-        <button class="btn undo-btn" id="undoBtn" type="button">一手戻す</button>
-        <span class="undo-note" id="undoNote">U / Backspace</span>
+      <section class="panel" id="pBreak">
+        <h2>BREAK</h2>
+        <button class="btn brk-btn" id="breakBtn" type="button">前のミノを破壊</button>
+        <span class="brk-note" id="breakNote">B / Backspace</span>
       </section>
     </aside>
 
@@ -550,7 +553,8 @@
           <b>左右ドラッグ</b><span>移動</span>
           <b>下へスワイプ</b><span>ハードドロップ</span>
           <b>上へスワイプ</b><span>ホールド</span>
-          <b>UNDO</b><span>一手戻し (20秒に1回)</span>
+          <b>BREAK</b><span>前のミノを破壊 (20秒に1回)</span>
+          <b>金色のゴースト</b><span>そこに落とすと消える・連鎖</span>
           <b>下のボタン</b><span>ボタンでも操作OK</span>
         </div>
         <div class="keys">
@@ -560,7 +564,8 @@
           <b>↓</b><span>ソフトドロップ</span>
           <b>SPACE</b><span>流星ハードドロップ</span>
           <b>C / SHIFT</b><span>ホールド</span>
-          <b>U / BS</b><span>一手戻し (20秒に1回)</span>
+          <b>B / BS</b><span>前のミノを破壊 (20秒に1回)</span>
+          <b>金色のゴースト</b><span>そこに落とすと消える・連鎖</span>
           <b>P / ESC</b><span>ポーズ</span>
         </div>
       </div>
@@ -612,7 +617,7 @@
     <button type="button" data-act="rotR" aria-label="右回転">⟳</button>
     <button type="button" data-act="down" aria-label="ソフトドロップ">▼</button>
     <button type="button" data-act="hold" aria-label="ホールド">HOLD</button>
-    <button type="button" data-act="undo" class="undo" aria-label="一手戻し">UNDO</button>
+    <button type="button" data-act="break" class="brk" aria-label="前に置いたミノを破壊">BREAK</button>
     <button type="button" data-act="drop" class="drop" aria-label="ハードドロップ">DROP</button>
   </div>
 
@@ -653,7 +658,8 @@
         <section><h3>ラウンド8：お祝いビジュアル</h3><ul><li>打ち上げ花火</li><li>星とハートの紙吹雪</li><li>大見出しの後ろで光線が回る</li><li>大見出しが一文字ずつ跳ねる</li><li>リアクションするマスコット「ドパくん」</li><li>フィーバー中は画面の縁が虹色</li><li>盤面の奥に巨大コンボ数字</li><li>ハードドロップで盤面が沈む</li></ul></section>
         <section><h3>ラウンド9：成長と目標</h3><ul><li>16段階の称号</li><li>自己ベストまでのゲージ(25%刻みで告知)</li><li>連続プレイボーナス</li><li>ゲームオーバー10秒以内の即リトライボーナス</li><li>ランクで解放されるスキン(NEON/CANDY/JEWEL/PIXEL)</li><li>累計ライン数の記念</li><li>スロットのリーチ演出と「おしい!」</li><li>リザルトに次の目標</li></ul></section>
         <section><h3>ラウンド10：仕上げ</h3><ul><li>移動・回転の残像</li><li>レベルアップで画面を色が横切る</li><li>フィーバー終了時の成績発表</li><li>8コンボ以上でZONE(周りがモノクロに)</li><li>2.5秒以内の連続消しでQUICK ×1.3</li><li>ドーパミンメーター(満タンでDOPAMINE MAX)</li><li>振動パターンを増やした(Android)</li><li>ときどき虹色の激アツ・プレミアムスピン(777確率4倍)</li></ul></section>
-        <section><h3>追加：一手戻し</h3><ul><li>UNDOボタン / U / Backspace で直前に置いたミノを取り消す</li><li>20秒に1回。チャージ中はボタンが下から満ちていき、使えると光る</li><li>盤面・NEXT・ホールド・スコア・ライン・レベル・コンボが戻る(もらったコイン・XP・実績はそのまま)</li><li>巻き戻し演出(反転フラッシュ・逆再生音)</li></ul></section>
+        <section><h3>追加：連鎖システム</h3><ul><li>ミノが着地するとブロックが隙間へ沈む(穴ができない)</li><li>同じ色の仲間が6個つながるとPOP(青I・J / 暖色O・L / 赤紫Z・T / 緑S)</li><li>POPの周りと消えたラインの上の段が1色に塗り替わり、次のPOPを呼ぶ(連鎖ペイント)</li><li>2段目以降は5個で消える / 連鎖ごとにスコア倍率アップ・連鎖ボーナス</li><li>4連鎖で即フィーバー、5連鎖以上で紙吹雪と拍手</li><li>ゴーストが金色に光ったら置くだけでOK</li><li>次のミノは半分の確率で直前と同じ種類(連鎖アシスト)</li></ul></section>
+        <section><h3>追加：BREAK</h3><ul><li>BREAKボタン / B / Backspace で前に置いたミノを粉砕(20秒に1回)</li><li>壊れた穴に上のブロックが落ちて連鎖することも</li><li>ごほうびの頻度アップ：サプライズ6秒・イベント18〜28秒・宝箱6ラインごと</li></ul></section>
         <section><h3>追加：サウンド20種</h3><ul><li>BGMがレベルで厚くなる：Lv2スネア / Lv3コードパッド / Lv4シェイカー / Lv5カウンターメロディ</li><li>テトリス・全消し・777・ミッション・レベルアップで拍手</li><li>ミノの種類ごとに着地音の音程が違う(積むと曲になる)</li><li>回転方向で音が変わる / ソフトドロップの上昇音 / 出現のシュッ</li><li>ライン消去のガラス破砕音 / 3コンボからドラムフィル</li><li>スロットのリール停止音と当たり音</li><li>ミッション進捗音 / 時間制ミッション残り5秒のカウント</li><li>バフ開始・終了音 / フィーバー残り3秒のカウントと終了音</li><li>フィーバーゲージ50%・80%の予告音</li><li>ピンチのサイレン / BONUS ROW・ラッキースポット出現音</li><li>スタートのジングル / ポーズ・再開音 / ボタンのクリック音 / ドパくんの鳴き声</li></ul></section>
       </div>
     </details>
@@ -964,6 +970,7 @@
       scoreClear(full);
       S.clearing = { rows: full, t: 0 };
     } else {
+      if (emit("resolve", placed)) return;
       const lost = S.combo;
       S.combo = 0;
       emit("noClear", placed, lost);
@@ -1005,7 +1012,8 @@
     S.maxCombo = Math.max(S.maxCombo, S.combo);
     const mult = 1 + (S.combo - 1) * 0.5;
     const fev = S.fever ? 3 : 1;
-    const base = [0, 100, 300, 500, 800][n] * S.level;
+    // 5+ lines can clear at once now that blocks sink into gaps
+    const base = (n <= 4 ? [0, 100, 300, 500, 800][n] : 800 + (n - 4) * 500) * S.level;
     let pts = Math.round(base * mult * fev);
     if (golds) pts += 1000 * S.level * golds * fev;
     const info = { rows, n, golds, combo: S.combo, mult, pts, tags: [], cells: rows.map((r) => S.board[r].map((c, x) => ({ ...c, x, y: r }))) };
@@ -1013,7 +1021,7 @@
     info.pts = pts = Math.round(info.pts * product(MODS.score, info));
     addScore(pts);
 
-    const [en, jp] = PRAISE[n];
+    const [en, jp] = PRAISE[n] || [`${n} LINES!!!!!`, "超・神!!!"];
     popup(en, n >= 4 ? "gold huge" : n >= 3 ? "lime" : "", 42, `${jp} +${pts.toLocaleString()}`);
     if (S.combo >= 2) setTimeout(() => popup(`${S.combo} COMBO`, "cyan", 62, `×${mult.toFixed(1)}`), 160);
     if (golds) {
@@ -1063,6 +1071,7 @@
   }
 
   function addScore(p) {
+    if (!Number.isFinite(p)) return;
     S.score += p;
     if (S.score >= 100000) unlock("s100k");
     emit("score", p);
@@ -1598,11 +1607,18 @@
   addEventListener("resize", layout);
 
   // ---------- main loop ----------
-  function gravityMs() { return Math.max(30, 800 * Math.pow(0.84, S.level - 1) * product(MODS.gravity)); }
+  function gravityMs() {
+    const g = Math.max(30, 800 * Math.pow(0.84, S.level - 1) * product(MODS.gravity));
+    return Number.isFinite(g) ? g : 800;
+  }
   let last = performance.now();
   function frame(now) {
     const dt = Math.min(50, now - last); last = now;
     S.time += dt;
+    // Safety net: a broken number must never freeze the game.
+    if (!Number.isFinite(S.score)) S.score = Number.isFinite(S.disp) ? Math.floor(S.disp) : 0;
+    if (!Number.isFinite(S.disp)) S.disp = S.score;
+    if (!Number.isFinite(S.level) || S.level < 1) S.level = 1 + Math.floor((S.lines || 0) / 10);
     if (S.started && !S.paused && !S.over) {
       if (S.fever) {
         S.feverT -= dt;
@@ -2182,7 +2198,7 @@
   }
   on("clear", (info) => {
     S.linesSinceChest += info.n;
-    if (S.linesSinceChest >= 8) { S.linesSinceChest -= 8; setTimeout(openChest, 500); }
+    if (S.linesSinceChest >= 6) { S.linesSinceChest -= 6; setTimeout(openChest, 500); }
   });
 
   // R5-5 first game of the day doubles your score for 60 seconds
@@ -2240,7 +2256,7 @@
   // ===================== ROUND 6: the Dopamine Director =====================
   // Keeps rewards flowing: it measures the time since the last reward and the time since the last event,
   // and fills any dry stretch with a surprise gift or a random timed event picked by a roulette.
-  on("fresh", (s) => { s.dry = 0; s.dopa = 30; s.eventCD = 22000; s.event = null; s.rouletting = false; s.chain = 0; s.surprises = 0; });
+  on("fresh", (s) => { s.dry = 0; s.dopa = 30; s.eventCD = 14000; s.event = null; s.rouletting = false; s.chain = 0; s.surprises = 0; });
 
   // Popups stack into free lanes instead of piling on top of each other.
   const basePopup = popup;
@@ -2274,7 +2290,7 @@
   on("tick", (dt) => {
     S.dry += dt;
     S.dopa = Math.max(0, S.dopa - dt * 0.004);
-    if (S.dry > 9000 && !S.clearing) { S.dry = 0; surprise(); }
+    if (S.dry > 6000 && !S.clearing) { S.dry = 0; surprise(); }
     if (!S.event && !S.rouletting) { S.eventCD -= dt; if (S.eventCD <= 0) startRoulette(); }
   });
 
@@ -2285,7 +2301,7 @@
     { id: "goldrush", name: "GOLD RUSH", desc: "全部のミノに金ブロック", ms: 14000, cls: "gold" },
     { id: "bombparty", name: "BOMB PARTY", desc: "ボムが大量発生", ms: 15000, cls: "pink" },
     { id: "ifest", name: "I-MINO FESTIVAL", desc: "棒が5本連続・テトリス×2", ms: 18000, cls: "" },
-    { id: "cascade", name: "CASCADE TIME", desc: "浮いたブロックが落ちて連鎖", ms: 18000, cls: "lime" },
+    { id: "cascade", name: "CASCADE TIME", desc: "同じ色6個で消える・連鎖しまくり", ms: 18000, cls: "lime" },
   ];
   // R6-2 an event roulette spins before each event, then counts down
   function startRoulette() {
@@ -2324,7 +2340,7 @@
     const pts = 1000 * S.level; addScore(pts);
     popup("EVENT CLEAR!", "lime", 45, `+${pts.toLocaleString()}`);
     sfx.fanfare(); addXP(40);
-    S.event = null; S.eventCD = 28000 + Math.random() * 14000;
+    S.event = null; S.eventCD = 18000 + Math.random() * 10000;
     emit("eventEnd", id);
   });
   on("over", () => { if (S.event) document.body.classList.remove("ev-" + S.event.id); $("roulette").hidden = true; });
@@ -2347,30 +2363,7 @@
     drawPreviews();
   });
   MODS.score.push((info) => (hasBuff("ifest") && info.n >= 4 ? 2 : 1));
-  // R6-8 CASCADE TIME: after a clear, loose blocks fall and can chain into more clears
-  on("afterClear", () => {
-    if (!hasBuff("cascade")) { S.chain = 0; return; }
-    let moved = false;
-    for (let x = 0; x < COLS; x++) {
-      const col = [];
-      for (let y = ROWS - 1; y >= 0; y--) if (S.board[y][x]) col.push(S.board[y][x]);
-      for (let y = ROWS - 1, i = 0; y >= 0; y--, i++) {
-        const nv = col[i] || null;
-        if (S.board[y][x] !== nv) moved = true;
-        S.board[y][x] = nv;
-      }
-    }
-    if (!moved) { S.chain = 0; return; }
-    const full = [];
-    for (let r = 0; r < ROWS; r++) if (S.board[r].every(Boolean)) full.push(r);
-    if (!full.length) { S.chain = 0; popup("DROP!", "lime small", 60); tone(300, 0.15, "sine", 0.2, 0, 120); return; }
-    S.chain++;
-    popup(`CHAIN ×${S.chain + 1}`, "lime huge", 55, "連鎖!");
-    [0, 5, 7, 12].forEach((s, i) => tone(mtof(72 + S.chain * 3 + s), 0.1, "square", 0.1, i * 0.05));
-    scoreClear(full);
-    S.clearing = { rows: full, t: 0 };
-    return true;
-  });
+  // R6-8 CASCADE TIME: now boosts the always-on chain system (colour pops from 6 blocks, see CHAIN section)
   MODS.score.push(() => (S.chain > 0 ? 1 + S.chain : 1));
 
   // ===================== ROUND 7: new blocks and board gimmicks =====================
@@ -2893,84 +2886,6 @@
   };
   on("slot", () => { S.premium = false; reels.forEach((el) => el.classList.remove("premium")); });
 
-  // The first state was built before the rounds registered their fields; give it those fields too.
-  emit("fresh", S);
-
-  // ===================== UNDO: take back the last piece, once every 20 seconds =====================
-  // Rewinds the board, queue, hold, score, lines, level and combo to the moment before the last piece locked.
-  // Coins, XP, achievements and mission progress you earned are kept.
-  const UNDO_CD = 20000;
-  on("fresh", (s) => { s.undoCD = 0; s.undoSnap = null; s.undos = 0; });
-  // Score as it was when the piece appeared, so drop bonuses from the undone piece are taken back too.
-  on("spawn", () => { S.spawnScore = S.score; });
-  ACH.undo = ["タイムトラベラー", "一手戻しを使った"];
-  sfx.rewind = () => {
-    tone(1400, 0.35, "sawtooth", 0.07, 0, 180);
-    tone(700, 0.35, "square", 0.05, 0.05, 90);
-    for (let i = 0; i < 6; i++) tone(mtof(84 - i * 3), 0.05, "triangle", 0.08, 0.3 + i * 0.04);
-    tone(mtof(72), 0.12, "sine", 0.12, 0.6); tone(mtof(79), 0.2, "sine", 0.12, 0.68);
-  };
-  sfx.deny = () => { tone(180, 0.08, "square", 0.08); tone(140, 0.12, "square", 0.08, 0.09); };
-  sfx.undoReady = () => { tone(mtof(88), 0.08, "triangle", 0.1); tone(mtof(95), 0.18, "triangle", 0.1, 0.08); };
-  on("preLock", (p) => {
-    if (!p) return;
-    S.undoSnap = {
-      board: S.board.map((r) => r.map((c) => (c ? { ...c } : null))),
-      spec: { type: p.type, special: p.special, idx: p.idx },
-      queue: S.queue.map((q) => ({ ...q })), bag: S.bag.slice(),
-      holdSpec: S.holdSpec ? { ...S.holdSpec } : null, canHold: S.canHold,
-      score: S.spawnScore ?? S.score, lines: S.lines, level: S.level, combo: S.combo, gauge: S.gauge, fever: S.fever,
-      linesSinceChest: S.linesSinceChest, bonusRow: S.bonusRow, spot: S.spot ? { ...S.spot } : null, pieceCount: S.pieceCount,
-    };
-  });
-  on("tick", (dt) => {
-    if (S.undoCD <= 0) return;
-    S.undoCD = Math.max(0, S.undoCD - dt);
-    if (S.undoCD === 0) { sfx.undoReady(); popup("UNDO READY", "cyan small", 88, "一手戻しが使える"); }
-  });
-  function undo() {
-    if (!S.started || S.over || S.paused) return;
-    if (S.clearing) { setTimeout(undo, CLEAR_MS); return; }
-    if (S.undoCD > 0) { sfx.deny(); popup(`あと${Math.ceil(S.undoCD / 1000)}秒`, "cyan small", 88, "一手戻しはチャージ中"); return; }
-    const u = S.undoSnap;
-    if (!u) { sfx.deny(); popup("まだ戻せません", "cyan small", 88, "ミノを1つ置いてから"); return; }
-    const oldLevel = S.level;
-    S.board = u.board; S.queue = u.queue; S.bag = u.bag; S.holdSpec = u.holdSpec;
-    S.score = u.score; S.disp = u.score; S.lines = u.lines; S.level = u.level; S.combo = u.combo;
-    if (!S.fever && !u.fever) S.gauge = u.gauge;
-    S.linesSinceChest = u.linesSinceChest; S.bonusRow = u.bonusRow; S.spot = u.spot; S.pieceCount = u.pieceCount - 1;
-    S.pendingSpin = null; S.luckyLock = false; S.lastRot = false; S.chain = 0; S.trails = []; S.ghosts = [];
-    if (S.level !== oldLevel) document.documentElement.style.setProperty("--hue", String((280 + (S.level - 1) * 47) % 360));
-    S.cur = null;
-    spawnFrom(u.spec);
-    S.canHold = u.canHold;
-    S.undoSnap = null; S.undoCD = UNDO_CD; S.undos++;
-    updateHud(); drawPreviews(); lastHud = "";
-    // rewind effects: colour-inverted flicker, sparks streaming upward, reverse whoosh
-    popup("REWIND!", "cyan huge", 45, "一手戻した (20秒後にまた使える)");
-    sfx.rewind(); buzz([15, 30, 15, 30, 15]);
-    boardCv.animate([{ filter: "invert(1) hue-rotate(180deg)" }, { filter: "none" }, { filter: "invert(.6)" }, { filter: "none" }], { duration: 420 });
-    const r = boardCv.getBoundingClientRect();
-    for (let i = 0; i < 40; i++) {
-      parts.push({ x: r.left + Math.random() * r.width, y: r.bottom - Math.random() * r.height * 0.3, vy: -6 - Math.random() * 8, life: 0, max: 600, color: i % 2 ? "#22e4ff" : "#c86bff", kind: "rew",
-        upd(p, k) { p.y += p.vy * k; }, drw(ctx, p) { ctx.fillStyle = p.color; ctx.fillRect(p.x, p.y, 2, 14); } });
-    }
-    unlock("undo");
-  }
-  actions.undo = undo;
-  KEYMAP.KeyU = "undo"; KEYMAP.Backspace = "undo";
-  $("undoBtn").addEventListener("click", (e) => { e.currentTarget.blur(); undo(); });
-  // cooldown display on both undo buttons
-  const undoEls = [$("undoBtn"), document.querySelector('.pad [data-act="undo"]')];
-  let undoTxt = "";
-  on("frame", () => {
-    const ready = S.started && !S.over && S.undoCD <= 0 && !!S.undoSnap;
-    const pct = S.started ? 1 - S.undoCD / UNDO_CD : 1;
-    const txt = !S.started || S.over ? "UNDO" : S.undoCD > 0 ? `${Math.ceil(S.undoCD / 1000)}s` : "UNDO";
-    undoEls.forEach((el) => { el.style.setProperty("--cd", pct.toFixed(3)); el.classList.toggle("ready", ready); });
-    if (txt !== undoTxt) { undoTxt = txt; undoEls[1].textContent = txt; $("undoNote").textContent = S.undoCD > 0 ? `チャージ中 ${txt}` : "U / Backspace"; }
-  });
-
   // ===================== MORE SOUND: 20 new sound types =====================
   on("fresh", (s) => { s.softN = 0; s.softT = 0; s.g50 = false; s.g80 = false; s.fevSec = 0; s.sirenT = 0; s.mSec = 0; });
   // S1-S4 the BGM grows layers as the level rises: snare (Lv2), chord pad (Lv3), shaker (Lv4), counter-melody (Lv5)
@@ -3113,6 +3028,271 @@
     baseSetMood(m, ms);
   };
 
+  // ===================== CHAIN: chains without thinking =====================
+  // 1) After every clear, blocks fall straight down to fill the gaps (always on).
+  // 2) 8 or more connected blocks of the same colour POP (6 during CASCADE TIME).
+  // 3) Both keep triggering each other: every extra step is one more CHAIN, and each chain multiplies the score.
+  // 4) The ghost glows gold when dropping there would clear or pop something, so you can just aim for the glow.
+  // 5) The next pieces lean toward the colour you just placed, so same-colour groups form on their own.
+  const POP_N = () => (hasBuff("cascade") ? 5 : 6);
+  // Colour families: similar colours count as one colour for POPs (blue I+J, warm O+L, red Z+T, green S).
+  const FAMILY = { I: "b", J: "b", O: "y", L: "y", Z: "r", T: "r", S: "g" };
+  on("fresh", (s) => { s.chain = 0; s.chainPts = 0; s.popFx = []; s.pid = 0; s.lastPid = 0; s.breakCD = 0; s.keepCur = false; s.lastType = null; s.bestChain = 0; });
+  Object.assign(ACH, {
+    chain2: ["連鎖デビュー", "2連鎖を決めた"], chain4: ["大連鎖", "4連鎖を決めた"], chain7: ["連鎖の神", "7連鎖を決めた"],
+    pop: ["ポップ!", "同じ色8個を消した"], breaker: ["破壊神", "BREAKを使った"],
+  });
+
+  function gravityAll() {
+    let moved = false;
+    for (let x = 0; x < COLS; x++) {
+      const col = [];
+      for (let y = ROWS - 1; y >= 0; y--) if (S.board[y][x]) col.push(S.board[y][x]);
+      for (let y = ROWS - 1, i = 0; y >= 0; y--, i++) {
+        const nv = col[i] || null;
+        if (S.board[y][x] !== nv) moved = true;
+        S.board[y][x] = nv;
+      }
+    }
+    return moved;
+  }
+  function groupsIn(board, min) {
+    const seen = board.map((r) => r.map(() => false)), out = [];
+    for (let y = 0; y < ROWS; y++) for (let x = 0; x < COLS; x++) {
+      const c = board[y][x];
+      if (!c || seen[y][x]) continue;
+      const g = [], st = [[x, y]]; seen[y][x] = true;
+      while (st.length) {
+        const [cx, cy] = st.pop(); g.push([cx, cy]);
+        for (const [dx, dy] of [[1, 0], [-1, 0], [0, 1], [0, -1]]) {
+          const nx = cx + dx, ny = cy + dy, n = board[ny] && board[ny][nx];
+          if (n && !seen[ny][nx] && FAMILY[n.c] === FAMILY[c.c]) { seen[ny][nx] = true; st.push([nx, ny]); }
+        }
+      }
+      if (g.length >= min) out.push(g);
+    }
+    return out;
+  }
+  sfx.pop = (i = 0) => { tone(mtof(72 + i * 3), 0.09, "sine", 0.16, 0, mtof(84 + i * 3)); noise(0.03, 0.05, 0, 5000); };
+  // CHAIN PAINT: blocks touching a popped group (or the row above a cleared line) are repainted into one colour
+  // family, so after they fall they tend to form the next group. The chance drops with each chain step.
+  const paintChance = () => Math.max(0.25, 0.95 - S.chain * 0.14);
+  function paint(cells) {
+    const live = cells.filter(([x, y]) => S.board[y] && S.board[y][x] && !S.board[y][x].bomb);
+    if (live.length < 3 || Math.random() > paintChance()) return;
+    const count = {};
+    live.forEach(([x, y]) => { const t = S.board[y][x].c; count[t] = (count[t] || 0) + 1; });
+    const type = Object.keys(count).sort((a, b) => count[b] - count[a])[0];
+    live.forEach(([x, y]) => { S.board[y][x].c = type; S.board[y][x].painted = S.time; });
+    const [cx, cy] = toClient(live[0][0], live[0][1]);
+    burstAt(cx, cy, COLORS[type], 16, 3);
+    [0, 4, 7].forEach((st, i) => tone(mtof(79 + st + S.chain * 2), 0.06, "triangle", 0.07, i * 0.03));
+  }
+  function popGroups(groups) {
+    const nb = new Map();
+    groups.flat().forEach(([x, y]) => [[1, 0], [-1, 0], [0, 1], [0, -1], [2, 0], [-2, 0], [0, -2], [1, -1], [-1, -1]].forEach(([dx, dy]) => {
+      const nx = x + dx, ny = y + dy;
+      if (S.board[ny] && S.board[ny][nx] && !groups.some((g) => g.some(([gx, gy]) => gx === nx && gy === ny))) nb.set(nx + "," + ny, [nx, ny]);
+    }));
+    const cells = groups.flat(), fev = S.fever ? 3 : 1;
+    let golds = 0, gems = 0; const bombs = [];
+    cells.forEach(([x, y]) => {
+      const c = S.board[y][x]; if (!c) return;
+      if (c.gold) golds++; if (c.gem) gems++; if (c.bomb) bombs.push({ x, y });
+      S.popFx.push({ x, y, color: COLORS[c.c], t: 0 });
+      burst(x, y, c.gold ? "#ffd23f" : COLORS[c.c], 5, 6);
+      S.board[y][x] = null;
+    });
+    S.combo++; S.maxCombo = Math.max(S.maxCombo, S.combo);
+    const info = { rows: [], n: 0, golds, combo: S.combo, mult: 1, pts: 0, tags: [], cells: [[]] };
+    const pts = Math.round(60 * cells.length * S.level * fev * (1 + (S.combo - 1) * 0.5) * product(MODS.score, info)) + golds * 1000 * S.level * fev;
+    addScore(pts); S.chainPts += pts;
+    groups.forEach((g, i) => {
+      const cx = g.reduce((a, c) => a + c[0], 0) / g.length, cy = g.reduce((a, c) => a + c[1], 0) / g.length;
+      floater(`POP! ${g.length}`, cx, cy, "big");
+      setTimeout(() => sfx.pop(i + S.chain), i * 70);
+      const [px, py] = toClient(cx, cy); ring(px, py, "#ffffff", cell * 3, 400, 4);
+    });
+    if (golds) addCoins(golds * 3, toClient(4.5, cells[0][1]));
+    if (gems) { addCoins(gems * 5); addXP(gems * 20); }
+    addCoins(Math.min(5, groups.length + Math.floor(cells.length / 8)), toClient(cells[0][0], cells[0][1]));
+    addGauge(cells.length * 1.5); addXP(cells.length);
+    shake(4 + cells.length / 2); buzz(25);
+    spinSlot(); updateHud(true);
+    unlock("pop");
+    paint([...nb.values()]);
+    if (bombs.length) explode(bombs);
+    emit("pop", { count: cells.length, groups: groups.length, pts });
+  }
+  // pop effect: popped cells swell and fade
+  on("drawOver", (ctx) => {
+    S.popFx = S.popFx.filter((f) => (f.t += 16) < 300);
+    for (const f of S.popFx) {
+      const k = f.t / 300, g = k * cell * 0.5;
+      ctx.globalAlpha = 1 - k; ctx.fillStyle = k < 0.3 ? "#ffffff" : f.color;
+      if (f.y >= HID) ctx.fillRect(f.x * cell - g, (f.y - HID) * cell - g, cell + g * 2, cell + g * 2);
+    }
+    ctx.globalAlpha = 1;
+  });
+
+  // chain announcements escalate with every step
+  const chainFlash = (n) => {
+    if (reduceMotion) return;
+    const el = document.createElement("div");
+    el.className = "chainflash"; el.style.setProperty("--ch", String((n * 55) % 360));
+    document.body.appendChild(el); el.addEventListener("animationend", () => el.remove());
+  };
+  function announceChain() {
+    const n = S.chain + 1;
+    popup(`${n}連鎖!`, n >= 5 ? "gold huge" : n >= 3 ? "huge" : "lime huge", 44, `CHAIN ×${n}  スコア${n}倍`);
+    [0, 4, 7, 12, 16].slice(0, 2 + Math.min(n, 3)).forEach((s, i) => tone(mtof(60 + n * 3 + s), 0.14, "square", 0.12, i * 0.045));
+    tone(mtof(48 + n * 3), 0.4, "sawtooth", 0.09, 0, mtof(60 + n * 3));
+    shake(6 + n * 3); flash(); chainFlash(n); buzz([20 * n, 30, 20 * n]);
+    if (n >= 3) rockets(Math.min(6, n - 1));
+    if (n >= 4 && !S.fever) { S.gauge = 100; startFever(); }
+    if (n >= 5) { confetti(80 + n * 20); applause(1.5, 0.12); }
+    setMood(n >= 3 ? "wow" : "happy", 1500);
+    if (n >= 2) unlock("chain2"); if (n >= 4) unlock("chain4"); if (n >= 7) unlock("chain7");
+  }
+  function endChain() {
+    const n = S.chain + 1;
+    if (n >= 2) {
+      const bonus = 1500 * n * n * S.level;
+      addScore(bonus);
+      setTimeout(() => {
+        popup(`${n}連鎖 BONUS`, n >= 4 ? "gold huge" : "gold", 30, `+${(S.chainPts + bonus).toLocaleString()}`);
+        fireworks(Math.min(8, n + 1)); sfx.fanfare();
+        say(`${n}れんさ!`, 1.15, 1.2 + n * 0.08);
+      }, 250);
+      addCoins(n * 3); addXP(n * 15);
+      S.bestChain = Math.max(S.bestChain, n);
+    }
+    S.chain = 0; S.chainPts = 0;
+  }
+  on("clear", (info) => {
+    const top = Math.min(...info.rows) - 1;
+    if (top < 0) return;
+    const row = [];
+    for (let x = 0; x < COLS; x++) if (S.board[top][x]) row.push([x, top]);
+    if (row.length >= 4) paint(row);
+  });
+  // freshly painted blocks flash white for a moment
+  on("drawOver", (ctx) => {
+    for (let y = HID; y < ROWS; y++) for (let x = 0; x < COLS; x++) {
+      const c = S.board[y][x];
+      if (!c || !c.painted) continue;
+      const k = (S.time - c.painted) / 400;
+      if (k >= 1) { c.painted = 0; continue; }
+      ctx.fillStyle = `rgba(255,255,255,${0.7 * (1 - k)})`; ctx.fillRect(x * cell + 1, (y - HID) * cell + 1, cell - 2, cell - 2);
+    }
+  });
+  function fullRows() { const f = []; for (let r = 0; r < ROWS; r++) if (S.board[r].every(Boolean)) f.push(r); return f; }
+  // lock with no full rows: colour pops can still start a chain
+  on("resolve", () => {
+    const groups = groupsIn(S.board, POP_N());
+    if (!groups.length) return false;
+    popGroups(groups);
+    S.clearing = { rows: [], t: 0, pop: true };
+    return true;
+  });
+  on("lock", (placed) => {
+    S.chain = 0; S.chainPts = 0;
+    S.pid++; S.lastPid = S.pid;
+    placed.forEach((p) => { const c = S.board[p.y] && S.board[p.y][p.x]; if (c) c.pid = S.pid; });
+    if (placed.length) S.lastType = placed[0].v.c;
+  });
+  // no holes: whenever a piece lands, blocks sink into any gap below them
+  on("lock", () => { if (gravityAll()) { S.sunk = true; tone(220, 0.1, "sine", 0.12, 0.02, 120); } });
+  // after each clear or pop: gravity, then look for the next link of the chain
+  on("afterClear", () => {
+    const moved = gravityAll();
+    const full = fullRows();
+    if (full.length) { S.chain++; announceChain(); scoreClear(full); S.clearing = { rows: full, t: 0 }; return true; }
+    // links after the first need one block fewer, so chains keep going
+    const groups = groupsIn(S.board, POP_N() - 1);
+    if (groups.length) { S.chain++; announceChain(); popGroups(groups); S.clearing = { rows: [], t: 0, pop: true }; return true; }
+    if (moved) tone(260, 0.12, "sine", 0.18, 0, 110);
+    endChain();
+    if (S.keepCur && S.cur) {
+      S.keepCur = false;
+      while (collide(S.cur.m, S.cur.x, S.cur.y) && S.cur.y > 0) S.cur.y--;
+      return true;
+    }
+    S.keepCur = false;
+    return false;
+  });
+  // chain assist: the next pieces lean toward the colour you just placed
+  const baseNextSpec = nextSpec;
+  nextSpec = function () {
+    const sp = baseNextSpec();
+    if (S.lastType && Math.random() < 0.5) sp.type = S.lastType;
+    return sp;
+  };
+  // the ghost glows gold where dropping would clear a line or pop a group
+  on("drawOver", (ctx) => {
+    if (!S.cur || S.clearing) return;
+    let gy = S.cur.y;
+    while (!collide(S.cur.m, S.cur.x, gy + 1)) gy++;
+    const b = S.board.map((r) => r.slice());
+    const cells = [];
+    S.cur.m.forEach((r, i) => r.forEach((v, j) => { if (v && gy + i >= 0) { b[gy + i][S.cur.x + j] = v; cells.push([S.cur.x + j, gy + i]); } }));
+    const lines = cells.some(([, y]) => b[y].every(Boolean));
+    const pops = !lines && groupsIn(b, POP_N()).some((g) => g.some(([x, y]) => cells.some((c) => c[0] === x && c[1] === y)));
+    if (!lines && !pops) return;
+    const a = 0.55 + 0.35 * Math.sin(S.time / 90);
+    ctx.lineWidth = 3; ctx.strokeStyle = `rgba(255,210,63,${a})`; ctx.fillStyle = `rgba(255,210,63,${a * 0.35})`;
+    cells.forEach(([x, y]) => { if (y >= HID) { ctx.fillRect(x * cell + 2, (y - HID) * cell + 2, cell - 4, cell - 4); ctx.strokeRect(x * cell + 2, (y - HID) * cell + 2, cell - 4, cell - 4); } });
+    const top = Math.min(...cells.map((c) => c[1]));
+    ctx.font = `700 ${Math.max(10, Math.round(cell * 0.45))}px ui-monospace, Menlo, monospace`; ctx.textAlign = "center";
+    ctx.fillStyle = `rgba(255,210,63,${a})`;
+    ctx.fillText(lines ? "LINE!" : "POP!", (S.cur.x + S.cur.m.length / 2) * cell, (top - HID) * cell - 4);
+  });
+
+  // ===================== BREAK: blow up the piece you placed last (once every 20 s) =====================
+  const BREAK_CD = 20000;
+  function breakLast() {
+    if (!S.started || S.over || S.paused) return;
+    if (S.clearing || !S.cur) { setTimeout(breakLast, CLEAR_MS); return; }
+    if (S.breakCD > 0) { sfx.deny(); popup(`あと${Math.ceil(S.breakCD / 1000)}秒`, "cyan small", 88, "BREAKはチャージ中"); return; }
+    const cells = [];
+    if (S.lastPid) for (let y = 0; y < ROWS; y++) for (let x = 0; x < COLS; x++) if (S.board[y][x] && S.board[y][x].pid === S.lastPid) cells.push([x, y]);
+    if (!cells.length) { sfx.deny(); popup("壊すミノがない", "cyan small", 88, "前のミノはもう消えている"); return; }
+    cells.forEach(([x, y]) => {
+      const c = S.board[y][x];
+      burst(x, y, COLORS[c.c], 10, 9); burst(x, y, "#ffffff", 5, 5, "spark");
+      const [px, py] = toClient(x, y); ring(px, py, "#ff9a2e", cell * 2.5, 450, 4);
+      S.board[y][x] = null;
+    });
+    const pts = 100 * cells.length * S.level; addScore(pts);
+    popup("BREAK!!", "gold huge", 50, `前のミノを粉砕 +${pts.toLocaleString()} → 連鎖チャンス!`);
+    sfx.boom(); tone(mtof(84), 0.1, "square", 0.1, 0.15); tone(mtof(96), 0.25, "square", 0.1, 0.25);
+    shake(18); flash(); rgbSplit(8); buzz([60, 30, 90]);
+    S.lastPid = 0; S.breakCD = BREAK_CD; S.chain = 0; S.chainPts = 0; S.keepCur = true;
+    S.clearing = { rows: [], t: 0, pop: true };
+    unlock("breaker");
+  }
+  sfx.deny = () => { tone(180, 0.08, "square", 0.08); tone(140, 0.12, "square", 0.08, 0.09); };
+  on("tick", (dt) => {
+    if (S.breakCD <= 0) return;
+    S.breakCD = Math.max(0, S.breakCD - dt);
+    if (S.breakCD === 0) { tone(mtof(88), 0.08, "triangle", 0.1); tone(mtof(95), 0.18, "triangle", 0.1, 0.08); popup("BREAK READY", "cyan small", 88); }
+  });
+  actions.break = breakLast;
+  KEYMAP.KeyB = "break"; KEYMAP.Backspace = "break";
+  $("breakBtn").addEventListener("click", (e) => { e.currentTarget.blur(); breakLast(); });
+  const breakEls = [$("breakBtn"), document.querySelector('.pad [data-act="break"]')];
+  let breakTxt = "";
+  on("frame", () => {
+    const ready = S.started && !S.over && S.breakCD <= 0 && S.lastPid > 0;
+    const pct = S.started ? 1 - S.breakCD / BREAK_CD : 1;
+    const txt = S.started && !S.over && S.breakCD > 0 ? `${Math.ceil(S.breakCD / 1000)}s` : "BREAK";
+    breakEls.forEach((el) => { el.style.setProperty("--cd", pct.toFixed(3)); el.classList.toggle("ready", ready); });
+    if (txt !== breakTxt) { breakTxt = txt; breakEls[1].textContent = txt; $("breakNote").textContent = txt === "BREAK" ? "B / Backspace" : `チャージ中 ${txt}`; }
+  });
+
+  // The first state was built before the rounds registered their fields; give it those fields too.
+  emit("fresh", S);
+
   // Demo board behind the start screen so the first frame already shows the game.
   (function demo() {
     const rows = ["TTT.IIIIJJ", "ZZSSOOLJJJ", "LZZSSOOL.L", "LLLTZZ.TTT"];
@@ -3124,7 +3304,7 @@
   })();
 
   // Test handle, only with #debug in the URL.
-  if (location.hash === "#debug") window.__dopa = { get S() { return S; }, ev: (id) => startEvent(EVENTS.find((e) => e.id === id)), collide, rot, hardDrop, start, emit, startFever, HOOKS, parts: () => parts.length };
+  if (location.hash === "#debug") window.__dopa = { get S() { return S; }, groupsIn, breakLast, ev: (id) => startEvent(EVENTS.find((e) => e.id === id)), collide, rot, hardDrop, start, emit, startFever, HOOKS, parts: () => parts.length };
 
   layout();
   requestAnimationFrame(frame);
