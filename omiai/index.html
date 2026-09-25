@@ -41,6 +41,17 @@ h1,h2,h3{font-family:var(--serif);font-weight:800;text-wrap:balance;margin:0;lin
 .rec{display:flex;gap:14px;font-size:12px;color:var(--muted)}
 .rec b{font-size:17px;color:var(--ink);font-family:var(--serif);margin-left:4px}
 .rec .m b{color:var(--beni)}
+.dz{font-family:var(--sans);font-weight:800;font-size:11px;letter-spacing:.2em;color:#fff;background:#b3122e;padding:2px 8px;border-radius:4px;align-self:center}
+.modes{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+@media (max-width:560px){.modes{grid-template-columns:1fr}}
+.mode{text-align:left;border:1px solid var(--line);border-radius:12px;padding:12px 14px;background:var(--surface);display:flex;flex-direction:column;gap:2px}
+.mode span{font-size:12px;color:var(--muted)}
+.mode.on{border-color:var(--ai);box-shadow:0 0 0 2px color-mix(in srgb,var(--ai) 25%,transparent)}
+.mode.dzb b{color:#b3122e}
+.mode.dzb.on{border-color:#b3122e;box-shadow:0 0 0 2px rgba(179,18,46,.25)}
+:root[data-theme="dark"] .mode.dzb b{color:#ff6b7f}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]) .mode.dzb b{color:#ff6b7f}}
+.dz-mode .steps li.now{border-color:#b3122e;color:#b3122e}
 
 /* stepper */
 .steps{list-style:none;margin:0 0 18px;padding:0;display:grid;grid-template-columns:repeat(8,1fr);gap:4px}
@@ -154,7 +165,18 @@ h1,h2,h3{font-family:var(--serif);font-weight:800;text-wrap:balance;margin:0;lin
 /* ===== omiai ===== */
 .om{display:flex;flex-direction:column;gap:10px}
 .hud{display:grid;grid-template-columns:auto 1fr 1fr;gap:10px 18px;align-items:center;background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:10px 16px 20px}
-@media (max-width:700px){.hud{grid-template-columns:1fr 1fr}.hud .clock{grid-column:1/-1}}
+@media (max-width:700px){
+  .hud{grid-template-columns:1fr 1fr;gap:4px 12px;padding:8px 12px 18px}
+  .hud .clock{grid-column:1/-1}
+  .clock b{font-size:20px}
+  .mbar .tk em{display:none}
+  .legend{display:inline!important}
+  .om{gap:8px}
+  .box{padding:20px 14px 10px;min-height:170px}
+  .say{font-size:16px;line-height:1.75}
+  .ctl .btn{padding:8px 16px;font-size:13px}
+  .why .meta{font-size:11.5px}
+}
 .clock{display:flex;align-items:baseline;gap:10px}
 .clock b{font-family:var(--serif);font-size:26px;font-variant-numeric:tabular-nums;letter-spacing:.02em}
 .clock span{font-size:12px;color:var(--muted);letter-spacing:.1em}
@@ -170,7 +192,15 @@ h1,h2,h3{font-family:var(--serif);font-weight:800;text-wrap:balance;margin:0;lin
 @keyframes pop{0%{opacity:0;transform:translateY(6px)}15%{opacity:1;transform:none}75%{opacity:1}100%{opacity:0;transform:translateY(-10px)}}
 
 .stage{position:relative;width:100%;aspect-ratio:16/9;overflow:hidden;border-radius:16px;background:#e9e1d0;border:1px solid var(--line);user-select:none;cursor:pointer}
-@media (max-width:640px){.stage{aspect-ratio:4/3}}
+@media (max-width:640px){
+  .stage{aspect-ratio:1/1;border-radius:12px}
+  .seat{width:60%;max-width:none;bottom:4%}
+  .seat.c{left:-9%} .seat.p{right:-9%}
+  .table{height:22%}
+  .thought{max-width:62%;top:3%;padding:6px 11px;font-size:13px}
+  .thought.c::after{left:18%} .thought.p::after{right:18%}
+  .banner{top:34%}
+}
 .stage .room{position:absolute;inset:0;width:100%;height:100%}
 .air{position:absolute;inset:0;pointer-events:none;transition:background 1.2s ease;mix-blend-mode:multiply}
 .seat{position:absolute;bottom:13%;width:29%;max-width:270px;aspect-ratio:120/140;transition:transform .35s ease,filter .35s ease}
@@ -301,10 +331,11 @@ const CLOTH=['#2b3a67','#3d3d4a','#6a2e3f','#35524a','#6c5a82','#8e4f45','#44607
 function genPerson(g,o={}){
   const job=pick(JOBS);
   const p={id:Math.random().toString(36).slice(2,9),g,name:pick(SUR)+' '+pick(g==='m'?MG:FG),age:o.age??ri(25,46),job:job.n,jobTalk:job.t};
-  for(const k of VIS)p[k]=clamp(Math.round(norm(46,13)+(job.b[k]||0)),5,97);
+  const dz=o.danger;
+  for(const k of VIS)p[k]=clamp(Math.round(norm(dz?28:46,dz?11:13)+(job.b[k]||0)*(dz?.5:1)),3,97);
   p.asset=clamp(p.asset+Math.round((p.age-32)*0.8),5,97);
   p.topic=ri(2,98);
-  for(const k of ['care','humor','nerve'])p[k]=clamp(Math.round(norm(50,18)),4,96);
+  for(const k of ['care','humor','nerve'])p[k]=clamp(Math.round(dz?norm(32,12):norm(50,18)),3,96);
   p.look={skin:pick(SKIN),hair:p.age>45&&R()<.6?'#8d8680':pick(HAIR),style:g==='m'?pick([0,1]):pick([2,3,2,1]),cloth:pick(CLOTH),glasses:p.edu>70&&R()<.55};
   return p;
 }
@@ -399,11 +430,19 @@ function genOffers(){
 
 /* ---------- state ---------- */
 let S;
-function loadRec(){try{return JSON.parse(localStorage.getItem('musubi-rec'))||{m:0,c:0,f:0};}catch(e){return {m:0,c:0,f:0};}}
+const emptyRec=()=>({f:0,n:0,c:0,m:0});
+function loadRec(){
+  let r=null;try{r=JSON.parse(localStorage.getItem('musubi-rec'));}catch(e){}
+  if(r&&r.normal&&r.danger)return r;
+  return {normal:{...emptyRec(),...(r&&'m' in r?{f:r.f,c:r.c,m:r.m}:{})},danger:emptyRec()};
+}
+const TH={n:55,c:82,m:95};
+const KIND={f:'不成立',n:'次回確約',c:'交際',m:'成婚'};
+const recNow=()=>S.rec[S.mode==='danger'?'danger':'normal'];
 function saveRec(){try{localStorage.setItem('musubi-rec',JSON.stringify(S.rec));}catch(e){}}
 function newClient(){
   const g=pick(['m','f']);
-  const C=genPerson(g,{age:ri(27,43)});
+  const C=genPerson(g,{age:ri(27,43),danger:S.mode==='danger'});
   for(const k of VIS)C[k]=clamp(C[k]-6,5,97);
   C.intro=pick(INTROS);
   Object.assign(S,{step:0,client:C,conds:genClientConds(C),turn:0,offers:[],tlog:[],flash:{},cands:[],picked:[],partner:null,prep:null,om:null,result:null,rolling:null,last:null});
@@ -413,7 +452,9 @@ function newClient(){
 /* ---------- render ---------- */
 const main=$('#main');
 function render(){
-  $('#rec').innerHTML=`<span class="m">成婚<b>${S.rec.m}</b></span><span>交際<b>${S.rec.c}</b></span><span>不成立<b>${S.rec.f}</b></span>`;
+  const rc=recNow();
+  document.documentElement.classList.toggle('dz-mode',S.mode==='danger');
+  $('#rec').innerHTML=`${S.mode==='danger'?'<span class="dz">DANGER</span>':''}<span class="m">成婚<b>${rc.m}</b></span><span>交際<b>${rc.c}</b></span><span>確約<b>${rc.n}</b></span><span>不成立<b>${rc.f}</b></span>`;
   $('#steps').innerHTML=STEPS.map((s,i)=>`<li class="${i<S.step?'done':i===S.step?'now':''}"><span>${i+1}</span><b>${s}</b></li>`).join('');
   [renderVisit,renderConds,renderTrain,renderSearch,renderShort,renderEve,renderOmiai,renderResult][S.step]();
 }
@@ -435,6 +476,10 @@ function renderVisit(){
    <div class="row" style="align-items:flex-start;flex-wrap:nowrap">${face(C,96,'nervous')}
     <p class="quote" style="margin:0">「${C.intro}」</p></div>
    <p class="lead">${C.name}さん、${C.age}歳。${C.job}。左のカルテで、年齢・信用・資産・学力・魅力（いずれも最大100）を確認できます。お相手からも同じ物差しで見られることを覚えておきましょう。</p>
+   <div class="modes" role="group" aria-label="難易度">
+     <button class="mode ${S.mode!=='danger'?'on':''}" data-a="mode" data-m="normal" aria-pressed="${S.mode!=='danger'}"><b>通常モード</b><span>依頼人もお相手も、ごく普通の人たち。</span></button>
+     <button class="mode dzb ${S.mode==='danger'?'on':''}" data-a="mode" data-m="danger" aria-pressed="${S.mode==='danger'}"><b>デンジャラスモード</b><span>双方ともステータスがかなり低い。気持ちは45から始まり、マイナスは1.2倍。次回確約すら至難。</span></button>
+   </div>
    <div class="row"><button class="btn primary" data-a="toConds">ご希望を伺う</button></div>
   </section></div>`;
 }
@@ -499,7 +544,7 @@ function doAct(i){
 }
 function genCands(){
   const C=S.client,g=C.g==='m'?'f':'m';
-  const arr=Array.from({length:10},()=>genPerson(g,{age:clamp(C.age+ri(-7,7),24,52)}));
+  const arr=Array.from({length:10},()=>genPerson(g,{age:clamp(C.age+ri(-7,7),24,52),danger:S.mode==='danger'}));
   const orig=S.conds.map(c=>({stat:c.stat,val:c.orig}));
   const mo=p=>orig.every(c=>meets(p,c));
   let n=arr.filter(mo).length;
@@ -739,8 +784,9 @@ function buildPhase(ph){
 }
 function closeBeats(){
   const P=partner(),o=S.om;
-  if(o.pImp>=82)return [B('p',`はい、ぜひ！ 次は、${hobby(P)}にご一緒しませんか？`,{fp:'joy'}),B('sfx','カコーン'),B('n','庭の紅葉が、夕方の光に揺れていた。')];
-  if(o.pImp>=55)return [B('p','はい。こちらこそ、今日は楽しかったです',{fp:'smile'}),B('sfx','カコーン'),B('n','二人の返事は、明日、相談所に届く。')];
+  if(o.pImp>=TH.m)return [B('p',`はい、ぜひ！ ……実は私、今日で決めてしまったかもしれません`,{fp:'joy'}),B('n','二人は顔を見合わせ、照れくさそうに笑った。'),B('sfx','カコーン'),B('n','庭の紅葉が、夕方の光に揺れていた。')];
+  if(o.pImp>=TH.c)return [B('p',`はい、ぜひ！ 次は、${hobby(P)}にご一緒しませんか？`,{fp:'joy'}),B('sfx','カコーン'),B('n','庭の紅葉が、夕方の光に揺れていた。')];
+  if(o.pImp>=TH.n)return [B('p','そうですね……もう一度だけ、お話ししてみたいです',{fp:'smile'}),B('sfx','カコーン'),B('n','二人の返事は、明日、相談所に届く。')];
   return [B('p','……本日は、ありがとうございました',{fp:'neutral'}),B('n',`${nm(P)}は小さく会釈し、先に席を立った。`),B('sfx','カコーン')];
 }
 const CHOICES={
@@ -782,7 +828,7 @@ function renderOmiai(){
   const C=S.client,P=partner(),o=S.om;
   main.innerHTML=`<div class="om">
    <div class="hud">
-     <div class="clock"><b id="clk">${PH[o.ph].t}</b><span id="phn">${PH[o.ph].n}</span></div>
+     <div class="clock"><b id="clk">${PH[o.ph].t}</b><span id="phn">${PH[o.ph].n}</span><span class="legend meta" style="display:none;margin-left:auto;letter-spacing:0">目盛り 確約${TH.n}・交際${TH.c}・成婚${TH.m}</span></div>
      ${meterHTML('p',`${sur(P)}さんの気持ち`,'相手→依頼人')}
      ${meterHTML('c',`${sur(C)}さんの気持ち`,'依頼人→相手')}
    </div>
@@ -806,7 +852,7 @@ function renderOmiai(){
 }
 function meterHTML(w,label,sub){
   return `<div class="meter"><div class="l"><span>${label}<br><span style="font-size:10px;opacity:.8">${sub}</span></span><span class="fl" id="fl-${w}"><b id="mv-${w}">50</b></span></div>
-   <div class="mbar"><i id="mb-${w}"></i><span class="tk" style="left:55%"><em>交際</em></span><span class="tk" style="left:82%"><em>成婚</em></span></div></div>`;
+   <div class="mbar"><i id="mb-${w}"></i><span class="tk" style="left:${TH.n}%"><em>確約</em></span><span class="tk" style="left:${TH.c}%"><em>交際</em></span><span class="tk" style="left:${TH.m}%"><em>成婚</em></span></div></div>`;
 }
 function updMeters(){
   const o=S.om;
@@ -847,6 +893,7 @@ function showBeat(b,apply){
   fx.innerHTML='';
   if(apply&&!b.applied){
     b.applied=1;
+    if(S.mode==='danger'){for(const k of ['dp','dc'])if(b[k]<0)b[k]=Math.round(b[k]*1.2);}
     if(b.dp)o.pImp=clamp(o.pImp+b.dp,0,100);
     if(b.dc)o.cImp=clamp(o.cImp+b.dc,0,100);
     o.log.push(b);
@@ -960,27 +1007,29 @@ function tableSVG(){
 /* ---------- result ---------- */
 function finishOmiai(){
   const o=S.om,a=o.pImp,b=o.cImp;
-  const kind=a>=82&&b>=82?'m':a>=55&&b>=55?'c':'f';
-  S.result={kind,pImp:a,cImp:b};
-  S.rec[kind]++;saveRec();S.step=7;render();window.scrollTo({top:0});
+  const lo=Math.min(a,b),kind=lo>=TH.m?'m':lo>=TH.c?'c':lo>=TH.n?'n':'f';
+  S.result={kind,pImp:a,cImp:b,mode:S.mode};
+  recNow()[kind]++;saveRec();S.step=7;render();window.scrollTo({top:0});
 }
 function renderResult(){
   const C=S.client,P=partner(),r=S.result,o=S.om;
   const who=r.pImp<55&&r.cImp<55?'双方から':r.pImp<55?`${P.name}さんの側から`:`依頼人の${nm(C)}から`;
   const epi=r.kind==='m'?`三か月後。相談所に一通の封筒が届いた。中に入っていたのは、${C.name}さんと${P.name}さんの結婚式の招待状だった。`
-   :r.kind==='c'?`翌朝、双方から「ぜひ、またお会いしたい」と連絡が入った。${sur(C)}さんと${sur(P)}さん、二人の交際が始まる。`
+   :r.kind==='c'?`翌朝、双方から「ぜひ、お付き合いを」と連絡が入った。${sur(C)}さんと${sur(P)}さん、二人の交際が始まる。`
+   :r.kind==='n'?`翌日、双方から「もう一度、お会いしてみたい」と返事が届いた。交際はまだ先。まずは二回目の約束から。`
    :`翌日、${who}「今回はご縁がなかったということで」と連絡が入った。`;
   const ms=o.moments.slice().sort((x,y)=>Math.abs(y.dp)+Math.abs(y.dc)-Math.abs(x.dp)-Math.abs(x.dc)).slice(0,6);
   main.innerHTML=`<section class="panel result">
     <div class="eyebrow">STEP 8 ─ お見合いの結果</div>
-    <div class="stamp ${r.kind==='c'?'sm':''} ${r.kind==='f'?'gray':''}">${r.kind==='m'?'成婚':r.kind==='c'?'交際<br>成立':'お断り'}</div>
-    <h2 style="font-size:28px">${r.kind==='m'?'大成功 ─ ご結婚':r.kind==='c'?'成功 ─ カップル成立':'不成立'}</h2>
+    ${r.mode==='danger'?'<div class="dz" style="display:inline-block">DANGER</div>':''}
+    <div class="stamp ${r.kind==='c'||r.kind==='n'?'sm':''} ${r.kind==='f'?'gray':''}">${r.kind==='m'?'成婚':r.kind==='c'?'交際<br>成立':r.kind==='n'?'次回<br>確約':'お断り'}</div>
+    <h2 style="font-size:28px">${r.kind==='m'?'大成功 ─ ご結婚':r.kind==='c'?'成功 ─ カップル成立':r.kind==='n'?'ひとまず前進 ─ 次回確約':'不成立'}</h2>
     <div class="finals"><div>${sur(P)}さんの気持ち<b>${r.pImp}</b></div><div>${sur(C)}さんの気持ち<b>${r.cImp}</b></div></div>
     <p class="epi">${epi}</p>
     <div class="row" style="justify-content:center;gap:24px;margin-bottom:22px">${face(C,84,r.kind==='f'?'down':'joy')}${face(P,84,r.kind==='f'?'neutral':'joy')}</div>
     <h3 style="font-size:16px;margin-bottom:6px">勝負を分けた場面</h3>
     <ul class="moments">${ms.map(m=>`<li><span>${m.why||'—'}</span><span>${m.dp?`<span class="bdg ${m.dp>0?'ok':'ng'}">${sur(P)} ${m.dp>0?'+':''}${m.dp}</span> `:''}${m.dc?`<span class="bdg ${m.dc>0?'ok':'ng'}">${sur(C)} ${m.dc>0?'+':''}${m.dc}</span>`:''}</span></li>`).join('')}</ul>
-    <p class="meta" style="margin-top:14px">判定：両者55以上で交際成立、両者82以上で成婚。</p>
+    <p class="meta" style="margin-top:14px">判定：両者の気持ちが${TH.n}以上で次回確約、${TH.c}以上で交際成立、${TH.m}以上で成婚。</p>
     <div class="row" style="justify-content:center;margin-top:10px"><button class="btn primary" data-a="again">次の依頼人を迎える</button></div>
   </section>`;
 }
@@ -989,7 +1038,8 @@ function renderResult(){
 document.addEventListener('click',e=>{
   const t=e.target.closest('[data-a]');if(!t)return;
   const a=t.dataset.a;
-  if(a==='toConds'){S.step=1;render();}
+  if(a==='mode'){S.mode=t.dataset.m;newClient();render();}
+  else if(a==='toConds'){S.step=1;render();}
   else if(a==='toTrain'){S.step=2;render();}
   else if(a==='act')doAct(+t.dataset.i);
   else if(a==='toSearch'){S.cands=genCands();S.picked=[];S.flash={};S.step=3;render();}
@@ -1001,7 +1051,7 @@ document.addEventListener('click',e=>{
   else if(a==='prep'){if(S.prep)return;const C=S.client,P=partner(),k=t.dataset.k;S.prep=k;
     if(k==='nerve')C.nerve=clamp(C.nerve+15,1,99);if(k==='charm')C.charm=clamp(C.charm+5,1,99);if(k==='care')C.care=clamp(C.care+10,1,99);
     if(k==='topic'){const d=P.topic-C.topic;C.topic+=Math.sign(d)*Math.min(12,Math.abs(d));}render();}
-  else if(a==='toOmiai'){S.om={q:[],i:-1,ph:0,pImp:50,cImp:50,flags:{},log:[],moments:[],auto:false,fast:false,end:false};S.om.q=buildPhase(0);S.step=6;render();window.scrollTo({top:0});}
+  else if(a==='toOmiai'){const st=S.mode==='danger'?45:50;S.om={q:[],i:-1,ph:0,pImp:st,cImp:st,flags:{},log:[],moments:[],auto:false,fast:false,end:false};S.om.q=buildPhase(0);S.step=6;render();window.scrollTo({top:0});}
   else if(a==='auto'){S.om.auto=!S.om.auto;t.classList.toggle('on',S.om.auto);t.textContent='オート'+(S.om.auto?' ON':'');if(S.om.auto&&!typing)scheduleAuto();else clearTimeout(autoTimer);}
   else if(a==='fast'){S.om.fast=!S.om.fast;t.classList.toggle('on',S.om.fast);t.textContent='早送り'+(S.om.fast?' ON':'');if(S.om.fast){if(typing)finishType();else scheduleAuto();}else clearTimeout(autoTimer);}
   else if(a==='om-choice')pickChoice(t.dataset.k);
@@ -1015,7 +1065,8 @@ document.addEventListener('keydown',e=>{
 
 function boot(data){
   if(data&&data.S){S=data.S;S.rolling=null;}
-  else{S={rec:loadRec()};newClient();}
+  else{S={rec:loadRec(),mode:'normal'};newClient();}
+  if(S.rec&&!S.rec.normal)S.rec=loadRec();
   render();
 }
 window.claude?.hot?.snapshot?.(()=>({S}));
