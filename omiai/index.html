@@ -1,0 +1,1024 @@
+<title>むすび相談所</title>
+<meta name="description" content="依頼人の条件に合う相手を探し、お見合いを成功に導く結婚相談所シミュレーション">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Shippori+Mincho+B1:wght@600;800&family=Zen+Kaku+Gothic+New:wght@400;500;700&display=swap">
+<style>
+:root{
+  --bg:#f1eff4; --surface:#fbfafc; --surface2:#e9e5ef; --ink:#1d1b2e; --muted:#676280; --line:#d8d3e2;
+  --ai:#2b3a67; --on-ai:#ffffff; --beni:#c23b5a; --kin:#9c7a2a; --ok:#2c7a57; --ng:#b8453a;
+  --shadow:0 1px 2px rgba(29,27,46,.06),0 10px 28px rgba(29,27,46,.07);
+  --serif:"Shippori Mincho B1","Hiragino Mincho ProN","Yu Mincho",serif;
+  --sans:"Zen Kaku Gothic New","Hiragino Sans","Yu Gothic",system-ui,sans-serif;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    color-scheme:dark;
+    --bg:#14131d; --surface:#1d1b29; --surface2:#282538; --ink:#ece9f5; --muted:#a39eb8; --line:#363150;
+    --ai:#9fb2ec; --on-ai:#14131d; --beni:#f27b97; --kin:#dcb866; --ok:#62c598; --ng:#f08472;
+    --shadow:0 1px 2px rgba(0,0,0,.3),0 10px 28px rgba(0,0,0,.3);
+  }
+}
+:root[data-theme="dark"]{
+  color-scheme:dark;
+  --bg:#14131d; --surface:#1d1b29; --surface2:#282538; --ink:#ece9f5; --muted:#a39eb8; --line:#363150;
+  --ai:#9fb2ec; --on-ai:#14131d; --beni:#f27b97; --kin:#dcb866; --ok:#62c598; --ng:#f08472;
+  --shadow:0 1px 2px rgba(0,0,0,.3),0 10px 28px rgba(0,0,0,.3);
+}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font-family:var(--sans);font-size:15px;line-height:1.7;padding-inline:16px;padding-block:0 48px}
+.app{max-width:1040px;margin:0 auto}
+button{font:inherit;color:inherit;cursor:pointer}
+button:focus-visible,.pick:focus-visible{outline:2px solid var(--ai);outline-offset:2px}
+.num{font-variant-numeric:tabular-nums}
+h1,h2,h3{font-family:var(--serif);font-weight:800;text-wrap:balance;margin:0;line-height:1.35}
+
+/* header */
+.top{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;padding-block:18px 10px}
+.brand{display:flex;align-items:center;gap:10px}
+.brand h1{font-size:22px;letter-spacing:.06em}
+.brand small{display:block;font-family:var(--sans);font-weight:500;font-size:11px;letter-spacing:.2em;color:var(--muted)}
+.rec{display:flex;gap:14px;font-size:12px;color:var(--muted)}
+.rec b{font-size:17px;color:var(--ink);font-family:var(--serif);margin-left:4px}
+.rec .m b{color:var(--beni)}
+
+/* stepper */
+.steps{list-style:none;margin:0 0 18px;padding:0;display:grid;grid-template-columns:repeat(8,1fr);gap:4px}
+.steps li{font-size:11.5px;color:var(--muted);border-top:3px solid var(--line);padding-top:6px;letter-spacing:.04em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.steps li span{font-variant-numeric:tabular-nums;margin-right:4px}
+.steps li.done{border-color:var(--ai);color:var(--ink)}
+.steps li.now{border-color:var(--beni);color:var(--beni);font-weight:700}
+@media (max-width:640px){.steps li:not(.now) b{display:none}.steps li{font-size:11px}}
+
+/* layout */
+.cols{display:grid;grid-template-columns:300px 1fr;gap:20px;align-items:start}
+@media (max-width:820px){.cols{grid-template-columns:1fr}}
+.panel{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:20px;box-shadow:var(--shadow)}
+.eyebrow{font-size:11px;letter-spacing:.18em;color:var(--muted);font-weight:700}
+.lead{font-size:14px;color:var(--muted);margin:6px 0 0}
+.stack{display:flex;flex-direction:column;gap:16px}
+.row{display:flex;gap:12px;align-items:center;flex-wrap:wrap}
+.btn{border:1px solid var(--line);background:var(--surface);border-radius:999px;padding:10px 20px;font-weight:700;font-size:14px}
+.btn:hover{border-color:var(--ai)}
+.btn.primary{background:var(--ai);color:var(--on-ai);border-color:var(--ai)}
+.btn.primary:hover{filter:brightness(1.08)}
+.btn[disabled]{opacity:.45;cursor:not-allowed;filter:none}
+.btn.beni{background:var(--beni);border-color:var(--beni);color:#fff}
+
+/* karte */
+.karte h2{font-size:21px}
+.karte .who{display:flex;gap:14px;align-items:center;margin-bottom:12px}
+.face{flex:none;border-radius:50%;background:var(--surface2);overflow:hidden}
+.face svg{display:block;width:100%;height:100%}
+.meta{font-size:12.5px;color:var(--muted)}
+.stats{display:grid;grid-template-columns:auto 1fr 30px;gap:6px 10px;align-items:center;font-size:13px}
+.bar{height:7px;border-radius:4px;background:var(--surface2);position:relative;overflow:hidden}
+.bar i{position:absolute;inset:0 auto 0 0;background:var(--ai);border-radius:4px;transition:width .6s cubic-bezier(.2,.8,.2,1)}
+.stats .v{text-align:right;font-variant-numeric:tabular-nums;font-weight:700}
+.delta{font-size:11px;font-weight:700;margin-left:4px}
+.up{color:var(--ok)} .dn{color:var(--ng)}
+.sub{margin-top:14px;padding-top:12px;border-top:1px dashed var(--line)}
+.sub h4{margin:0 0 8px;font-size:11px;letter-spacing:.16em;color:var(--muted)}
+.hid{display:grid;grid-template-columns:1fr 1fr;gap:6px}
+.chip{display:inline-flex;align-items:center;gap:6px;font-size:12.5px;border:1px solid var(--line);border-radius:8px;padding:4px 9px;background:var(--surface)}
+.chip.q{color:var(--muted)}
+.cond{display:flex;align-items:center;gap:8px;font-size:14px;font-weight:700;padding:8px 10px;border-radius:8px;background:var(--surface2);margin-bottom:6px}
+.cond s{color:var(--muted);font-weight:400;font-size:12px}
+.cond .tag{font-size:10.5px;letter-spacing:.1em;color:var(--beni);border:1px solid var(--beni);border-radius:4px;padding:0 5px}
+.cond.dropped{opacity:.55;text-decoration:line-through}
+
+/* step 0-1 */
+.quote{font-family:var(--serif);font-size:19px;line-height:1.8;margin:14px 0;padding-left:16px;border-left:3px solid var(--beni)}
+.condbig{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px;margin:14px 0}
+.condbig div{border:1px solid var(--line);border-radius:12px;padding:16px;background:var(--surface2)}
+.condbig b{display:block;font-family:var(--serif);font-size:24px}
+.condbig p{margin:6px 0 0;font-size:13px;color:var(--muted)}
+
+/* training */
+.weeks{display:flex;gap:6px;align-items:center}
+.weeks i{width:28px;height:6px;border-radius:3px;background:var(--line)}
+.weeks i.done{background:var(--ai)} .weeks i.now{background:var(--beni)}
+.acts{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+@media (max-width:640px){.acts{grid-template-columns:1fr}}
+.act{text-align:left;border:1px solid var(--line);border-radius:12px;padding:14px;background:var(--surface);display:flex;flex-direction:column;gap:8px;transition:border-color .2s,transform .2s}
+.act:hover:not([disabled]){border-color:var(--ai);transform:translateY(-2px)}
+.act[disabled]{cursor:default}
+.act h3{font-size:16px}
+.act p{margin:0;font-size:12.5px;color:var(--muted)}
+.act .eff{font-size:13px;font-weight:700;color:var(--ai)}
+.act .risk{font-size:11.5px;color:var(--ng)}
+.gauge{position:relative;height:10px;border-radius:5px;background:color-mix(in srgb,var(--ng) 22%,var(--surface2));overflow:visible;margin-top:auto}
+.gauge .ok{position:absolute;inset:0 auto 0 0;background:color-mix(in srgb,var(--ok) 55%,var(--surface2));border-radius:5px 0 0 5px}
+.gauge .mk{position:absolute;top:-4px;width:3px;height:18px;background:var(--ink);border-radius:2px;left:0;transition:left 1s cubic-bezier(.15,.9,.25,1)}
+.prob{display:flex;justify-content:space-between;font-size:12px;color:var(--muted)}
+.prob b{color:var(--ink);font-variant-numeric:tabular-nums}
+.act.sel{border-color:var(--beni);box-shadow:0 0 0 2px color-mix(in srgb,var(--beni) 30%,transparent)}
+.verdict{font-family:var(--serif);font-weight:800;font-size:18px}
+.tlog{list-style:none;padding:0;margin:0;display:flex;flex-direction:column;gap:6px;font-size:13px}
+.tlog li{display:grid;grid-template-columns:52px 1fr auto;gap:8px;padding:6px 0;border-bottom:1px dashed var(--line)}
+.tlog .w{color:var(--muted);font-variant-numeric:tabular-nums}
+
+/* candidates */
+.cands{display:grid;grid-template-columns:repeat(auto-fill,minmax(270px,1fr));gap:10px}
+.pick{border:1px solid var(--line);border-radius:12px;padding:12px;background:var(--surface);text-align:left;display:flex;flex-direction:column;gap:8px;transition:border-color .15s}
+.pick:hover{border-color:var(--ai)}
+.pick.on{border-color:var(--beni);box-shadow:0 0 0 2px color-mix(in srgb,var(--beni) 28%,transparent)}
+.pick .hd{display:flex;gap:10px;align-items:center}
+.pick .hd b{font-size:15px}
+.pick .ck{margin-left:auto;width:22px;height:22px;border-radius:50%;border:2px solid var(--line);display:grid;place-items:center;font-size:12px;color:#fff;flex:none}
+.pick.on .ck{background:var(--beni);border-color:var(--beni)}
+.mini{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;font-size:11px;color:var(--muted)}
+.mini div b{display:block;font-size:15px;color:var(--ink);font-variant-numeric:tabular-nums}
+.mini div b.hit{color:var(--ok)} .mini div b.miss{color:var(--ng)}
+.badges{display:flex;gap:6px;flex-wrap:wrap}
+.bdg{font-size:11.5px;border-radius:6px;padding:1px 7px;font-weight:700}
+.bdg.ok{background:color-mix(in srgb,var(--ok) 16%,transparent);color:var(--ok)}
+.bdg.ng{background:color-mix(in srgb,var(--ng) 14%,transparent);color:var(--ng)}
+.sticky{position:sticky;bottom:12px;margin-top:14px;display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;background:var(--surface);border:1px solid var(--line);border-radius:999px;padding:8px 8px 8px 18px;box-shadow:var(--shadow)}
+
+/* eve */
+.vs{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+@media (max-width:560px){.vs{grid-template-columns:1fr}}
+.scale{position:relative;margin:34px 0 8px;height:14px;border-radius:7px;overflow:visible;display:flex}
+.scale span{flex:1;height:100%}
+.scale .pin{position:absolute;top:-28px;transform:translateX(-50%);font-size:11px;font-weight:700;white-space:nowrap;text-align:center}
+.scale .pin::after{content:"";display:block;width:2px;height:26px;margin:2px auto 0;background:currentColor}
+.scale .gap{position:absolute;top:18px;height:10px;border:2px solid var(--beni);border-top:none;border-radius:0 0 4px 4px}
+.pair{display:grid;grid-template-columns:70px 1fr 1fr;gap:6px 10px;align-items:center;font-size:13px}
+.pair .bar i{background:var(--ai)} .pair .bar.p i{background:var(--beni)}
+.notes{margin:0;padding-left:1.2em;font-size:13.5px}
+.notes li{margin-bottom:4px}
+.preps{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}
+@media (max-width:560px){.preps{grid-template-columns:1fr}}
+
+/* ===== omiai ===== */
+.om{display:flex;flex-direction:column;gap:10px}
+.hud{display:grid;grid-template-columns:auto 1fr 1fr;gap:10px 18px;align-items:center;background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:10px 16px 20px}
+@media (max-width:700px){.hud{grid-template-columns:1fr 1fr}.hud .clock{grid-column:1/-1}}
+.clock{display:flex;align-items:baseline;gap:10px}
+.clock b{font-family:var(--serif);font-size:26px;font-variant-numeric:tabular-nums;letter-spacing:.02em}
+.clock span{font-size:12px;color:var(--muted);letter-spacing:.1em}
+.meter{font-size:11.5px;color:var(--muted);min-width:0}
+.meter .l{display:flex;justify-content:space-between;gap:6px}
+.meter .l b{font-size:15px;color:var(--ink);font-variant-numeric:tabular-nums}
+.mbar{position:relative;height:10px;border-radius:5px;background:var(--surface2);margin-top:3px}
+.mbar i{position:absolute;inset:0 auto 0 0;border-radius:5px;background:linear-gradient(90deg,#8c93b8,var(--beni));transition:width .7s cubic-bezier(.2,.8,.2,1)}
+.mbar .tk{position:absolute;top:-3px;bottom:-3px;width:2px;background:var(--ink);opacity:.35}
+.mbar .tk em{position:absolute;top:13px;left:50%;transform:translateX(-50%);font-style:normal;font-size:9.5px;white-space:nowrap;opacity:1}
+.meter .fl{position:relative}
+.pop{position:absolute;right:30px;top:0;font-weight:800;font-size:13px;animation:pop 1.3s ease-out forwards;pointer-events:none}
+@keyframes pop{0%{opacity:0;transform:translateY(6px)}15%{opacity:1;transform:none}75%{opacity:1}100%{opacity:0;transform:translateY(-10px)}}
+
+.stage{position:relative;width:100%;aspect-ratio:16/9;overflow:hidden;border-radius:16px;background:#e9e1d0;border:1px solid var(--line);user-select:none;cursor:pointer}
+@media (max-width:640px){.stage{aspect-ratio:4/3}}
+.stage .room{position:absolute;inset:0;width:100%;height:100%}
+.air{position:absolute;inset:0;pointer-events:none;transition:background 1.2s ease;mix-blend-mode:multiply}
+.seat{position:absolute;bottom:13%;width:29%;max-width:270px;aspect-ratio:120/140;transition:transform .35s ease,filter .35s ease}
+.seat.c{left:7%} .seat.p{right:7%}
+.seat.p svg{transform:scaleX(-1)}
+.seat svg{width:100%;height:100%;display:block;filter:drop-shadow(0 6px 10px rgba(60,40,20,.18))}
+.seat.dim{filter:brightness(.93) saturate(.85)}
+.seat.speak{transform:translateY(-3%) scale(1.03)}
+.seat .fl2{position:absolute;left:50%;top:6%;transform:translateX(-50%)}
+.seat .fl2 .pop{position:static;display:block;font-size:clamp(14px,2.6vw,22px);font-family:var(--serif);text-shadow:0 1px 0 #fff,0 0 8px #fff}
+.table{position:absolute;left:0;right:0;bottom:0;height:26%;width:100%}
+.thought{position:absolute;top:5%;max-width:44%;background:rgba(255,255,255,.92);color:#2a2536;border:2px dashed #b9a6c9;border-radius:18px;padding:8px 14px;font-size:clamp(12px,1.8vw,15px);line-height:1.6;animation:fadein .35s ease;box-shadow:0 4px 14px rgba(60,40,80,.12)}
+.thought.c{left:3%} .thought.p{right:3%}
+.thought::after{content:"";position:absolute;bottom:-14px;width:12px;height:12px;border-radius:50%;background:rgba(255,255,255,.92);border:2px dashed #b9a6c9}
+.thought.c::after{left:22%} .thought.p::after{right:22%}
+.thought small{display:block;font-size:10px;letter-spacing:.14em;color:#8a7a9a;font-weight:700}
+.sfx{position:absolute;top:13%;left:50%;transform:translateX(-50%);font-family:var(--serif);font-weight:800;font-size:clamp(22px,5vw,46px);color:#5a3f2c;letter-spacing:.2em;text-shadow:0 2px 0 rgba(255,255,255,.8);animation:sfx 1.8s ease-out forwards;pointer-events:none;white-space:nowrap}
+@keyframes sfx{0%{opacity:0;transform:translate(-50%,8px) scale(.9)}15%{opacity:1;transform:translate(-50%,0) scale(1.05)}70%{opacity:1}100%{opacity:0;transform:translate(-50%,-6px)}}
+.tube{transform-box:view-box;transform-origin:503px 214px;transition:transform .25s ease-in}
+.kakon .tube{animation:tip 1.4s ease-in-out}
+@keyframes tip{0%{transform:rotate(0)}30%{transform:rotate(-14deg)}38%{transform:rotate(16deg)}60%{transform:rotate(16deg)}100%{transform:rotate(0)}}
+.banner{position:absolute;left:0;right:0;top:40%;text-align:center;background:rgba(29,27,46,.78);color:#fff;padding:10px;font-family:var(--serif);font-size:clamp(16px,3vw,26px);letter-spacing:.2em;animation:band .5s ease}
+.banner small{display:block;font-family:var(--sans);font-size:11px;letter-spacing:.3em;opacity:.75}
+@keyframes band{from{clip-path:inset(0 50% 0 50%)}to{clip-path:inset(0 0 0 0)}}
+@keyframes fadein{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}
+
+.box{position:relative;background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:22px 20px 14px;min-height:150px;cursor:pointer;box-shadow:var(--shadow)}
+.plate{position:absolute;top:-13px;left:16px;background:var(--ai);color:var(--on-ai);font-weight:700;font-size:13px;padding:2px 14px;border-radius:6px;letter-spacing:.05em}
+.plate.p{background:var(--beni);color:#fff}
+.plate.m{background:var(--kin);color:#fff}
+.plate.th{background:var(--surface);color:var(--muted);border:1px dashed var(--muted)}
+.say{font-size:17px;line-height:1.85;min-height:3.7em;white-space:pre-wrap}
+.say.n{color:var(--muted);font-family:var(--serif);font-size:16px}
+.say.th{color:var(--muted);font-style:normal}
+.why{display:flex;gap:8px;flex-wrap:wrap;margin-top:6px;min-height:24px}
+.why .bdg{font-weight:500}
+.ctl{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-top:6px;flex-wrap:wrap}
+.ctl .row{gap:6px}
+.ctl .btn{padding:5px 14px;font-size:12.5px}
+.ctl .btn.on{background:var(--surface2);border-color:var(--ai)}
+.next{font-size:12px;color:var(--muted);animation:blink 1s steps(2) infinite}
+@keyframes blink{50%{opacity:.2}}
+.choice h3{font-size:18px}
+.chs{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:10px}
+@media (max-width:640px){.chs{grid-template-columns:1fr}}
+.chs button{text-align:left;border:1px solid var(--line);border-radius:12px;padding:12px 14px;background:var(--surface2);display:flex;flex-direction:column;gap:4px}
+.chs button:hover{border-color:var(--kin)}
+.chs b{font-size:15px}
+.chs span{font-size:12px;color:var(--muted)}
+.logp{max-height:260px;overflow:auto;font-size:13px;border-top:1px dashed var(--line);margin-top:10px;padding-top:8px}
+.logp p{margin:0 0 4px}
+.logp .nm{font-weight:700;margin-right:6px}
+
+/* result */
+.result{text-align:center;padding-block:28px}
+.stamp{width:180px;height:180px;margin:10px auto 16px;border-radius:50%;border:7px double var(--beni);color:var(--beni);display:grid;place-items:center;font-family:var(--serif);font-weight:800;font-size:40px;letter-spacing:.08em;transform:rotate(-12deg);animation:stamp .55s cubic-bezier(.3,1.6,.5,1) both}
+.stamp.sm{font-size:30px}
+.stamp.gray{border-color:var(--muted);color:var(--muted)}
+@keyframes stamp{from{opacity:0;transform:rotate(-12deg) scale(2.2)}to{opacity:1;transform:rotate(-12deg) scale(1)}}
+.epi{font-family:var(--serif);font-size:17px;max-width:34em;margin:0 auto 18px;line-height:1.9}
+.moments{text-align:left;max-width:560px;margin:0 auto;list-style:none;padding:0;font-size:13.5px}
+.moments li{display:grid;grid-template-columns:1fr auto;gap:10px;padding:7px 0;border-bottom:1px dashed var(--line)}
+.finals{display:flex;justify-content:center;gap:28px;margin:10px 0 20px;flex-wrap:wrap}
+.finals div{font-size:12px;color:var(--muted)}
+.finals b{display:block;font-family:var(--serif);font-size:30px;color:var(--ink);font-variant-numeric:tabular-nums}
+@media (prefers-reduced-motion:reduce){*{animation-duration:.01ms!important;transition-duration:.01ms!important}}
+</style>
+
+<div class="app">
+  <header class="top">
+    <div class="brand">
+      <svg width="38" height="38" viewBox="0 0 40 40" aria-hidden="true"><g fill="none" stroke-width="2.4" stroke-linecap="round"><path d="M4 22 C12 22 14 10 20 10 C26 10 28 22 36 22" stroke="var(--beni)"/><path d="M4 26 C12 26 14 14 20 14 C26 14 28 26 36 26" stroke="var(--kin)"/><circle cx="20" cy="22" r="5" stroke="var(--beni)"/></g></svg>
+      <div><h1>むすび相談所</h1><small>縁結び・お見合い仲介</small></div>
+    </div>
+    <div class="rec" id="rec"></div>
+  </header>
+  <ol class="steps" id="steps"></ol>
+  <main id="main"></main>
+</div>
+
+<script>
+(()=>{
+const R=Math.random, ri=(a,b)=>Math.floor(R()*(b-a+1))+a, pick=a=>a[Math.floor(R()*a.length)];
+const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
+const shuffle=a=>{a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.floor(R()*(i+1));[a[i],a[j]]=[a[j],a[i]];}return a;};
+const norm=(m,s)=>m+(R()+R()+R()-1.5)*s*2;
+const reduce=matchMedia('(prefers-reduced-motion: reduce)').matches;
+const $=s=>document.querySelector(s);
+
+const SL={age:'年齢',trust:'信用',asset:'資産',edu:'学力',charm:'魅力'};
+const HL={topic:'話題',care:'気配り',humor:'ユーモア',nerve:'度胸'};
+const LB={...SL,...HL};
+const VIS=['trust','asset','edu','charm'];
+const HID=['topic','care','humor','nerve'];
+const STEPS=['来訪','条件','研鑽','探索','打診','前日','お見合い','結果'];
+
+const SUR=['佐藤','鈴木','高橋','田中','伊藤','渡辺','山本','中村','小林','加藤','吉田','山田','佐々木','松本','井上','木村','清水','山崎','森','池田','橋本','阿部','石川','前田','藤田','小川','岡田','長谷川','村上','近藤','坂本','遠藤','青木','西村','福田','太田','三浦','藤原','岡本','桜井'];
+const MG=['翔太','大輔','健太','拓也','直樹','和也','誠','亮','悠真','陽介','隆之','浩二','慎吾','達也','智也','蓮','颯太','修一','恭平','雄大'];
+const FG=['美咲','彩','真由美','由佳','愛','麻衣','恵','沙織','優子','香織','葵','結衣','千尋','奈々','瞳','陽菜','里奈','久美子','早紀','遥'];
+const JOBS=[
+ {n:'外科医',b:{edu:30,asset:22,trust:6},t:'今日も当直明けなんです。手術中は不思議と眠くならないんですけどね'},
+ {n:'市役所職員',b:{trust:24,asset:2},t:'住民課で窓口をしています。いろんな方の人生に、少しずつ触れる仕事です'},
+ {n:'IT起業家',b:{asset:28,edu:10,trust:-10},t:'社員十二人の会社をやってます。来年には倍にしたいなと'},
+ {n:'保育士',b:{trust:14,charm:6,asset:-12},t:'年長さんの担任です。毎日泥だらけですけど、楽しいですよ'},
+ {n:'商社の営業',b:{asset:16,charm:10},t:'海外出張が多くて、先月はジャカルタにいました'},
+ {n:'大学の研究員',b:{edu:32,asset:-10},t:'深海の微生物を研究しています。地味ですけど、ロマンがあるんです'},
+ {n:'パティシエ',b:{charm:12,asset:-4},t:'朝四時から仕込みです。季節のタルトを任されるようになりました'},
+ {n:'弁護士',b:{edu:26,asset:18,trust:10},t:'企業法務が中心です。契約書を読むのが、実はけっこう好きで'},
+ {n:'美容師',b:{charm:22,edu:-8},t:'表参道のサロンにいます。指名してくださるお客さんも増えてきました'},
+ {n:'米農家',b:{trust:16,asset:6,edu:-6},t:'実家の田んぼを継ぎました。新米の季節がいちばん忙しいです'},
+ {n:'舞台俳優',b:{charm:30,asset:-20,trust:-8},t:'小劇場で舞台に立ってます。来月、初めての主演なんです'},
+ {n:'銀行員',b:{trust:20,asset:10,edu:10},t:'法人融資の担当です。数字と人柄、両方を見るのが仕事ですね'},
+ {n:'消防士',b:{trust:20,charm:10},t:'二十四時間の交代勤務です。体力には自信があります'},
+ {n:'翻訳家',b:{edu:22,asset:-6},t:'フリーでミステリ小説の翻訳をしています。締め切り前は缶詰です'},
+ {n:'老舗旅館の跡取り',b:{asset:24,trust:8},t:'創業百二十年の宿を継ぐことになりまして。まだまだ修業中です'},
+ {n:'看護師',b:{trust:16,edu:6},t:'救急病棟にいます。夜勤明けの朝焼けが、けっこう好きなんです'},
+];
+const HOBBY=[[12,'登山とキャンプ'],[25,'渓流釣り'],[37,'サッカー観戦'],[50,'食べ歩き'],[62,'温泉めぐり'],[75,'映画鑑賞'],[87,'純文学の読書'],[101,'ゲームとアニメ']];
+const HCOL=['#7aa36f','#6aa0a8','#8fb35a','#d99a4e','#c98a7a','#9a82b8','#7f8fbf','#b879a0'];
+const hobby=p=>HOBBY.find(h=>p.topic<h[0])[1];
+const INTROS=['両親から「そろそろ」と言われ続けて、とうとう来てしまいました。','仕事ばかりで、気づいたらこの歳でした。今度こそ本気で出会いを探したいんです。','友人が次々に結婚していって……置いていかれた気がして。','マッチングアプリにはもう疲れました。人の目で、ちゃんと選んでほしいんです。','姉がこちらのご縁で結婚したと聞いて。私にも、良い方がいれば。'];
+const WHY={asset:'将来を考えると、生活の安定は外せなくて。',trust:'約束を守れる人じゃないと、どうしても無理なんです。',edu:'話がかみ合う、知的な方に惹かれるんです。',charm:'やっぱり、ときめきは大事にしたくて……。',age:'年齢も、できれば近い方がいいです。'};
+
+const SKIN=['#f6d7bf','#efc7a6','#e3b48f','#f3cdb0'];
+const HAIR=['#2a2220','#3b2a22','#4a3526','#1e1d26','#5e4130'];
+const CLOTH=['#2b3a67','#3d3d4a','#6a2e3f','#35524a','#6c5a82','#8e4f45','#44607a'];
+
+function genPerson(g,o={}){
+  const job=pick(JOBS);
+  const p={id:Math.random().toString(36).slice(2,9),g,name:pick(SUR)+' '+pick(g==='m'?MG:FG),age:o.age??ri(25,46),job:job.n,jobTalk:job.t};
+  for(const k of VIS)p[k]=clamp(Math.round(norm(46,13)+(job.b[k]||0)),5,97);
+  p.asset=clamp(p.asset+Math.round((p.age-32)*0.8),5,97);
+  p.topic=ri(2,98);
+  for(const k of ['care','humor','nerve'])p[k]=clamp(Math.round(norm(50,18)),4,96);
+  p.look={skin:pick(SKIN),hair:p.age>45&&R()<.6?'#8d8680':pick(HAIR),style:g==='m'?pick([0,1]):pick([2,3,2,1]),cloth:pick(CLOTH),glasses:p.edu>70&&R()<.55};
+  return p;
+}
+const condText=c=>c.stat==='age'?`年齢 ${c.val}歳以下`:`${SL[c.stat]} ${c.val}以上`;
+const meets=(p,c)=>c.stat==='age'?p.age<=c.val:p[c.stat]>=c.val;
+const gapOf=(p,c)=>c.stat==='age'?(p.age-c.val)*3:c.val-p[c.stat];
+const active=()=>S.conds.filter(c=>!c.dropped);
+const sur=p=>p.name.split(' ')[0];
+const nm=p=>sur(p)+'さん';
+
+function genClientConds(c){
+  return shuffle(['trust','asset','edu','charm','age']).slice(0,2).map(stat=>{
+    const val=stat==='age'?Math.max(26,c.age+ri(-1,4)):ri(11,15)*5;
+    return {stat,val,orig:val};
+  });
+}
+function genCandConds(C){
+  return shuffle(['trust','asset','edu','charm','age']).slice(0,2).map(stat=>({stat,val:stat==='age'?Math.max(27,C.age+ri(-3,5)):ri(8,15)*5}));
+}
+
+/* ---------- avatar ---------- */
+const EX={
+ neutral:{e:'<ellipse cx="49" cy="65" rx="2.7" ry="3.5"/><ellipse cx="71" cy="65" rx="2.7" ry="3.5"/>',b:'M42 55 L54 54 M66 54 L78 55',m:'<path d="M54 80 Q60 83 66 80" fill="none"/>'},
+ smile:{e:'<path d="M45 66 Q49 61 53 66 M67 66 Q71 61 75 66" fill="none" stroke-width="2.4"/>',b:'M42 54 Q48 51 54 53 M66 53 Q72 51 78 54',m:'<path d="M52 78 Q60 87 68 78" fill="none"/>',bl:.45},
+ joy:{e:'<path d="M44 66 Q49 59 54 66 M66 66 Q71 59 76 66" fill="none" stroke-width="2.6"/>',b:'M42 52 Q48 48 54 51 M66 51 Q72 48 78 52',m:'<path d="M51 77 Q60 92 69 77 Z" fill="#8a3a44" stroke-width="1.5"/>',bl:.8},
+ nervous:{e:'<circle cx="49" cy="65" r="2.2"/><circle cx="71" cy="65" r="2.2"/>',b:'M42 56 L54 52 M66 52 L78 56',m:'<path d="M52 81 Q55 78 58 81 Q61 84 64 81 Q67 78 69 81" fill="none"/>',sw:1,bl:.3},
+ down:{e:'<path d="M45 66 L53 66 M67 66 L75 66" fill="none" stroke-width="2.4"/>',b:'M42 53 L54 57 M66 57 L78 53',m:'<path d="M54 83 Q60 78 66 83" fill="none"/>'},
+ think:{e:'<ellipse cx="51" cy="64" rx="2.5" ry="3.3"/><ellipse cx="73" cy="64" rx="2.5" ry="3.3"/>',b:'M42 53 L54 55 M66 51 Q72 48 78 52',m:'<path d="M56 81 L64 80" fill="none"/>'},
+};
+function avatar(p,ex='neutral'){
+  const L=p.look,x=EX[ex]||EX.neutral,h=L.hair;
+  let back='',front;
+  if(L.style===0)front='M32 62 Q28 26 60 26 Q92 26 88 62 Q86 46 76 40 Q64 48 46 42 Q36 48 32 62Z';
+  else if(L.style===1)front='M31 64 Q27 24 62 25 Q93 27 89 60 Q84 42 72 38 Q56 36 44 46 Q36 52 31 64Z';
+  else if(L.style===2){back='M29 52 Q29 20 60 20 Q91 20 91 52 L97 126 Q60 134 23 126Z';front='M32 60 Q30 25 60 25 Q90 25 88 60 Q82 40 66 38 Q60 46 50 40 Q38 44 32 60Z';}
+  else {back='M28 58 Q27 21 60 21 Q93 21 92 58 L93 96 Q60 103 27 96Z';front='M31 60 Q29 25 60 25 Q91 25 89 60 L88 50 Q60 42 32 50Z';}
+  const collar=p.g==='m'
+   ?`<path d="M47 101 L60 119 L73 101Z" fill="#f3f1ec"/><path d="M58 106 L62 106 L64 126 L60 131 L56 126Z" fill="#9c3048"/>`
+   :`<path d="M45 102 Q60 118 75 102" fill="none" stroke="#f3f1ec" stroke-width="3"/><circle cx="60" cy="113" r="2.4" fill="#f3f1ec"/>`;
+  return `<svg viewBox="0 0 120 140" aria-hidden="true">
+  ${back?`<path d="${back}" fill="${h}"/>`:''}
+  <path d="M12 142 Q16 104 60 99 Q104 104 108 142Z" fill="${L.cloth}"/>
+  ${collar}
+  <rect x="51" y="84" width="18" height="20" rx="7" fill="${L.skin}"/><rect x="51" y="92" width="18" height="6" fill="#000" opacity=".06"/>
+  <circle cx="33" cy="66" r="5" fill="${L.skin}"/><circle cx="87" cy="66" r="5" fill="${L.skin}"/>
+  <ellipse cx="60" cy="61" rx="27" ry="31" fill="${L.skin}"/>
+  <path d="${front}" fill="${h}"/>
+  ${x.bl?`<ellipse cx="43" cy="74" rx="5" ry="3" fill="#f08a9a" opacity="${x.bl}"/><ellipse cx="77" cy="74" rx="5" ry="3" fill="#f08a9a" opacity="${x.bl}"/>`:''}
+  <g fill="#2a2230" stroke="#2a2230" stroke-width="2" stroke-linecap="round">${x.e}</g>
+  <path d="${x.b}" fill="none" stroke="${h==='#8d8680'?'#6b645e':h}" stroke-width="2.4" stroke-linecap="round"/>
+  <g stroke="#8a4a4a" stroke-width="2.2" stroke-linecap="round">${x.m}</g>
+  ${L.glasses?'<g fill="none" stroke="#3a3440" stroke-width="1.6"><rect x="41" y="58" width="16" height="13" rx="5"/><rect x="63" y="58" width="16" height="13" rx="5"/><path d="M57 63 L63 63"/></g>':''}
+  ${x.sw?'<path d="M88 44 Q84 52 88 55 Q92 52 88 44Z" fill="#9fd0ec" stroke="#6aa9cf" stroke-width="1"/>':''}
+  </svg>`;
+}
+const face=(p,size,ex)=>`<div class="face" style="width:${size}px;height:${size}px">${avatar(p,ex)}</div>`;
+
+/* ---------- actions ---------- */
+const ACTIONS=[
+ {t:'ジムに通わせる',d:'週三回の筋トレで、姿勢から変えていく。',p:.85,e:{charm:4}},
+ {t:'美容院で大改造',d:'髪型も服も一新。当たれば別人に。',p:.5,e:{charm:12},f:{charm:-3},fd:'似合わない髪型になってしまった'},
+ {t:'資格の勉強',d:'通勤電車で参考書を開く習慣をつける。',p:.8,e:{edu:5}},
+ {t:'難関資格に挑戦',d:'合格すれば一気に箔がつく。',p:.35,e:{edu:15}},
+ {t:'家計を見直す',d:'固定費を削って、毎月の貯金を増やす。',p:.9,e:{asset:4}},
+ {t:'投資に挑戦',d:'増えるか減るかは相場しだい。',p:.45,e:{asset:14},f:{asset:-6},fd:'相場が急落した'},
+ {t:'清掃ボランティア',d:'週末の朝、商店街のゴミ拾い。',p:.85,e:{trust:5}},
+ {t:'町内会長を引き受ける',d:'大役だが、評判は確実に上がる。',p:.4,e:{trust:14},f:{trust:-4},fd:'会合をすっぽかしてしまった'},
+ {t:'話し方教室に通う',d:'場を和ませる話術を身につける。',p:.75,e:{humor:10}},
+ {t:'模擬お見合い',d:'相談所スタッフ相手に場数を踏む。',p:.75,e:{nerve:12}},
+ {t:'マナー講座',d:'所作と気配りを基礎から学ぶ。',p:.8,e:{care:10}},
+ {t:'アンチエイジング',d:'見た目が若返る……かもしれない。',p:.25,e:{age:-2}},
+ {t:'しっかり休ませる',d:'何も起きないが、失敗もない。',p:1,e:{nerve:3}},
+ {t:'条件を少し緩めるよう説得',d:'現実的な線を一緒に考える。',p:.75,cond:'small'},
+ {t:'条件を大きく緩めるよう説得',d:'理想と向き合う、じっくり面談。',p:.4,cond:'big'},
+ {t:'条件を撤回してもらう',d:'「本当に、それは必要ですか？」',p:.15,cond:'drop'},
+];
+function lowered(c,kind){return c.stat==='age'?c.val+(kind==='small'?2:5):Math.max(0,c.val-(kind==='small'?5:15));}
+function effText(o){
+  if(o.cond){const c=S.conds[o.ci];return o.cond==='drop'?`「${condText(c)}」を撤回`:`「${condText(c)}」→ ${c.stat==='age'?lowered(c,o.cond)+'歳以下':lowered(c,o.cond)+'以上'}`;}
+  return Object.entries(o.e).map(([k,v])=>`${LB[k]} ${v>0?'+':''}${v}${HID.includes(k)?'（隠し）':''}`).join('、');
+}
+function genOffers(){
+  const act=S.conds.map((c,i)=>i).filter(i=>!S.conds[i].dropped);
+  const out=[];
+  for(const a of shuffle(ACTIONS)){
+    if(out.length>=3)break;
+    if(a.cond&&(!act.length||out.some(o=>o.cond)))continue;
+    out.push({...a,ci:a.cond?pick(act):null});
+  }
+  return out;
+}
+
+/* ---------- state ---------- */
+let S;
+function loadRec(){try{return JSON.parse(localStorage.getItem('musubi-rec'))||{m:0,c:0,f:0};}catch(e){return {m:0,c:0,f:0};}}
+function saveRec(){try{localStorage.setItem('musubi-rec',JSON.stringify(S.rec));}catch(e){}}
+function newClient(){
+  const g=pick(['m','f']);
+  const C=genPerson(g,{age:ri(27,43)});
+  for(const k of VIS)C[k]=clamp(C[k]-6,5,97);
+  C.intro=pick(INTROS);
+  Object.assign(S,{step:0,client:C,conds:genClientConds(C),turn:0,offers:[],tlog:[],flash:{},cands:[],picked:[],partner:null,prep:null,om:null,result:null,rolling:null,last:null});
+  S.offers=genOffers();
+}
+
+/* ---------- render ---------- */
+const main=$('#main');
+function render(){
+  $('#rec').innerHTML=`<span class="m">成婚<b>${S.rec.m}</b></span><span>交際<b>${S.rec.c}</b></span><span>不成立<b>${S.rec.f}</b></span>`;
+  $('#steps').innerHTML=STEPS.map((s,i)=>`<li class="${i<S.step?'done':i===S.step?'now':''}"><span>${i+1}</span><b>${s}</b></li>`).join('');
+  [renderVisit,renderConds,renderTrain,renderSearch,renderShort,renderEve,renderOmiai,renderResult][S.step]();
+}
+function karte(){
+  const C=S.client,F=S.flash||{},showHid=S.step>=5;
+  const hid=HID.map(k=>showHid?`<span class="chip">${HL[k]} <b class="num">${C[k]}</b></span>`:`<span class="chip q">${HL[k]} ？？${F[k]?`<span class="delta ${F[k]>0?'up':'dn'}">${F[k]>0?'+':''}${F[k]}</span>`:''}</span>`).join('');
+  return `<aside class="panel karte">
+   <div class="eyebrow">依頼人カルテ</div>
+   <div class="who">${face(C,64,'neutral')}<div><h2>${C.name}</h2><div class="meta">${C.age}歳${F.age?`<span class="delta up">${F.age}</span>`:''}・${C.job}</div></div></div>
+   <div class="stats">${VIS.map(k=>`<span>${SL[k]}</span><div class="bar"><i style="width:${C[k]}%"></i></div><span class="v">${C[k]}${F[k]?`<span class="delta ${F[k]>0?'up':'dn'}">${F[k]>0?'+':''}${F[k]}</span>`:''}</span>`).join('')}</div>
+   <div class="sub"><h4>隠し能力 ${showHid?'':'（前日に判明）'}</h4><div class="hid">${hid}</div></div>
+   ${S.step>=1?`<div class="sub"><h4>相手への希望条件</h4>${S.conds.map(c=>`<div class="cond ${c.dropped?'dropped':''}">${condText(c)} ${c.dropped?'<span class="tag">撤回</span>':c.val!==c.orig?`<s>${c.stat==='age'?c.orig+'歳以下':c.orig+'以上'}</s><span class="tag">緩和</span>`:''}</div>`).join('')}</div>`:''}
+  </aside>`;
+}
+function renderVisit(){
+  const C=S.client;
+  main.innerHTML=`<div class="cols">${karte()}<section class="panel stack">
+   <div><div class="eyebrow">STEP 1 ─ 依頼人の来訪</div><h2 style="font-size:26px;margin-top:6px">相談所の扉が開いた</h2></div>
+   <div class="row" style="align-items:flex-start;flex-wrap:nowrap">${face(C,96,'nervous')}
+    <p class="quote" style="margin:0">「${C.intro}」</p></div>
+   <p class="lead">${C.name}さん、${C.age}歳。${C.job}。左のカルテで、年齢・信用・資産・学力・魅力（いずれも最大100）を確認できます。お相手からも同じ物差しで見られることを覚えておきましょう。</p>
+   <div class="row"><button class="btn primary" data-a="toConds">ご希望を伺う</button></div>
+  </section></div>`;
+}
+function renderConds(){
+  const C=S.client;
+  main.innerHTML=`<div class="cols">${karte()}<section class="panel stack">
+   <div><div class="eyebrow">STEP 2 ─ 条件の提示</div><h2 style="font-size:26px;margin-top:6px">「お相手には、これだけは」</h2></div>
+   <div class="row" style="align-items:flex-start;flex-wrap:nowrap">${face(C,80,'think')}
+    <p class="quote" style="margin:0;font-size:17px">「${S.conds.map(c=>WHY[c.stat]).join('')}」</p></div>
+   <div class="condbig">${S.conds.map(c=>`<div><span class="eyebrow">必須条件</span><b>${condText(c)}</b><p>${c.stat==='age'?'お相手の年齢の上限':'お相手の'+SL[c.stat]+'がこの値以上'}</p></div>`).join('')}</div>
+   <p class="lead">これから5週間の研鑽期間。依頼人を磨くか、条件を現実的にしてもらうか。成功率の高い行動ほど効果は小さく、大きな成果は失敗と隣り合わせです。</p>
+   <div class="row"><button class="btn primary" data-a="toTrain">研鑽プランを立てる</button></div>
+  </section></div>`;
+}
+function renderTrain(){
+  const done=S.turn>=5, ro=S.rolling;
+  const weeks=[0,1,2,3,4].map(i=>`<i class="${i<S.turn?'done':i===S.turn?'now':''}"></i>`).join('');
+  let body;
+  if(done){
+    body=`<div class="stack"><p class="verdict">研鑽期間、終了。</p><p class="lead" style="margin:0">いよいよお相手探し。登録者名簿から10名を抽出します。</p><div class="row"><button class="btn primary" data-a="toSearch">パートナー探しへ</button></div></div>`;
+  }else{
+    body=`<div class="acts">${S.offers.map((o,i)=>{
+      const sel=ro&&ro.k===i;
+      return `<button class="act ${sel?'sel':''}" data-a="act" data-i="${i}" ${ro?'disabled':''}>
+        <h3>${o.t}</h3><p>${o.d}</p>
+        <div class="eff">${effText(o)}</div>
+        ${o.f?`<div class="risk">失敗時：${effText({e:o.f})}</div>`:''}
+        <div class="prob"><span>成功率</span><b>${Math.round(o.p*100)}%</b></div>
+        <div class="gauge"><div class="ok" style="width:${o.p*100}%"></div>${sel?`<div class="mk" id="mk"></div>`:''}</div>
+      </button>`;}).join('')}</div>`;
+  }
+  const last=S.last?`<div class="row" style="gap:8px"><span class="verdict" style="color:${S.last.ok?'var(--ok)':'var(--ng)'}">${S.last.ok?'成功':'失敗'}</span><span>${S.last.t}：${S.last.msg}</span></div>`:'';
+  main.innerHTML=`<div class="cols">${karte()}<section class="panel stack">
+   <div class="row" style="justify-content:space-between"><div><div class="eyebrow">STEP 3 ─ 研鑽期間</div><h2 style="font-size:24px;margin-top:6px">${done?'5週間の成果':`第${S.turn+1}週：今週の方針は？`}</h2></div><div class="weeks" aria-label="${S.turn}/5週">${weeks}</div></div>
+   ${last}
+   ${body}
+   ${S.tlog.length?`<div class="sub"><h4>研鑽の記録</h4><ul class="tlog">${S.tlog.map(l=>`<li><span class="w">第${l.w}週</span><span>${l.t}</span><span class="${l.ok?'up':'dn'}">${l.msg}</span></li>`).join('')}</ul></div>`:''}
+  </section></div>`;
+  if(ro){const mk=$('#mk');requestAnimationFrame(()=>requestAnimationFrame(()=>{if(mk)mk.style.left=`calc(${ro.r*100}% - 1px)`;}));}
+}
+function doAct(i){
+  if(S.rolling||S.turn>=5)return;
+  const o=S.offers[i],r=R(),ok=r<o.p;
+  S.rolling={k:i,r,ok};render();
+  setTimeout(()=>{
+    const C=S.client;let msg;S.flash={};
+    if(o.cond){
+      const c=S.conds[o.ci];
+      if(!ok)msg='説得は不調。条件はそのまま';
+      else if(o.cond==='drop'){c.dropped=true;msg=`「${condText(c)}」を撤回`;}
+      else{const b=condText(c);c.val=lowered(c,o.cond);msg=`「${b}」→「${condText(c)}」`;}
+    }else{
+      const e=ok?o.e:o.f;
+      if(!e)msg='効果なし';
+      else{msg=(ok?'':o.fd+'：')+Object.entries(e).map(([k,v])=>{C[k]=k==='age'?C[k]+v:clamp(C[k]+v,1,99);S.flash[k]=v;return `${LB[k]} ${v>0?'+':''}${v}`;}).join('、');}
+    }
+    S.tlog.push({w:S.turn+1,t:o.t,ok,msg});
+    S.last={ok,t:o.t,msg};S.turn++;S.rolling=null;
+    S.offers=S.turn<5?genOffers():[];
+    render();
+  },reduce?100:1300);
+}
+function genCands(){
+  const C=S.client,g=C.g==='m'?'f':'m';
+  const arr=Array.from({length:10},()=>genPerson(g,{age:clamp(C.age+ri(-7,7),24,52)}));
+  const orig=S.conds.map(c=>({stat:c.stat,val:c.orig}));
+  const mo=p=>orig.every(c=>meets(p,c));
+  let n=arr.filter(mo).length;
+  for(const p of shuffle(arr)){
+    if(n>=2)break;if(mo(p))continue;
+    for(const c of orig){if(c.stat==='age')p.age=Math.min(p.age,c.val-ri(0,3));else p[c.stat]=Math.max(p[c.stat],clamp(c.val+ri(0,12),0,98));}
+    n++;
+  }
+  arr.forEach(p=>p.conds=genCandConds(C));
+  return arr;
+}
+function renderSearch(){
+  const ac=active();
+  main.innerHTML=`<section class="panel stack">
+   <div class="row" style="justify-content:space-between;align-items:flex-end"><div><div class="eyebrow">STEP 4 ─ パートナー探し</div><h2 style="font-size:24px;margin-top:6px">名簿から、打診する3名を選ぶ</h2></div>
+    <div class="badges">${ac.length?ac.map(c=>`<span class="bdg ok">${condText(c)}</span>`).join(''):'<span class="bdg ok">条件なし</span>'}</div></div>
+   <p class="lead" style="margin:0">緑の数値は依頼人の条件を満たしている項目です。条件外の相手を選ぶと、お見合い当日に依頼人の気持ちが冷めやすくなります。</p>
+   <div class="cands">${S.cands.map(p=>{
+     const on=S.picked.includes(p.id);
+     const cls=k=>{const c=ac.find(c=>c.stat===k);return c?(meets(p,c)?'hit':'miss'):''};
+     return `<button class="pick ${on?'on':''}" data-a="pick" data-id="${p.id}" aria-pressed="${on}">
+      <div class="hd">${face(p,46,'neutral')}<div><b>${p.name}</b><div class="meta"><span class="num ${cls('age')?'':''}" style="${cls('age')==='miss'?'color:var(--ng);font-weight:700':cls('age')==='hit'?'color:var(--ok);font-weight:700':''}">${p.age}歳</span>・${p.job}</div></div><span class="ck">${on?'✓':''}</span></div>
+      <div class="mini">${VIS.map(k=>`<div>${SL[k]}<b class="${cls(k)}">${p[k]}</b></div>`).join('')}</div>
+      <div class="badges">${ac.map(c=>meets(p,c)?`<span class="bdg ok">✓ ${SL[c.stat]}</span>`:`<span class="bdg ng">✗ ${SL[c.stat]}</span>`).join('')}</div>
+     </button>`;}).join('')}</div>
+   <div class="sticky"><span><b class="num">${S.picked.length}</b> / 3 名を選択中</span><button class="btn primary" data-a="toShort" ${S.picked.length===3?'':'disabled'}>この3名に打診する</button></div>
+  </section>`;
+}
+function renderShort(){
+  const C=S.client,list=S.cands.filter(p=>S.picked.includes(p.id)),ac=active();
+  main.innerHTML=`<div class="cols">${karte()}<section class="panel stack">
+   <div><div class="eyebrow">STEP 5 ─ 打診</div><h2 style="font-size:24px;margin-top:6px">お相手側の希望条件が届いた</h2><p class="lead">お見合いするのは1名だけ。依頼人がお相手の条件を満たしているかどうかで、当日の相手の気持ちが大きく変わります。</p></div>
+   <div class="cands">${list.map(p=>{
+     const on=S.partner===p.id,ok=p.conds.filter(c=>meets(C,c)).length,mine=ac.filter(c=>meets(p,c)).length;
+     return `<button class="pick ${on?'on':''}" data-a="choose" data-id="${p.id}" aria-pressed="${on}">
+      <div class="hd">${face(p,54,'smile')}<div><b>${p.name}</b><div class="meta">${p.age}歳・${p.job}</div></div><span class="ck">${on?'✓':''}</span></div>
+      <div class="mini">${VIS.map(k=>`<div>${SL[k]}<b>${p[k]}</b></div>`).join('')}</div>
+      <div class="sub" style="margin-top:4px"><h4>${sur(p)}さんの希望条件</h4>
+       ${p.conds.map(c=>`<div class="cond" style="justify-content:space-between">${condText(c)}<span class="bdg ${meets(C,c)?'ok':'ng'}">${meets(C,c)?'✓ 依頼人は満たす':`✗ 依頼人 ${c.stat==='age'?C.age+'歳':C[c.stat]}`}</span></div>`).join('')}
+      </div>
+      <div class="meta">相手の条件 <b class="num">${ok}/2</b> ・ 依頼人の条件 <b class="num">${mine}/${ac.length}</b></div>
+     </button>`;}).join('')}</div>
+   <div class="row"><button class="btn primary" data-a="toEve" ${S.partner?'':'disabled'}>この方にお見合いを申し込む</button><button class="btn" data-a="back">名簿に戻る</button></div>
+  </section></div>`;
+}
+const PREPS=[
+ {k:'nerve',t:'緊張をほぐす電話をかける',d:'度胸 +15'},
+ {k:'topic',t:'相手の趣味を予習させる',d:'話題が相手に12近づく'},
+ {k:'charm',t:'身だしなみを最終チェック',d:'魅力 +5'},
+ {k:'care',t:'気配りのコツを伝える',d:'気配り +10'},
+];
+function renderEve(){
+  const C=S.client,P=partner(),d=Math.abs(C.topic-P.topic);
+  const lo=Math.min(C.topic,P.topic);
+  const notes=[];
+  notes.push(d<8?`話題の差は${d}。趣味がほぼ同じで、会話が大いに弾む見込み。`:d<20?`話題の差は${d}。近い趣味で、盛り上がりそう。`:d<35?`話題の差は${d}。無難には話せそう。`:d<55?`話題の差は${d}。趣味の話は気まずくなるかも。`:`話題の差は${d}。趣味の話は危険。沈黙に注意。`);
+  for(const [p,w] of [[C,'依頼人'],[P,'お相手']]){
+    if(p.nerve<35)notes.push(`${w}の${nm(p)}は緊張しやすい（度胸${p.nerve}）。挨拶でつまずくかも。`);
+    if(p.care>=60)notes.push(`${w}の${nm(p)}は気配り上手（${p.care}）。ハプニングに強い。`);
+    if(p.care<35)notes.push(`${w}の${nm(p)}は気配りが苦手（${p.care}）。ハプニング時の態度に注意。`);
+    if(p.humor>=70)notes.push(`${w}の${nm(p)}はユーモアで場を救える（${p.humor}）。`);
+  }
+  const ok=P.conds.filter(c=>meets(C,c)).length;
+  notes.push(`お相手の希望条件を ${ok}/2 満たしている。`);
+  const pin=(p,col,who)=>`<div class="pin" style="left:${p.topic}%;color:${col}">${who}<br><span class="num">${p.topic}</span></div>`;
+  main.innerHTML=`<section class="panel stack">
+   <div><div class="eyebrow">STEP 6 ─ お見合い前日</div><h2 style="font-size:24px;margin-top:6px">隠れていた相性が見えてきた</h2></div>
+   <div class="vs">
+     ${[C,P].map((p,i)=>`<div class="row" style="flex-wrap:nowrap">${face(p,64,i?'smile':'nervous')}<div><b style="font-size:16px">${p.name}</b><div class="meta">${i?'お相手':'依頼人'}・${p.age}歳・${p.job}<br>趣味：${hobby(p)}</div></div></div>`).join('')}
+   </div>
+   <div>
+     <h3 style="font-size:16px">話の合い度 <span class="meta" style="font-family:var(--sans);font-weight:400">数字が近いほど話が弾む</span></h3>
+     <div class="scale">${HCOL.map((c,i)=>`<span style="background:${c};opacity:.55;${i===0?'border-radius:7px 0 0 7px':''}${i===7?'border-radius:0 7px 7px 0':''}" title="${HOBBY[i][1]}"></span>`).join('')}
+      ${pin(C,'var(--ai)',sur(C))}${pin(P,'var(--beni)',sur(P))}
+      <div class="gap" style="left:${lo}%;width:${Math.max(d,0.5)}%"></div></div>
+     <div class="meta" style="display:flex;justify-content:space-between;margin-top:14px"><span>登山・釣り</span><span>観戦・グルメ</span><span>温泉・映画</span><span>読書・ゲーム</span></div>
+   </div>
+   <div class="pair"><span></span><span class="meta">${sur(C)}（依頼人）</span><span class="meta">${sur(P)}（お相手）</span>
+    ${['care','humor','nerve'].map(k=>`<span>${HL[k]}</span><div class="row" style="gap:6px;flex-wrap:nowrap"><div class="bar" style="flex:1"><i style="width:${C[k]}%"></i></div><b class="num" style="width:24px">${C[k]}</b></div><div class="row" style="gap:6px;flex-wrap:nowrap"><div class="bar p" style="flex:1"><i style="width:${P[k]}%"></i></div><b class="num" style="width:24px">${P[k]}</b></div>`).join('')}
+   </div>
+   <div class="sub"><h4>仲人の作戦メモ</h4><ul class="notes">${notes.map(n=>`<li>${n}</li>`).join('')}</ul></div>
+   <div class="sub"><h4>前夜にできることは、ひとつだけ</h4>
+    <div class="preps">${PREPS.map(p=>`<button class="act ${S.prep===p.k?'sel':''}" data-a="prep" data-k="${p.k}" ${S.prep?'disabled':''}><h3>${p.t}</h3><div class="eff">${p.d}</div></button>`).join('')}</div></div>
+   <div class="row"><button class="btn beni" data-a="toOmiai" ${S.prep?'':'disabled'}>お見合い当日へ</button></div>
+  </section>`;
+}
+const partner=()=>S.cands.find(p=>p.id===S.partner);
+
+/* ---------- omiai engine ---------- */
+const PH=[{n:'顔合わせ',t:'14:00'},{n:'自己紹介',t:'14:10'},{n:'仕事の話',t:'14:25'},{n:'趣味の話',t:'14:40'},{n:'ハプニング',t:'14:55'},{n:'将来の話',t:'15:10'},{n:'締めくくり',t:'15:30'}];
+const B=(w,t,o={})=>({w,t,...o});
+const QA={
+ asset:{q:'お住まいは、どちらなんですか？',a:['実家暮らしで……正直、貯金はこれからなんです','駅の近くで一人暮らしです。貯金もコツコツと','数年前にマンションを買いまして。ローンも順調です'],good:'生活は安定してそう',bad:'ちょっと心もとないかな'},
+ trust:{q:'職場では、どんな役回りなんですか？',a:['えっと……先月、遅刻が続いて叱られたばかりで','頼まれた仕事はきちんと、を心がけてます','後輩の相談役ですね。取引先からも指名をいただいてます'],good:'きちんとした人みたい',bad:'ちょっと不安だな'},
+ edu:{q:'学生時代は、何を勉強されてたんですか？',a:['勉強はからっきしで、部活ばかりでした','経済学部です。ゼミはけっこう真面目にやりました','大学院で研究をしていました。論文を書くのが好きで'],good:'話が通じそう',bad:'物足りないかも'},
+ charm:{good:'やっぱり素敵な人',bad:'ときめきは……ないかも'},
+ age:{q:'失礼ですが、おいくつでいらっしゃいますか？',good:'年齢もちょうどいい',bad:'思っていたより上だな'},
+};
+function condBeats(E,T,c,side){
+  // E evaluates T. side: 'p' => P evaluating C (affects dp)
+  const ew=side, tw=side==='p'?'c':'p', key=side==='p'?'dp':'dc', fk='f'+ew, ft='f'+tw;
+  const out=[],q=QA[c.stat],v=T[c.stat],tier=v<40?0:v<68?1:2;
+  const why=`${side==='p'?'相手':'依頼人'}の条件「${condText(c)}」`;
+  if(c.stat==='charm')out.push(B('n',`${nm(E)}の視線が、${nm(T)}の${T.charm>=60?'涼しげな目元':'少しこわばった笑顔'}に留まる。`));
+  else if(c.stat==='age'){out.push(B(ew,q.q));out.push(B(tw,`${T.age}歳です。${T.age>=40?'もういい大人ですね、ははは':'今年で'+(T.age+1)+'になります'}`));}
+  else{out.push(B(ew,q.q));out.push(B(tw,q.a[tier],{[ft]:tier===0?'nervous':tier===2?'smile':null}));}
+  const ok=meets(T,c);
+  if(ok)out.push(B(ew,`（${SL[c.stat]}は希望どおり。${q.good}）`,{th:1,[fk]:'smile',[key]:8,why}));
+  else{const g=Math.max(0,gapOf(T,c));out.push(B(ew,`（${SL[c.stat]}は……希望より${c.stat==='age'?'上だ。'+q.bad:q.bad}）`,{th:1,[fk]:'think',[key]:-(6+Math.min(10,Math.round(g/2))),why}));}
+  return out;
+}
+function buildPhase(ph){
+  const C=S.client,P=partner(),F=S.om.flags,out=[B('phase',PH[ph].n,{time:PH[ph].t})];
+  const push=(...a)=>out.push(...a);
+  if(ph===0){
+    push(B('n','ホテル・ミヤコのティーラウンジ。窓の外には手入れの行き届いた日本庭園が広がっている。'));
+    push(B('sfx','カコーン'));
+    push(B('m',`本日はお日柄もよく。こちらが${C.name}さん。そしてこちらが、${P.name}さんです。`));
+    push(B('m',C.age>=38&&P.age>=38?'では、あとはお二人で。ごゆっくり。':'では、あとはお若いお二人で。'));
+    push(B('n','仲人は少し離れた席へ移った。二人きりのテーブルに、ぎこちない沈黙が落ちる。'));
+    const greet=(p,w,key)=>p.nerve<35?B(w,`は、はじめましてっ！ ${sur(p)}と、もうしま……申します！`,{['f'+w]:'nervous',[key]:-3,why:`${w==='c'?'依頼人':'相手'}の緊張（度胸${p.nerve}）`}):p.nerve>=70?B(w,`はじめまして、${p.name}です。今日、お会いできるのを楽しみにしていました。`,{['f'+w]:'smile',[key]:3,why:`堂々とした挨拶（度胸${p.nerve}）`}):B(w,`はじめまして。${p.name}です。よろしくお願いします。`);
+    push(greet(C,'c','dp'));push(greet(P,'p','dc'));
+    const first=(E,T,ew,key)=>{const d=Math.round((T.charm-50)/4);
+      const t=T.charm>=70?'（写真よりずっと素敵……）':T.charm>=50?'（感じのいい人だな）':T.charm>=35?'（うん、落ち着いた雰囲気の人だ）':'（……写真、だいぶ盛ってたかも）';
+      return B(ew,t,{th:1,['f'+ew]:T.charm>=70?'joy':T.charm>=50?'smile':T.charm>=35?'neutral':'think',[key]:d,why:`第一印象（魅力${T.charm}）`});};
+    push(first(P,C,'p','dp'));push(first(C,P,'c','dc'));
+    if(Math.abs(C.age-P.age)>=10){const y=C.age<P.age?'c':'p';push(B(y,'（思っていたより、ずっと年上の方だな……）',{th:1,['f'+y]:'think',[y==='c'?'dc':'dp']:-4,why:`年齢差 ${Math.abs(C.age-P.age)}歳`}));}
+  }
+  if(ph===1){
+    push(B('n','ウェイターが紅茶とケーキを運んできた。湯気の向こうで、互いに相手の出方をうかがう。'));
+    push(B('c',`改めまして。${C.job}をしております、${sur(C)}です。`));
+    push(B('p',`${P.job}の${sur(P)}です。今日はよろしくお願いします。`));
+    for(const c of P.conds)push(...condBeats(P,C,c,'p'));
+    for(const c of active())push(...condBeats(C,P,c,'c'));
+    if(!active().every(c=>meets(P,c)))push(B('m','（……依頼人の希望を満たしていない相手を選んだ以上、ここは覚悟の上だ）',{th:1}));
+  }
+  if(ph===2){
+    push(B('p',`${C.job}って、どんなお仕事なんですか？`));
+    push(B('c',C.jobTalk,{fc:'smile'}));
+    push(B('p',pick(['へえ、すごいですね','知らない世界です。面白いなあ','素敵なお仕事ですね']),{fp:'smile'}));
+    push(B('c',`${nm(P)}は？`));
+    push(B('p',P.jobTalk,{fp:'smile'}));
+    const g=C.edu-P.edu;
+    if(Math.abs(g)>35){
+      const hi=g>0?'c':'p',lo=g>0?'p':'c';
+      push(B(hi,'最近は需要予測にベイズ統計を使っていて、事前分布の置き方ひとつで結果がまるで変わるのが面白くて……',{['f'+hi]:'joy'}));
+      push(B(lo,'（……何の話か、さっぱりわからない）',{th:1,['f'+lo]:'nervous',[lo==='c'?'dc':'dp']:-6,why:`学力の差 ${Math.abs(g)}`}));
+    }else if(Math.abs(g)<15){
+      push(B('n','話のテンポが自然とかみ合っていく。',{dp:4,dc:4,why:`学力が近い（差${Math.abs(g)}）`}));
+    }
+    const tr=(E,T,ew,key)=>{
+      if(T.trust>=70)push(B(ew,'（受け答えが誠実。この人は信頼できそう）',{th:1,['f'+ew]:'smile',[key]:5,why:`信用${T.trust}`}));
+      else if(T.trust<30)push(B(ew,'（ちょっと調子のいい人かも……）',{th:1,['f'+ew]:'think',[key]:-4,why:`信用${T.trust}`}));
+    };
+    tr(P,C,'p','dp');tr(C,P,'c','dc');
+    push(B('choice','',{id:1}));
+  }
+  if(ph===3){
+    const m=F.hobbyEarly?1.4:1,d=Math.abs(C.topic-P.topic),r=v=>Math.round(v*m),why=`話の合い度（差${d}）${m>1?' ×合図':''}`;
+    if(!F.hobbyEarly)push(B('p','お休みの日は、何をして過ごされてるんですか？'));
+    push(B('c',`最近は、${hobby(C)}にはまってまして`));
+    if(d<8){
+      push(B('p',`えっ！ 私も${hobby(P)}、大好きなんです！`,{fp:'joy'}));
+      push(B('c','本当ですか！？ じゃあ、あの話、知ってます？ この前の……',{fc:'joy'}));
+      push(B('n','二人の声が弾む。ケーキのフォークが止まったまま、話題は尽きない。',{dp:r(14),dc:r(14),why,fc:'joy',fp:'joy'}));
+    }else if(d<20){
+      push(B('p',`私は${hobby(P)}が好きなので、ちょっと近いですね。今度、教えてください`,{fp:'smile'}));
+      push(B('c','ぜひ！ 初心者でも楽しめますよ',{fc:'smile',dp:r(9),dc:r(9),why}));
+    }else if(d<35){
+      push(B('p',`私は${hobby(P)}派なんですけど、${hobby(C)}も楽しそうですね`));
+      push(B('c',`${hobby(P)}ですか。いいですね`,{dp:r(4),dc:r(4),why}));
+    }else if(d<55){
+      push(B('p',`へえ……${hobby(C)}、ですか。私は${hobby(P)}ばかりで`,{fp:'think'}));
+      push(B('c','そ、そうなんですね……',{fc:'nervous'}));
+      push(B('sfx','カコーン',{dp:-r(4),dc:-r(4),why}));
+    }else{
+      push(B('p',`……${hobby(P)}しか、やったことがなくて`,{fp:'neutral'}));
+      push(B('c','……',{fc:'nervous'}));
+      push(B('p','……',{fp:'down'}));
+      push(B('sfx','カコーン'));
+      push(B('n','ししおどしの音だけが、やけに大きく響いた。',{dp:-r(9),dc:-r(9),why,fc:'down',fp:'down'}));
+    }
+    const fun=C.humor>=P.humor?'c':'p',fp=fun==='c'?C:P,oth=fun==='c'?'p':'c';
+    if(d>=35&&fp.humor>=70){
+      push(B(fun,'……ししおどしって、こんなに存在感ありましたっけ',{['f'+fun]:'smile'}));
+      push(B(oth,'ふふっ……ほんとですね',{['f'+oth]:'smile',[oth==='c'?'dc':'dp']:6,why:`ユーモアで救出（${fp.humor}）`}));
+      push(B('n','張りつめていた空気が、ふっとほどけた。'));
+    }else if(d<20&&C.humor>=55&&P.humor>=55){
+      push(B('n','冗談が冗談を呼び、隣の席の老夫婦までつられて笑っている。',{dp:3,dc:3,why:'お互いのユーモア',fc:'joy',fp:'joy'}));
+    }
+  }
+  if(ph===4){
+    const ev=pick(['spill','cake','phone','spill']);
+    if(ev==='spill'){
+      const xw=C.nerve<=P.nerve?'c':'p',X=xw==='c'?C:P,yw=xw==='c'?'p':'c',Y=yw==='c'?C:P,k=xw==='c'?'dc':'dp';
+      push(B('n',`${nm(X)}の手元でカップが傾き、紅茶がテーブルに広がった。`));
+      push(B(xw,'あっ……！ す、すみません！',{['f'+xw]:'nervous'}));
+      if(Y.care>=60){push(B(yw,'大丈夫ですか？ 火傷してませんか？ これ、使ってください',{['f'+yw]:'smile'}));push(B('n',`${nm(Y)}がさっとハンカチを差し出した。`));push(B(xw,'（……なんて優しい人なんだろう）',{th:1,['f'+xw]:'joy',[k]:9,why:`とっさの気配り（${Y.care}）`}));}
+      else if(Y.care>=35){push(B(yw,'あ、店員さん呼びますね'));push(B(xw,'（助かった……）',{th:1,[k]:3,why:`気配り（${Y.care}）`}));}
+      else{push(B(yw,'……あーあ',{['f'+yw]:'neutral'}));push(B('n',`${nm(Y)}は、濡れないように自分のバッグをそっと遠ざけた。`));push(B(xw,'（……ちょっと、冷たいな）',{th:1,['f'+xw]:'down',[k]:-7,why:`気配り不足（${Y.care}）`}));}
+    }else if(ev==='cake'){
+      const xw=pick(['c','p']),X=xw==='c'?C:P,yw=xw==='c'?'p':'c',k=yw==='c'?'dc':'dp';
+      push(B('n',`店員が、${nm(X)}の注文とは違うケーキを置いていった。`));
+      if(X.care>=50){push(B(xw,'あ、大丈夫ですよ。これも美味しそうですし',{['f'+xw]:'smile'}));push(B(yw,'（店員さんへの態度が丁寧な人だ）',{th:1,['f'+yw]:'smile',[k]:7,why:`店員への態度（気配り${X.care}）`}));}
+      else{push(B(xw,'……すみません、頼んだのと違いますよね？',{['f'+xw]:'think'}));push(B(yw,'（……店員さんへの言い方、ちょっと怖いかも）',{th:1,['f'+yw]:'nervous',[k]:-8,why:`店員への態度（気配り${X.care}）`}));}
+    }else{
+      const xw=pick(['c','p']),X=xw==='c'?C:P,yw=xw==='c'?'p':'c',k=yw==='c'?'dc':'dp';
+      push(B('n',`${nm(X)}のスマートフォンが、テーブルの上で震えだした。`));
+      if(X.trust>=50){push(B(xw,'失礼しました。今日は大事な日なので、切っておきますね'));push(B(yw,'（ちゃんとしてる人だな）',{th:1,['f'+yw]:'smile',[k]:5,why:`信用${X.trust}`}));}
+      else{push(B(xw,'あ、ちょっとすみません。……もしもし？ 今？ いや、ちょっと……'));push(B(yw,'（お見合いの最中に、電話……？）',{th:1,['f'+yw]:'down',[k]:-7,why:`信用${X.trust}`}));}
+    }
+    push(B('choice','',{id:2}));
+  }
+  if(ph===5){
+    const m=F.future?1.6:1,r=v=>Math.round(v*m),tag=m>1?' ×踏み込み':'';
+    push(B('p',F.future?`${nm(C)}は……もし結婚したら、どんな暮らしがしたいですか？`:'将来のこととか、考えたりします？'));
+    if(C.asset>=65)push(B('c','無理のない範囲で家を持って、年に一度は旅行に行けたらいいなって',{fc:'smile'}),B('p','（生活の見通しがちゃんと立ってる人だ）',{th:1,fp:'smile',dp:r(6),why:`資産${C.asset}${tag}`}));
+    else if(C.asset>=35)push(B('c','派手じゃなくていいので、家計を二人で相談しながら暮らしたいです'),B('p','（堅実な考え方で好感が持てる）',{th:1,dp:r(3),why:`資産${C.asset}${tag}`}));
+    else push(B('c','正直、まだ貯金が少なくて……これから頑張ります',{fc:'nervous'}),P.care>=60?B('p','（正直に話してくれるのは、うれしい）',{th:1,fp:'smile',dp:2,why:`正直さを受け止めた（気配り${P.care}）`}):B('p','（……将来、大丈夫なのかな）',{th:1,fp:'think',dp:-r(5),why:`資産${C.asset}${tag}`}));
+    push(B('c',`${nm(P)}は、どうですか？`));
+    if(P.asset>=65)push(B('p','仕事は続けつつ、休日はゆっくり過ごせる家庭がいいですね',{fp:'smile'}),B('c','（余裕のある人だな）',{th:1,fc:'smile',dc:r(6),why:`相手の資産${P.asset}${tag}`}));
+    else if(P.asset>=35)push(B('p','お互いの時間も大切にしつつ、支え合えたら'),B('c','（うん、それがいちばんだ）',{th:1,dc:r(3),why:`相手の資産${P.asset}${tag}`}));
+    else push(B('p','贅沢はできないかもしれませんけど……',{fp:'nervous'}),B('c','（ちょっと不安かも）',{th:1,fc:'think',dc:-r(4),why:`相手の資産${P.asset}${tag}`}));
+    if(Math.abs(C.trust-P.trust)>40)push(B('n','約束や時間についての考え方が、少しずつ食い違っていく。',{dp:-r(4),dc:-r(4),why:`価値観の差（信用 差${Math.abs(C.trust-P.trust)}）`}));
+    else if(F.future&&C.trust>=55&&P.trust>=55)push(B('n','お互い、言葉を選びながらも真剣に未来を語り合った。',{dp:5,dc:5,why:'誠実な二人の将来像',fc:'smile',fp:'smile'}));
+  }
+  if(ph===6){
+    push(B('n','気づけば、ポットの紅茶はすっかり冷めていた。'));
+    push(B('m','お話し中に失礼します。そろそろお時間です。'));
+    const o=S.om;
+    if(o.cImp>=55&&C.nerve>=40)push(B('c',`${nm(P)}。あの……また、お会いできますか？`,{fc:'smile'}));
+    else if(o.cImp>=55)push(B('c','あの……あの、また……',{fc:'nervous'}),B('n','言いかけて、言葉が続かない。'));
+    else push(B('c','今日は、ありがとうございました',{fc:'neutral'}));
+    push({w:'close'});
+  }
+  return out;
+}
+function closeBeats(){
+  const P=partner(),o=S.om;
+  if(o.pImp>=82)return [B('p',`はい、ぜひ！ 次は、${hobby(P)}にご一緒しませんか？`,{fp:'joy'}),B('sfx','カコーン'),B('n','庭の紅葉が、夕方の光に揺れていた。')];
+  if(o.pImp>=55)return [B('p','はい。こちらこそ、今日は楽しかったです',{fp:'smile'}),B('sfx','カコーン'),B('n','二人の返事は、明日、相談所に届く。')];
+  return [B('p','……本日は、ありがとうございました',{fp:'neutral'}),B('n',`${nm(P)}は小さく会釈し、先に席を立った。`),B('sfx','カコーン')];
+}
+const CHOICES={
+ 1:{h:'離れた席から、仲人の合図',s:'仕事の話が一段落した。次の流れをどう作る？',o:[
+   {k:'hobby',t:'趣味の話を振らせる',d:'話の合い度しだいで効果が増幅'},
+   {k:'praise',t:'相手を褒めさせる',d:'魅力とユーモアしだい'},
+   {k:'watch',t:'何もせず見守る',d:'安全策。小さく好転'}]},
+ 2:{h:'仲人の合図、もう一度',s:'お見合いも終盤。最後のひと押しは？',o:[
+   {k:'future',t:'将来の話に踏み込ませる',d:'資産・信用しだいで効果が増幅'},
+   {k:'listen',t:'聞き役に徹させる',d:'気配りしだい'},
+   {k:'joke',t:'笑いを取りに行かせる',d:'ユーモアしだい'}]},
+};
+function resolveChoice(k){
+  const C=S.client,P=partner(),F=S.om.flags,out=[];
+  if(k==='hobby'){F.hobbyEarly=1;out.push(B('n','仲人は小さく咳払いし、口の形だけで伝えた。「しゅ・み」'),B('c','そういえば……お休みの日は、何をされてるんですか？'));}
+  if(k==='praise'){
+    const sc=C.charm*.5+C.humor*.5+ri(0,30);
+    out.push(B('n','仲人は自分の襟元を指さし、目で合図を送った。「褒めて」'));
+    if(sc>=60)out.push(B('c',`${nm(P)}、そのお洋服の色、とてもお似合いですね`,{fc:'smile'}),B('p','えっ……ありがとうございます。今日のために選んだので、うれしいです',{fp:'joy',dp:8,why:`褒め言葉が響いた（魅力${C.charm}・ユーモア${C.humor}）`}));
+    else out.push(B('c','あの……お、お肌がきれいですね！',{fc:'nervous'}),B('p','え……あ、どうも……',{fp:'nervous'}),B('p','（急にどうしたんだろう……）',{th:1,fp:'think',dp:-4,why:'唐突な褒め言葉'}));
+  }
+  if(k==='watch')out.push(B('n','仲人は静かにコーヒーを口に運んだ。二人は自分たちのペースで話を続けている。',{dp:2,dc:2,why:'見守り'}));
+  if(k==='future'){F.future=1;out.push(B('n','仲人は手帳を開き、指で「将来」と書いて見せた。'));}
+  if(k==='listen'){
+    out.push(B('c',`${nm(P)}のお話、もっと聞かせてください`),B('p',`ほんとですか？ じゃあ、${hobby(P)}の話なんですけど……`,{fp:'smile'}));
+    if(C.care>=30)out.push(B('n',`${nm(C)}は相槌を打ちながら、楽しそうに耳を傾けた。`),B('p','（この人、ちゃんと聞いてくれる）',{th:1,fp:'joy',dp:Math.round(C.care/9),why:`聞き上手（気配り${C.care}）`}));
+    else out.push(B('p','（……聞いてるのかな。相槌がうわの空）',{th:1,fp:'think',dp:-3,why:`上の空（気配り${C.care}）`}));
+  }
+  if(k==='joke'){
+    if(C.humor>=60)out.push(B('c','実は今日、鏡の前で自己紹介を十回練習してきたんです。鏡の中の私のほうが、ずっと上手でした',{fc:'smile'}),B('p','あはは！ 私も、実は駅のトイレで練習してました',{fp:'joy',dp:10,why:`笑いが取れた（ユーモア${C.humor}）`}));
+    else if(C.humor>=40)out.push(B('c','この紅茶、私より緊張してませんか？ さっきから震えてて',{fc:'smile'}),B('p','ふふ……',{fp:'smile',dp:3,why:`まずまずの冗談（ユーモア${C.humor}）`}));
+    else out.push(B('c','この紅茶……こう、ちゃーんと美味しいですね！',{fc:'smile'}),B('p','……え？',{fp:'think'}),B('sfx','カコーン',{dp:-6,why:`すべった（ユーモア${C.humor}）`}));
+  }
+  return out;
+}
+
+let typing=false,typeTimer=null,autoTimer=null,lastFace={c:null,p:null};
+function renderOmiai(){
+  const C=S.client,P=partner(),o=S.om;
+  main.innerHTML=`<div class="om">
+   <div class="hud">
+     <div class="clock"><b id="clk">${PH[o.ph].t}</b><span id="phn">${PH[o.ph].n}</span></div>
+     ${meterHTML('p',`${sur(P)}さんの気持ち`,'相手→依頼人')}
+     ${meterHTML('c',`${sur(C)}さんの気持ち`,'依頼人→相手')}
+   </div>
+   <div class="stage" id="stage" role="button" tabindex="0" aria-label="お見合いの様子（クリックで次へ）">
+     ${roomSVG()}
+     <div class="air" id="air"></div>
+     <div class="seat c" id="seat-c"></div>
+     <div class="seat p" id="seat-p"></div>
+     ${tableSVG()}
+     <div id="fx"></div>
+   </div>
+   <div id="dock"></div>
+   <details class="panel" style="padding:12px 16px"><summary style="cursor:pointer;font-weight:700;font-size:13px">会話ログ</summary><div class="logp" id="logp"></div></details>
+  </div>`;
+  lastFace={c:null,p:null};
+  $('#stage').addEventListener('click',omNext);
+  $('#stage').addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();omNext();}});
+  updMeters();renderLog();
+  if(o.i<0)omNext();
+  else{const b=o.q[o.i];if(b.w==='choice'&&!b.done)showChoice(b.id);else showBeat(b,false);}
+}
+function meterHTML(w,label,sub){
+  return `<div class="meter"><div class="l"><span>${label}<br><span style="font-size:10px;opacity:.8">${sub}</span></span><span class="fl" id="fl-${w}"><b id="mv-${w}">50</b></span></div>
+   <div class="mbar"><i id="mb-${w}"></i><span class="tk" style="left:55%"><em>交際</em></span><span class="tk" style="left:82%"><em>成婚</em></span></div></div>`;
+}
+function updMeters(){
+  const o=S.om;
+  for(const w of ['p','c']){const v=w==='p'?o.pImp:o.cImp;$('#mv-'+w).textContent=v;$('#mb-'+w).style.width=v+'%';}
+  const a=(o.pImp+o.cImp)/2,t=clamp((a-50)/40,-1,1);
+  $('#air').style.background=t>=0?`radial-gradient(ellipse at 50% 70%,rgba(255,170,180,${.22*t}),rgba(255,210,170,${.12*t}))`:`linear-gradient(rgba(90,110,150,${-.3*t}),rgba(60,70,110,${-.25*t}))`;
+}
+function exprFor(w){const v=w==='c'?S.om.cImp:S.om.pImp;return v>=78?'joy':v>=58?'smile':v>=38?'neutral':'down';}
+function setFaces(b){
+  const C=S.client,P=partner();
+  for(const w of ['c','p']){
+    const ex=(b&&b['f'+w])||exprFor(w);
+    if(lastFace[w]!==ex){$('#seat-'+w).innerHTML=avatar(w==='c'?C:P,ex)+`<div class="fl2" id="f2-${w}"></div>`;lastFace[w]=ex;}
+    const s=$('#seat-'+w);s.classList.toggle('speak',b&&b.w===w&&!b.th);s.classList.toggle('dim',b&&(b.w==='c'||b.w==='p')&&b.w!==w);
+  }
+}
+function pop(el,v){if(!el||!v)return;const s=document.createElement('span');s.className='pop '+(v>0?'up':'dn');s.textContent=(v>0?'+':'')+v;el.appendChild(s);setTimeout(()=>s.remove(),1400);}
+function omNext(){
+  const o=S.om;if(!o)return;
+  if(typing){finishType();return;}
+  const cur=o.q[o.i];
+  if(cur&&cur.w==='choice'&&!cur.done)return;
+  if(o.end)return;
+  clearTimeout(autoTimer);
+  o.i++;
+  if(o.i>=o.q.length){
+    if(o.ph<PH.length-1){o.ph++;o.q.push(...buildPhase(o.ph));}
+    else{o.end=true;o.i=o.q.length-1;showEnd();return;}
+  }
+  const b=o.q[o.i];
+  if(b.w==='close'){o.q.splice(o.i,1,...closeBeats());}
+  const nb=o.q[o.i];
+  if(nb.w==='choice'){showChoice(nb.id);return;}
+  showBeat(nb,true);
+}
+function showBeat(b,apply){
+  const o=S.om,C=S.client,P=partner(),fx=$('#fx');
+  fx.innerHTML='';
+  if(apply&&!b.applied){
+    b.applied=1;
+    if(b.dp)o.pImp=clamp(o.pImp+b.dp,0,100);
+    if(b.dc)o.cImp=clamp(o.cImp+b.dc,0,100);
+    o.log.push(b);
+    if(b.dp||b.dc)o.moments.push({why:b.why||'',dp:b.dp||0,dc:b.dc||0});
+    updMeters();renderLog();
+    if(b.dp){pop($('#fl-p'),b.dp);}
+    if(b.dc){pop($('#fl-c'),b.dc);}
+  }
+  setFaces(b);
+  if(apply){if(b.dp)pop($('#f2-p'),b.dp);if(b.dc)pop($('#f2-c'),b.dc);}
+  if(b.w==='phase'){$('#clk').textContent=b.time;$('#phn').textContent=b.t;fx.innerHTML=`<div class="banner"><small>${b.time}</small>${b.t}</div>`;}
+  if(b.w==='sfx'){fx.innerHTML=`<div class="sfx">${b.t}</div>`;const g=$('#shishi');g.classList.remove('kakon');void g.getBoundingClientRect();g.classList.add('kakon');}
+  if(b.th)fx.innerHTML=`<div class="thought ${b.w==='m'?'c':b.w}"><small>心の声</small>${b.t.replace(/^（|）$/g,'')}</div>`;
+  const who=b.w==='c'?C.name:b.w==='p'?P.name:b.w==='m'?'仲人（あなた）':'';
+  const plate=b.th?`<span class="plate th">${b.w==='m'?'仲人':sur(b.w==='c'?C:P)}の心の声</span>`:who?`<span class="plate ${b.w}">${who}</span>`:'';
+  const txt=b.w==='phase'?`― ${b.time}　${b.t} ―`:b.w==='sfx'?`……${b.t}。（ししおどしの音）`:b.t;
+  const whys=[];
+  if(b.dp)whys.push(`<span class="bdg ${b.dp>0?'ok':'ng'}">${sur(P)}の気持ち ${b.dp>0?'+':''}${b.dp}</span>`);
+  if(b.dc)whys.push(`<span class="bdg ${b.dc>0?'ok':'ng'}">${sur(C)}の気持ち ${b.dc>0?'+':''}${b.dc}</span>`);
+  if(b.why)whys.push(`<span class="meta">${b.why}</span>`);
+  $('#dock').innerHTML=`<div class="box" id="box">${plate}
+    <div class="say ${b.w==='n'||b.w==='phase'||b.w==='sfx'?'n':''} ${b.th?'th':''}" id="say"></div>
+    <div class="why">${whys.join('')}</div>
+    <div class="ctl"><div class="row"><button class="btn ${o.auto?'on':''}" data-a="auto">オート${o.auto?' ON':''}</button><button class="btn ${o.fast?'on':''}" data-a="fast">早送り${o.fast?' ON':''}</button></div><span class="next" id="nx" hidden>クリックで次へ ▼</span></div>
+  </div>`;
+  $('#box').addEventListener('click',e=>{if(!e.target.closest('button'))omNext();});
+  typeText(txt,apply);
+}
+function typeText(txt,animate){
+  const el=$('#say');clearInterval(typeTimer);
+  const done=()=>{typing=false;const n=$('#nx');if(n)n.hidden=false;scheduleAuto();};
+  if(!animate||reduce||S.om.fast){el.textContent=txt;done();return;}
+  typing=true;let n=0;el.textContent='';
+  el.dataset.full=txt;
+  typeTimer=setInterval(()=>{n++;el.textContent=txt.slice(0,n);if(n>=txt.length){clearInterval(typeTimer);done();}},32);
+}
+function finishType(){clearInterval(typeTimer);const el=$('#say');if(el&&el.dataset.full)el.textContent=el.dataset.full;typing=false;const n=$('#nx');if(n)n.hidden=false;scheduleAuto();}
+function scheduleAuto(){clearTimeout(autoTimer);const o=S.om;if(o&&(o.auto||o.fast)&&!o.end){const b=o.q[o.i];autoTimer=setTimeout(omNext,o.fast?380:(b&&b.t?1100+b.t.length*25:1200));}}
+function showChoice(id){
+  const ch=CHOICES[id],C=S.client;
+  clearTimeout(autoTimer);
+  setFaces(null);$('#fx').innerHTML='';
+  $('#dock').innerHTML=`<div class="box choice" style="cursor:default"><span class="plate m">仲人（あなた）</span>
+    <h3>${ch.h}</h3><p class="lead" style="margin:4px 0 0">${ch.s}　<span class="meta">依頼人：魅力${C.charm}／気配り${C.care}／ユーモア${C.humor}／資産${C.asset}</span></p>
+    <div class="chs">${ch.o.map(x=>`<button data-a="om-choice" data-k="${x.k}"><b>${x.t}</b><span>${x.d}</span></button>`).join('')}</div></div>`;
+}
+function pickChoice(k){
+  const o=S.om,b=o.q[o.i];if(!b||b.w!=='choice'||b.done)return;
+  b.done=1;o.q.splice(o.i+1,0,...resolveChoice(k));omNext();
+}
+function showEnd(){
+  clearTimeout(autoTimer);
+  $('#dock').innerHTML=`<div class="box" style="cursor:default;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;text-align:center"><p class="say n" style="min-height:0">お見合いは終わった。あとは返事を待つだけ。</p><button class="btn beni" data-a="toResult">結果を聞く</button></div>`;
+}
+function renderLog(){
+  const C=S.client,P=partner(),el=$('#logp');if(!el)return;
+  el.innerHTML=S.om.log.filter(b=>b.w!=='phase').map(b=>{
+    const n=b.w==='c'?sur(C):b.w==='p'?sur(P):b.w==='m'?'仲人':'';
+    const d=[b.dp?`${sur(P)}${b.dp>0?'+':''}${b.dp}`:'',b.dc?`${sur(C)}${b.dc>0?'+':''}${b.dc}`:''].filter(Boolean).join(' ');
+    return `<p>${n?`<span class="nm">${n}${b.th?'（心）':''}</span>`:''}<span style="${n?'':'color:var(--muted)'}">${b.w==='sfx'?'……'+b.t:b.t}</span>${d?` <span class="bdg ${(b.dp||b.dc)>0?'ok':'ng'}">${d}</span>`:''}</p>`;
+  }).join('');
+  el.scrollTop=el.scrollHeight;
+}
+function roomSVG(){
+  let lat='';
+  for(const x0 of [40,600]){
+    lat+=`<rect x="${x0}" y="50" width="160" height="240" fill="#f8f3e6" stroke="#7b5b40" stroke-width="6"/>`;
+    for(let i=1;i<4;i++)lat+=`<line x1="${x0+i*40}" y1="50" x2="${x0+i*40}" y2="290" stroke="#b89c78" stroke-width="2"/>`;
+    for(let j=1;j<6;j++)lat+=`<line x1="${x0}" y1="${50+j*40}" x2="${x0+160}" y2="${50+j*40}" stroke="#b89c78" stroke-width="2"/>`;
+  }
+  return `<svg class="room" viewBox="0 0 800 450" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
+  <defs><linearGradient id="sky" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#cfe0e8"/><stop offset="1" stop-color="#f1efe0"/></linearGradient>
+  <linearGradient id="wl" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#efe6d3"/><stop offset="1" stop-color="#e2d5bc"/></linearGradient></defs>
+  <rect width="800" height="450" fill="url(#wl)"/>
+  <rect width="800" height="24" fill="#6b4a33"/>
+  ${lat}
+  <rect x="226" y="46" width="348" height="248" fill="#5a3f2c"/>
+  <rect x="236" y="56" width="328" height="228" fill="url(#sky)"/>
+  <path d="M236 200 Q300 160 360 188 Q420 150 480 182 Q530 162 564 176 L564 284 L236 284Z" fill="#a3bc93"/>
+  <ellipse cx="282" cy="176" rx="50" ry="36" fill="#6f9468"/><ellipse cx="258" cy="196" rx="30" ry="22" fill="#5f8660"/>
+  <ellipse cx="528" cy="166" rx="54" ry="42" fill="#5f8660"/>
+  <rect x="410" y="168" width="6" height="46" fill="#5a3f2c"/>
+  <ellipse cx="413" cy="156" rx="34" ry="24" fill="#cc6a50" opacity=".92"/><ellipse cx="398" cy="166" rx="18" ry="12" fill="#d98260"/>
+  <ellipse cx="392" cy="258" rx="118" ry="16" fill="#8fb3bd"/><ellipse cx="370" cy="254" rx="40" ry="4" fill="#b8d3d8"/>
+  <ellipse cx="292" cy="262" rx="15" ry="6" fill="#a3a19a"/><ellipse cx="318" cy="268" rx="9" ry="4" fill="#8f8d86"/>
+  <g id="shishi">
+    <rect x="490" y="208" width="4" height="52" fill="#6f5f34"/><rect x="514" y="208" width="4" height="52" fill="#6f5f34"/>
+    <path d="M530 196 L532 238" stroke="#7d8a4a" stroke-width="5"/>
+    <g class="tube"><path d="M468 208 L542 220 L540 229 L466 217Z" fill="#b8b46a"/><ellipse cx="467" cy="212.5" rx="2.5" ry="4.5" fill="#7b7a3c"/></g>
+    <ellipse cx="470" cy="262" rx="15" ry="5" fill="#8a8a82"/>
+  </g>
+  <rect x="397" y="56" width="6" height="228" fill="#5a3f2c"/>
+  <rect y="300" width="800" height="150" fill="#b8a177"/>
+  ${[0,1,2,3,4,5].map(i=>`<line x1="${i*160}" y1="300" x2="${i*160-60}" y2="450" stroke="#a08a5f" stroke-width="3"/>`).join('')}
+  <rect y="294" width="800" height="9" fill="#6b4a33"/>
+  </svg>`;
+}
+function tableSVG(){
+  const cup=x=>`<ellipse cx="${x}" cy="62" rx="36" ry="9" fill="#f4f1ea"/><ellipse cx="${x}" cy="60" rx="36" ry="9" fill="none" stroke="#c9b48a" stroke-width="1.5"/>
+   <path d="M${x-20} 36 L${x-16} 58 Q${x} 64 ${x+16} 58 L${x+20} 36Z" fill="#fbfaf6" stroke="#d8cdb6"/><ellipse cx="${x}" cy="36" rx="20" ry="5" fill="#9a5a2c"/>
+   <path d="M${x+20} 40 Q${x+32} 42 ${x+19} 52" fill="none" stroke="#d8cdb6" stroke-width="3"/>`;
+  return `<svg class="table" viewBox="0 0 800 120" preserveAspectRatio="xMidYMax slice" aria-hidden="true">
+   <defs><linearGradient id="wd" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#7a5236"/><stop offset="1" stop-color="#4c3120"/></linearGradient></defs>
+   <path d="M0 40 Q400 22 800 40 L800 120 L0 120Z" fill="url(#wd)"/>
+   <path d="M0 40 Q400 22 800 40" fill="none" stroke="#a37853" stroke-width="3"/>
+   ${cup(265)}${cup(535)}
+   <ellipse cx="400" cy="62" rx="44" ry="10" fill="#f4f1ea"/><path d="M378 58 L420 58 L420 44 L386 38Z" fill="#f6e6c8"/><path d="M386 38 L420 44 L420 48 L384 42Z" fill="#e8a0a8"/><circle cx="410" cy="38" r="4.5" fill="#c23b5a"/>
+  </svg>`;
+}
+
+/* ---------- result ---------- */
+function finishOmiai(){
+  const o=S.om,a=o.pImp,b=o.cImp;
+  const kind=a>=82&&b>=82?'m':a>=55&&b>=55?'c':'f';
+  S.result={kind,pImp:a,cImp:b};
+  S.rec[kind]++;saveRec();S.step=7;render();window.scrollTo({top:0});
+}
+function renderResult(){
+  const C=S.client,P=partner(),r=S.result,o=S.om;
+  const who=r.pImp<55&&r.cImp<55?'双方から':r.pImp<55?`${P.name}さんの側から`:`依頼人の${nm(C)}から`;
+  const epi=r.kind==='m'?`三か月後。相談所に一通の封筒が届いた。中に入っていたのは、${C.name}さんと${P.name}さんの結婚式の招待状だった。`
+   :r.kind==='c'?`翌朝、双方から「ぜひ、またお会いしたい」と連絡が入った。${sur(C)}さんと${sur(P)}さん、二人の交際が始まる。`
+   :`翌日、${who}「今回はご縁がなかったということで」と連絡が入った。`;
+  const ms=o.moments.slice().sort((x,y)=>Math.abs(y.dp)+Math.abs(y.dc)-Math.abs(x.dp)-Math.abs(x.dc)).slice(0,6);
+  main.innerHTML=`<section class="panel result">
+    <div class="eyebrow">STEP 8 ─ お見合いの結果</div>
+    <div class="stamp ${r.kind==='c'?'sm':''} ${r.kind==='f'?'gray':''}">${r.kind==='m'?'成婚':r.kind==='c'?'交際<br>成立':'お断り'}</div>
+    <h2 style="font-size:28px">${r.kind==='m'?'大成功 ─ ご結婚':r.kind==='c'?'成功 ─ カップル成立':'不成立'}</h2>
+    <div class="finals"><div>${sur(P)}さんの気持ち<b>${r.pImp}</b></div><div>${sur(C)}さんの気持ち<b>${r.cImp}</b></div></div>
+    <p class="epi">${epi}</p>
+    <div class="row" style="justify-content:center;gap:24px;margin-bottom:22px">${face(C,84,r.kind==='f'?'down':'joy')}${face(P,84,r.kind==='f'?'neutral':'joy')}</div>
+    <h3 style="font-size:16px;margin-bottom:6px">勝負を分けた場面</h3>
+    <ul class="moments">${ms.map(m=>`<li><span>${m.why||'—'}</span><span>${m.dp?`<span class="bdg ${m.dp>0?'ok':'ng'}">${sur(P)} ${m.dp>0?'+':''}${m.dp}</span> `:''}${m.dc?`<span class="bdg ${m.dc>0?'ok':'ng'}">${sur(C)} ${m.dc>0?'+':''}${m.dc}</span>`:''}</span></li>`).join('')}</ul>
+    <p class="meta" style="margin-top:14px">判定：両者55以上で交際成立、両者82以上で成婚。</p>
+    <div class="row" style="justify-content:center;margin-top:10px"><button class="btn primary" data-a="again">次の依頼人を迎える</button></div>
+  </section>`;
+}
+
+/* ---------- events ---------- */
+document.addEventListener('click',e=>{
+  const t=e.target.closest('[data-a]');if(!t)return;
+  const a=t.dataset.a;
+  if(a==='toConds'){S.step=1;render();}
+  else if(a==='toTrain'){S.step=2;render();}
+  else if(a==='act')doAct(+t.dataset.i);
+  else if(a==='toSearch'){S.cands=genCands();S.picked=[];S.flash={};S.step=3;render();}
+  else if(a==='pick'){const id=t.dataset.id,i=S.picked.indexOf(id);if(i>=0)S.picked.splice(i,1);else if(S.picked.length<3)S.picked.push(id);render();}
+  else if(a==='toShort'){S.partner=null;S.step=4;render();window.scrollTo({top:0});}
+  else if(a==='choose'){S.partner=t.dataset.id;render();}
+  else if(a==='back'){S.step=3;render();}
+  else if(a==='toEve'){S.step=5;S.prep=null;render();window.scrollTo({top:0});}
+  else if(a==='prep'){if(S.prep)return;const C=S.client,P=partner(),k=t.dataset.k;S.prep=k;
+    if(k==='nerve')C.nerve=clamp(C.nerve+15,1,99);if(k==='charm')C.charm=clamp(C.charm+5,1,99);if(k==='care')C.care=clamp(C.care+10,1,99);
+    if(k==='topic'){const d=P.topic-C.topic;C.topic+=Math.sign(d)*Math.min(12,Math.abs(d));}render();}
+  else if(a==='toOmiai'){S.om={q:[],i:-1,ph:0,pImp:50,cImp:50,flags:{},log:[],moments:[],auto:false,fast:false,end:false};S.om.q=buildPhase(0);S.step=6;render();window.scrollTo({top:0});}
+  else if(a==='auto'){S.om.auto=!S.om.auto;t.classList.toggle('on',S.om.auto);t.textContent='オート'+(S.om.auto?' ON':'');if(S.om.auto&&!typing)scheduleAuto();else clearTimeout(autoTimer);}
+  else if(a==='fast'){S.om.fast=!S.om.fast;t.classList.toggle('on',S.om.fast);t.textContent='早送り'+(S.om.fast?' ON':'');if(S.om.fast){if(typing)finishType();else scheduleAuto();}else clearTimeout(autoTimer);}
+  else if(a==='om-choice')pickChoice(t.dataset.k);
+  else if(a==='toResult')finishOmiai();
+  else if(a==='again'){newClient();render();window.scrollTo({top:0});}
+});
+document.addEventListener('keydown',e=>{
+  if(S.step!==6||e.target.closest('button,summary'))return;
+  if(e.key==='Enter'||e.key===' '){if(e.target.id==='stage')return;e.preventDefault();omNext();}
+});
+
+function boot(data){
+  if(data&&data.S){S=data.S;S.rolling=null;}
+  else{S={rec:loadRec()};newClient();}
+  render();
+}
+window.claude?.hot?.snapshot?.(()=>({S}));
+window.claude?.hot?.ready?window.claude.hot.ready(boot):boot(window.claude?.hot?.data??{});
+})();
+</script>
