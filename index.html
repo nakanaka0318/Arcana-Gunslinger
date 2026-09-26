@@ -15,8 +15,8 @@
   --top:calc(14px + env(safe-area-inset-top,0px)); --bot:calc(14px + env(safe-area-inset-bottom,0px));
 }
 [hidden]{display:none!important}
-html,body{height:100%;margin:0;overflow:hidden;background:var(--ink);color:var(--parch);font-family:var(--f-ui)}
-#app{position:fixed;inset:0;overflow:hidden;-webkit-user-select:none;user-select:none;-webkit-tap-highlight-color:transparent}
+html,body{height:100%;margin:0;overflow:hidden;touch-action:none;overscroll-behavior:none;background:var(--ink);color:var(--parch);font-family:var(--f-ui)}
+#app{position:fixed;inset:0;overflow:hidden;touch-action:none;-webkit-user-select:none;user-select:none;-webkit-tap-highlight-color:transparent}
 #view{position:absolute;inset:0;width:100%;height:100%;display:block;touch-action:none;outline:none}
 button{font-family:inherit;color:inherit}
 button:focus-visible{outline:2px solid var(--lumen);outline-offset:2px}
@@ -200,6 +200,8 @@ button:focus-visible{outline:2px solid var(--lumen);outline-offset:2px}
   #hint{display:none}
 }
 body.touch #skills{display:none}
+button,.tb,.pm,#mmwrap,#dialog{touch-action:manipulation}
+#panel .body{touch-action:pan-y}
 #mmwrap{cursor:pointer;pointer-events:auto}
 .pm{pointer-events:auto;cursor:pointer;transition:box-shadow .2s}
 .pm.ctrl{box-shadow:inset 0 0 0 1px rgba(230,198,122,.5),0 0 0 1.5px var(--gold),0 0 14px rgba(230,198,122,.35)}
@@ -2272,6 +2274,12 @@ document.querySelectorAll('.tbn').forEach(b=>b.addEventListener('pointerdown',e=
   if(G.state==='dialog'){advance();return;}
   const t=b.dataset.t;if(t==='atk')hold.atk=true;({atk:playerAttack,s1:()=>useSkill(0),s2:()=>useSkill(1),s3:()=>useSkill(2),ult:useUlt,jump,use:interact,pot:usePotion,swap:switchNext})[t]();}));
 document.querySelectorAll('.tbn[data-t="atk"]').forEach(b=>['pointerup','pointercancel','pointerleave'].forEach(ev=>b.addEventListener(ev,()=>{hold.atk=false;})));
+// block double-tap / pinch zoom during play (rapid taps on the attack button)
+const noZoom=e=>{if(e.target.closest&&(e.target.closest('.tbn')||e.target===canvas||e.target.closest('#joy')))e.preventDefault();};
+document.addEventListener('touchstart',e=>{if(e.touches.length>1)e.preventDefault();else noZoom(e);},{passive:false});
+document.addEventListener('touchend',noZoom,{passive:false});
+document.addEventListener('dblclick',e=>e.preventDefault(),{passive:false});
+for(const ev of['gesturestart','gesturechange','gestureend'])document.addEventListener(ev,e=>e.preventDefault(),{passive:false});
 $('#mmwrap').addEventListener('click',ev=>{ev.stopPropagation();auInit();if(G.state==='play')openMap();});
 
 // ================================================================ save/load
