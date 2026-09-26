@@ -302,6 +302,14 @@ body.landscape .charts{grid-template-columns:1fr 1fr}
 .ov-model.on{border-color:var(--accent);background:rgba(226,166,75,.1)}
 .ov-acts{display:flex;gap:10px;justify-content:flex-end;flex-wrap:wrap}
 @media (max-width:420px){.ov-models{grid-template-columns:1fr}}
+.pvhost{height:190px;border-radius:11px;overflow:hidden;background:radial-gradient(ellipse at 50% 35%,#3a5068,#1a222b 75%);border:1px solid var(--line)}
+.pvcv{width:100%;height:100%;display:block}
+.mrow{display:flex;flex-wrap:wrap;align-items:center;gap:6px;padding:6px 8px;border:1px solid var(--line);border-radius:10px;background:rgba(255,255,255,.03)}
+.mrow.hit{border-color:var(--accent)}
+.mrow .mv{display:flex;gap:4px;margin-left:auto}
+.mrow .sb:disabled{opacity:.3}
+.msel{font:inherit;font-size:13px;color:var(--ink);background:var(--raise);border:1px solid var(--line);border-radius:8px;height:32px;padding:0 6px;flex:1;min-width:110px}
+.ecard.slim{gap:4px}
 .badge{display:inline-block;font:700 14px var(--ff);padding:0 7px;border-radius:6px;background:var(--bad);color:#1b0806;margin-left:6px}
 
 /* ── ミニマップ ── */
@@ -587,8 +595,12 @@ function newGame(seed) {
     requests: [], effects: { outage: 0, rival: 0, buzz: 0 }, stats: { bans: 0, warns: 0, rescues: 0 },
   };
   generateIsland(g);
+  g.skills = [];
+  Skills.lib = g.skills;
+  for (const k of DEFAULT_SKILLS) g.skills.push(newSkill(g.nextId++, k));
   for (const m of DEFAULT_MT) g.monsterTypes.push(newMonsterType(g.nextId++, m));
   for (const c of DEFAULT_CLASSES) g.classes.push(newClass(g.nextId++, c));
+  Skills.lib = null;
   g.objects.push({ id: g.nextId++, type: 'town', name: 'はじまりの町', x: TOWN0.x, z: TOWN0.z, rot: 0 });
   const board = { id: g.nextId++, type: 'board', name: 'はじまりの掲示板', x: TOWN0.x + 17, z: TOWN0.z - 3, rot: -Math.PI / 2 };
   g.objects.push(board);
@@ -1114,18 +1126,29 @@ const Areas = {
 /* ════════════════════════════════════════════
    モンスター
    ════════════════════════════════════════════ */
-const SHAPES = [['slime', 'スライム'], ['beast', '獣'], ['golem', 'ゴーレム'], ['wisp', '精霊'], ['plant', 'キノコ']];
+const SHAPES = [['slime', 'スライム'], ['beast', '獣'], ['golem', 'ゴーレム'], ['wisp', '精霊'], ['plant', 'キノコ'], ['bird', '鳥'], ['serpent', '大蛇']];
 const MON_COLORS = ['#6cc24a', '#3f8fd6', '#e0574a', '#9b6ad6', '#e2a64b', '#a09a8a', '#f2eee2', '#3a4150', '#d67fb0', '#4fc2b4'];
 const DEFAULT_MT = [
-  { name: 'スライム', color: '#6cc24a', shape: 'slime', size: 1, hp: 30, atk: 6, def: 1, spd: 2, exp: 15, gold: 3, habitat: 0 },
-  { name: '森オオカミ', color: '#a09a8a', shape: 'beast', size: 1.1, hp: 60, atk: 12, def: 3, spd: 4.5, exp: 35, gold: 6, habitat: 1 },
-  { name: '毒キノコ', color: '#d67fb0', shape: 'plant', size: 1, hp: 45, atk: 10, def: 2, spd: 1.5, exp: 25, gold: 5, habitat: 4 },
-  { name: '砂の精霊', color: '#e2a64b', shape: 'wisp', size: 1, hp: 50, atk: 16, def: 2, spd: 3, exp: 45, gold: 8, habitat: 2 },
-  { name: '岩ゴーレム', color: '#8c877d', shape: 'golem', size: 1.3, hp: 160, atk: 20, def: 10, spd: 1.5, exp: 90, gold: 20, habitat: -1 },
-  { name: '古代竜', color: '#e0574a', shape: 'beast', size: 3, hp: 1500, atk: 60, def: 25, spd: 3, exp: 1500, gold: 300, habitat: -1, boss: true },
+  { name: 'スライム', color: '#6cc24a', shape: 'slime', size: 1, hp: 30, atk: 6, def: 1, spd: 2, exp: 15, gold: 3, habitat: 0, skillNames: ['体当たり'],
+    looks: [{ color: '#6cc24a' }, { color: '#4fc2b4', head: 'antenna' }, { color: '#e2a64b', head: 'mohawk', color2: '#d9534a' }] },
+  { name: '森オオカミ', color: '#a09a8a', shape: 'beast', size: 1.1, hp: 60, atk: 12, def: 3, spd: 4.5, exp: 35, gold: 6, habitat: 1, skillNames: ['噛みつき'],
+    looks: [{ color: '#a09a8a', tail: 'fluffy', color2: '#e8e2d0' }, { color: '#5a5f66', tail: 'tail', color2: '#3a4150' }] },
+  { name: '毒キノコ', color: '#d67fb0', shape: 'plant', size: 1, hp: 45, atk: 10, def: 2, spd: 1.5, exp: 25, gold: 5, habitat: 4, skillNames: ['胞子'],
+    looks: [{ color: '#d67fb0' }, { color: '#e0574a', eyes: 'cyclops' }] },
+  { name: '砂の精霊', color: '#e2a64b', shape: 'wisp', size: 1, hp: 50, atk: 16, def: 2, spd: 3, exp: 45, gold: 8, habitat: 2, skillNames: ['雷撃'],
+    looks: [{ color: '#e2a64b', head: 'halo', color2: '#ffe070' }] },
+  { name: '岩ゴーレム', color: '#8c877d', shape: 'golem', size: 1.3, hp: 160, atk: 20, def: 10, spd: 1.5, exp: 90, gold: 20, habitat: -1, skillNames: ['大地割り'],
+    looks: [{ color: '#8c877d', back: 'spikes', color2: '#6cc24a' }, { color: '#6a6660', back: 'shell', color2: '#8a6a44', eyes: 'cyclops' }] },
+  { name: '古代竜', color: '#e0574a', shape: 'beast', size: 3, hp: 1500, atk: 60, def: 25, spd: 3, exp: 1500, gold: 300, habitat: -1, boss: true, skillNames: ['竜の咆哮', 'メテオ'],
+    looks: [{ color: '#e0574a', color2: '#e2c04a', head: 'horns', back: 'bat', tail: 'stinger' }] },
 ];
-function newMonsterType(id, o) {
-  return Object.assign({ id, name: '新しいモンスター', color: '#6cc24a', shape: 'slime', size: 1, hp: 40, atk: 8, def: 2, spd: 2.5, exp: 10, gold: 4, boss: false, habitat: -1 }, o);
+function newMonsterType(id, o = {}) {
+  const t = Object.assign({ id, name: '新しいモンスター', color: '#6cc24a', shape: 'slime', size: 1, hp: 40, atk: 8, def: 2, spd: 2.5, exp: 10, gold: 4, boss: false, habitat: -1 }, o);
+  delete t.skillNames;
+  t.skills = o.skillNames ? o.skillNames.map(n => Skills.byName(n)?.id).filter(Boolean) : o.skills ? [...o.skills] : [];
+  t.looks = (o.looks && o.looks.length ? o.looks : [{}]).map(l => newMonLook({ shape: t.shape, color: t.color, ...l }));
+  t.color = t.looks[0].color; t.shape = t.looks[0].shape;
+  return t;
 }
 function mergeParts(parts) {
   const P = [], N = [];
@@ -1146,23 +1169,34 @@ function shapeGeo(shape) {
     case 'beast': return mergeParts([
       [B, M4(0, .55, 0, .55, .45, .95)], [B, M4(0, .8, .55, .42, .38, .42)], [B, M4(0, .72, .82, .22, .18, .22)],
       [B, M4(.18, .18, .3, .13, .36, .13)], [B, M4(-.18, .18, .3, .13, .36, .13)], [B, M4(.18, .18, -.3, .13, .36, .13)], [B, M4(-.18, .18, -.3, .13, .36, .13)],
-      [C4, M4(.12, 1.06, .5, .16, .22, .16)], [C4, M4(-.12, 1.06, .5, .16, .22, .16)], [B, M4(0, .7, -.58, .1, .1, .35)]]);
+      [C4, M4(.12, 1.06, .5, .16, .22, .16)], [C4, M4(-.12, 1.06, .5, .16, .22, .16)]]);
     case 'golem': return mergeParts([
       [B, M4(.22, .3, 0, .3, .6, .35)], [B, M4(-.22, .3, 0, .3, .6, .35)], [B, M4(0, .95, 0, .9, .7, .55)],
       [B, M4(0, 1.45, .02, .42, .36, .42)], [B, M4(.6, .85, 0, .26, .8, .3)], [B, M4(-.6, .85, 0, .26, .8, .3)]]);
     case 'wisp': return mergeParts([[new THREE.OctahedronGeometry(.42), M4(0, 1.1, 0, 1, 1.3, 1)], [new THREE.OctahedronGeometry(.2), M4(0, .55, 0, 1, 1.6, 1)]]);
+    case 'bird': return mergeParts([[_SPH, M4(0, .78, 0, .9, .72, 1.15)], [_SPH, M4(0, 1.14, .42, .42, .42, .42)], [_CONE, M4R(0, 1.1, .7, .12, .26, .12, Math.PI / 2, 0, 0)],
+      [_CYL, M4(.12, .22, 0, .05, .44, .05)], [_CYL, M4(-.12, .22, 0, .05, .44, .05)], [_B, M4R(0, .8, -.55, .3, .06, .4, .3, 0, 0)]]);
+    case 'serpent': return mergeParts([[_SPH, M4(0, .22, -.85, .36, .36, .45)], [_SPH, M4(0, .26, -.45, .46, .46, .5)], [_SPH, M4(0, .3, 0, .56, .56, .56)],
+      [_SPH, M4(0, .44, .42, .5, .5, .5)], [_SPH, M4(0, .64, .74, .44, .4, .52)]]);
     default: return mergeParts([[new THREE.CylinderGeometry(.5, .5, 1, 8), M4(0, .25, 0, .35, .5, .35)], [new THREE.SphereGeometry(.5, 12, 6, 0, Math.PI * 2, 0, Math.PI / 2), M4(0, .42, 0, 1.1, .8, 1.1)]]);
   }
 }
 const Monsters = {
   MAX: 400, meshes: {}, _o: new THREE.Object3D(), _c: new THREE.Color(), time: 0,
   init() {
-    for (const [s] of SHAPES) {
-      const m = new THREE.InstancedMesh(shapeGeo(s), MAT.monster, this.MAX);
+    this.all = [];
+    const mk = (geo, mat) => {
+      const m = new THREE.InstancedMesh(geo, mat, this.MAX);
       // setColorAt は count を0にする前に呼ぶ(色バッファは呼び出し時の count で確保される)
       m.setColorAt(0, this._c.set(0xffffff));
-      m.count = 0; m.frustumCulled = false; m.castShadow = true;
-      scene.add(m); this.meshes[s] = m;
+      m.count = 0; m.frustumCulled = false; m.castShadow = true; scene.add(m); this.all.push(m); return m;
+    };
+    for (const [s] of SHAPES) this.meshes[s] = mk(monGeo(s), MAT.monster);
+    const eyeMat = new THREE.MeshBasicMaterial({ color: 0xffffff });
+    this.addons = {};
+    for (const [f, T] of [['head', M_HEAD], ['back', M_BACK], ['tail', M_TAIL], ['eyes', M_EYES]]) {
+      this.addons[f] = {};
+      for (const [k, v] of Object.entries(T)) if (v[1]) this.addons[f][k] = mk(partGeo(T, k), f === 'eyes' ? eyeMat : MAT.monster);
     }
   },
   type(id) { return G.monsterTypes.find(t => t.id === id); },
@@ -1180,7 +1214,7 @@ const Monsters = {
     const t = this.type(sp.mt);
     if (!t || G.monsters.length >= this.MAX) return;
     const p = this.randomPoint(sp) || { x: sp.x, z: sp.z };
-    G.monsters.push({ id: G.nextId++, sp: sp.id, t: t.id, x: p.x, z: p.z, hp: t.hp, tx: p.x, tz: p.z, wait: Math.random() * 3, ry: Math.random() * 6.28, ph: Math.random() * 6.28 });
+    G.monsters.push({ id: G.nextId++, sp: sp.id, t: t.id, look: Math.floor(Math.random() * t.looks.length), x: p.x, z: p.z, hp: t.hp, tx: p.x, tz: p.z, wait: Math.random() * 3, ry: Math.random() * 6.28, ph: Math.random() * 6.28 });
   },
   fill(sp, n) { for (let i = 0; i < n && this.count(sp.id) < this.effMax(sp); i++) this.spawnOne(sp); },
   resetSpawn(sp) { this.removeSpawn(sp.id); sp.timer = 0; this.fill(sp, 3); },
@@ -1210,6 +1244,16 @@ const Monsters = {
       if (m.dead) continue;
       const t = this.type(m.t), sp = spById.get(m.sp);
       if (!t || !sp) continue;
+      // 状態異常(燃焼・毒、スタン、スロー)と強化の時間経過
+      if (m.dot && m.dot.t > 0) {
+        m.dot.t -= sdt; m.hp -= m.dot.dps * sdt;
+        if (m.hp <= 0) { const k = Players.map.get(m.dot.by); if (k) Players.kill(k, m, t); else { m.dead = true; this.anyDead = true; } continue; }
+      }
+      if (m.buff && m.buff.t > 0) m.buff.t -= sdt;
+      if (m.shield && m.shield.t > 0) m.shield.t -= sdt;
+      if (m.slow > 0) m.slow -= sdt;
+      if (m.stun > 0) { m.stun -= sdt; continue; }
+      const slowF = m.slow > 0 ? .5 : 1;
       if (m.tg) {
         const p = Players.map.get(m.tg);
         if (!p || !p.vis || p.st === 'idle' || Math.hypot(m.x - sp.x, m.z - sp.z) > sp.radius + 14) { m.tg = 0; m.tx = sp.x; m.tz = sp.z; m.wait = 0; }
@@ -1217,11 +1261,16 @@ const Monsters = {
           const dx = p.x - m.x, dz = p.z - m.z, d = Math.hypot(dx, dz), reach = .9 + t.size * .45;
           m.ry = Math.atan2(dx, dz); m.wait = 0;
           if (d > reach) {
-            const st = Math.min(t.spd * 1.15 * sdt, d - reach * .9), nx = m.x + dx / d * st, nz = m.z + dz / d * st;
+            const st = Math.min(t.spd * 1.15 * slowF * sdt, d - reach * .9), nx = m.x + dx / d * st, nz = m.z + dz / d * st;
             if (PG.walkAt(nx, nz)) { m.x = nx; m.z = nz; }
           } else {
             m.atkCd = (m.atkCd || 0) - sdt;
-            if (m.atkCd <= 0) { m.atkCd = 1.2; Players.hurt(p, calcDmg(t.atk, Players.stats(p).def), m); }
+            if (m.cds) { for (const k in m.cds) m.cds[k] -= sdt; } else m.cds = {};
+            if (m.atkCd <= 0) {
+              const sk = t.skills && t.skills.length ? Skills.pick(t.skills, m.cds, m, t.hp) : null;
+              if (sk) { m.cds[sk.id] = sk.cd; Skills.use(m, 'm', p, sk); m.atkCd = Math.max(1.2, Skills.dur(sk)); }
+              else { m.atkCd = 1.2; m.anim = { id: 0, t: 0 }; Players.takeDmg(p, calcDmg(t.atk * (m.buff && m.buff.t > 0 ? 1 + m.buff.v : 1), Players.stats(p).def), m); }
+            }
           }
           continue;
         }
@@ -1230,7 +1279,7 @@ const Monsters = {
       m.scan = (m.scan || 0) - sdt;
       if (m.scan <= 0) { m.scan = .7; const p = Players.nearest(m.x, m.z, 3.5 + t.size); if (p) { m.tg = p.id; continue; } }
       if (m.wait > 0) { m.wait -= sdt; continue; }
-      const dx = m.tx - m.x, dz = m.tz - m.z, d = Math.hypot(dx, dz), st = t.spd * sdt;
+      const dx = m.tx - m.x, dz = m.tz - m.z, d = Math.hypot(dx, dz), st = t.spd * slowF * sdt;
       if (d <= st) {
         m.x = m.tx; m.z = m.tz; m.wait = 1.5 + Math.random() * 4;
         const p = this.randomPoint(sp); if (p) { m.tx = p.x; m.tz = p.z; }
@@ -1241,25 +1290,38 @@ const Monsters = {
       }
     }
   },
+  // 形状+部品(頭・背中・尾・目)を組み合わせて描画。スキルの動きも反映する
   render(dt) {
     this.time += dt;
-    const cnt = {}, o = this._o;
-    for (const [s] of SHAPES) cnt[s] = 0;
+    const o = this._o, rate = animRate(), cnt = this._cnt || (this._cnt = new Map());
+    cnt.clear();
+    const put = (mesh, mat4, color) => {
+      if (!mesh) return;
+      const i = cnt.get(mesh) || 0; if (i >= this.MAX) return;
+      mesh.setMatrixAt(i, mat4); mesh.setColorAt(i, this._c.set(color)); cnt.set(mesh, i + 1);
+    };
+    o.rotation.order = 'YXZ';
     for (const m of G.monsters) {
       const t = this.type(m.t); if (!t || m.dead) continue;
-      const mesh = this.meshes[t.shape] || this.meshes.slime, i = cnt[t.shape]++;
+      const L = t.looks[(m.look || 0) % t.looks.length] || t.looks[0], sh = L.shape;
+      const P = poseStep(m, dt * rate, 'm');
       const moving = m.wait <= 0, bob = Math.sin(this.time * 7 + m.ph);
-      const sq = t.shape === 'slime' && moving ? 1 + bob * .12 : 1;
-      o.position.set(m.x, heightAt(m.x, m.z) + (t.shape === 'wisp' ? .25 + bob * .15 : 0), m.z);
-      o.rotation.set(0, m.ry, 0);
-      o.scale.set(t.size / Math.sqrt(sq), t.size * sq, t.size / Math.sqrt(sq));
+      const sq = sh === 'slime' && moving ? 1 + bob * .12 : 1, s = t.size;
+      const fx = Math.sin(m.ry), fz = Math.cos(m.ry), k = s * .5;
+      o.position.set(m.x + fx * P.fwd * k + fz * P.side, heightAt(m.x, m.z) + (sh === 'wisp' ? .25 + bob * .15 : 0) + P.y * s * .6, m.z + fz * P.fwd * k - fx * P.side);
+      o.rotation.set(P.lean * .8 + P.flip, m.ry + P.spin, 0);
+      o.scale.set(s / Math.sqrt(sq), s * sq * P.sy, s / Math.sqrt(sq));
       o.updateMatrix();
-      mesh.setMatrixAt(i, o.matrix); mesh.setColorAt(i, this._c.set(t.color));
+      put(this.meshes[sh] || this.meshes.slime, o.matrix, L.color);
+      const A = MON_ANCHOR[sh] || MON_ANCHOR.slime;
+      for (const [f, an] of [['head', A.top], ['back', A.back], ['tail', A.rear], ['eyes', A.front]]) {
+        const mesh = this.addons[f][L[f]]; if (!mesh) continue;
+        _am.makeScale(an[3], an[3], an[3]).setPosition(an[0], an[1], an[2]);
+        _m2.multiplyMatrices(o.matrix, _am);
+        put(mesh, _m2, f === 'eyes' ? '#fff6c0' : L.color2);
+      }
     }
-    for (const [s] of SHAPES) {
-      const mesh = this.meshes[s]; mesh.count = cnt[s];
-      mesh.instanceMatrix.needsUpdate = true; if (mesh.instanceColor) mesh.instanceColor.needsUpdate = true;
-    }
+    for (const mesh of this.all) { mesh.count = cnt.get(mesh) || 0; mesh.instanceMatrix.needsUpdate = true; if (mesh.instanceColor) mesh.instanceColor.needsUpdate = true; }
   },
   byId(id) { return this.map.get(id); },
 };
@@ -1620,28 +1682,223 @@ $('#areaBar').addEventListener('click', e => {
 $('#areaBar').addEventListener('input', e => { if (e.target.id === 'arName') AreaEdit.name = e.target.value; });
 
 /* ════════════════════════════════════════════
+   見た目の部品(組み合わせて見た目バリエーションを作る)
+   ════════════════════════════════════════════ */
+const M4R = (x, y, z, sx = 1, sy = 1, sz = 1, rx = 0, ry = 0, rz = 0) => new THREE.Matrix4().compose(new THREE.Vector3(x, y, z), new THREE.Quaternion().setFromEuler(new THREE.Euler(rx, ry, rz)), new THREE.Vector3(sx, sy, sz));
+const _B = GEO.box, _CYL = new THREE.CylinderGeometry(.5, .5, 1, 8), _CONE = new THREE.ConeGeometry(.5, 1, 8), _SPH = new THREE.SphereGeometry(.5, 10, 8);
+const _HEMI = new THREE.SphereGeometry(.5, 10, 6, 0, Math.PI * 2, 0, Math.PI / 2), _OCT = new THREE.OctahedronGeometry(.5);
+// 加入者の部品(足元が原点、+Zが正面)。[名前, [ジオメトリ, 変換]の配列]
+const P_BODY = {
+  tunic: ['標準', [[_B, M4(.11, .3, 0, .17, .6, .2)], [_B, M4(-.11, .3, 0, .17, .6, .2)], [_B, M4(0, .9, 0, .46, .58, .3)], [_B, M4(.31, .92, 0, .13, .52, .15)], [_B, M4(-.31, .92, 0, .13, .52, .15)]]],
+  robe: ['ローブ', [[_CONE, M4(0, .45, 0, .64, .9, .64)], [_B, M4(0, .95, 0, .42, .52, .28)], [_B, M4(.3, .92, 0, .14, .52, .16)], [_B, M4(-.3, .92, 0, .14, .52, .16)]]],
+  armor: ['重鎧', [[_B, M4(.12, .3, 0, .2, .6, .23)], [_B, M4(-.12, .3, 0, .2, .6, .23)], [_B, M4(0, .92, 0, .56, .62, .36)], [_B, M4(.36, 1.16, 0, .22, .14, .26)], [_B, M4(-.36, 1.16, 0, .22, .14, .26)], [_B, M4(.36, .9, 0, .15, .5, .17)], [_B, M4(-.36, .9, 0, .15, .5, .17)]]],
+  slim: ['軽装', [[_B, M4(.09, .31, 0, .14, .62, .16)], [_B, M4(-.09, .31, 0, .14, .62, .16)], [_B, M4(0, .9, 0, .38, .55, .24)], [_B, M4(.26, .92, 0, .11, .5, .13)], [_B, M4(-.26, .92, 0, .11, .5, .13)]]],
+};
+const P_SKIN = [[_SPH, M4(0, 1.4, 0, .38, .38, .38)]];
+const P_HAIR = {
+  bald: ['なし', null],
+  short: ['短髪', [[_B, M4(0, 1.53, -.02, .38, .12, .36)], [_B, M4(0, 1.43, -.16, .38, .2, .1)]]],
+  long: ['長髪', [[_B, M4(0, 1.53, -.02, .38, .12, .36)], [_B, M4(0, 1.28, -.17, .38, .52, .1)], [_B, M4(.18, 1.36, 0, .05, .34, .3)], [_B, M4(-.18, 1.36, 0, .05, .34, .3)]]],
+  spiky: ['ツンツン', [[_CONE, M4(0, 1.68, 0, .16, .24, .16)], [_CONE, M4(.1, 1.63, -.06, .14, .2, .14)], [_CONE, M4(-.1, 1.63, -.06, .14, .2, .14)], [_CONE, M4(0, 1.61, -.14, .14, .2, .14)], [_B, M4(0, 1.52, -.03, .38, .1, .36)]]],
+  ponytail: ['ポニーテール', [[_B, M4(0, 1.53, -.02, .38, .12, .36)], [_B, M4(0, 1.43, -.16, .38, .2, .1)], [_B, M4(0, 1.3, -.27, .1, .34, .1)]]],
+};
+const P_HAT = {
+  none: ['なし', null],
+  helmet: ['兜', [[_HEMI, M4(0, 1.42, 0, .46, .46, .46)], [_B, M4(0, 1.63, -.02, .05, .1, .3)]]],
+  wizard: ['とんがり帽', [[_CYL, M4(0, 1.57, 0, .72, .03, .72)], [_CONE, M4(0, 1.88, -.03, .42, .62, .42)]]],
+  hood: ['フード', [[_B, M4(0, 1.44, -.07, .44, .44, .3)], [_B, M4(0, 1.62, -.02, .44, .08, .4)]]],
+  crown: ['王冠', [[_CYL, M4(0, 1.62, 0, .3, .1, .3)], [_CONE, M4(.1, 1.72, 0, .06, .12, .06)], [_CONE, M4(-.1, 1.72, 0, .06, .12, .06)], [_CONE, M4(0, 1.72, .1, .06, .12, .06)], [_CONE, M4(0, 1.72, -.1, .06, .12, .06)]]],
+  horns: ['角付き兜', [[_HEMI, M4(0, 1.42, 0, .44, .44, .44)], [_CONE, M4R(.22, 1.63, 0, .08, .3, .08, 0, 0, -.7)], [_CONE, M4R(-.22, 1.63, 0, .08, .3, .08, 0, 0, .7)]]],
+  bandana: ['バンダナ', [[_CYL, M4(0, 1.49, 0, .42, .08, .42)], [_B, M4R(0, 1.45, -.22, .08, .18, .04, .4, 0, 0)]]],
+  feather: ['羽根帽子', [[_CYL, M4(0, 1.57, 0, .6, .04, .6)], [_CYL, M4(0, 1.63, 0, .34, .12, .34)], [_B, M4R(.14, 1.78, -.06, .04, .3, .1, -.3, 0, -.3)]]],
+};
+const P_BACK = {
+  none: ['なし', null],
+  cape: ['マント', [[_B, M4R(0, .86, -.21, .5, .86, .04, .12, 0, 0)]]],
+  wings: ['翼', [[_B, M4R(.34, 1.12, -.24, .6, .36, .03, 0, .35, -.35)], [_B, M4R(-.34, 1.12, -.24, .6, .36, .03, 0, -.35, .35)]]],
+  quiver: ['矢筒', [[_CYL, M4R(.12, 1.05, -.22, .18, .52, .18, 0, 0, .3)], [_CONE, M4R(.2, 1.36, -.22, .05, .1, .05, 0, 0, .3)], [_CONE, M4R(.16, 1.37, -.19, .05, .1, .05, 0, 0, .3)]]],
+  backpack: ['リュック', [[_B, M4(0, .95, -.26, .36, .42, .2)], [_B, M4(0, 1.2, -.26, .3, .06, .16)]]],
+};
+const P_OFF = {
+  none: ['なし', null],
+  shield: ['盾', [[_B, M4(-.38, .86, .2, .42, .5, .06)], [_B, M4(-.38, .86, .24, .12, .12, .04)]]],
+  book: ['魔導書', [[_B, M4(-.36, .76, .2, .22, .28, .08)]]],
+  lantern: ['ランタン', [[_B, M4(-.38, .56, .16, .13, .18, .13)], [_B, M4(-.38, .7, .16, .03, .1, .03)]]],
+  orb: ['宝珠', [[_SPH, M4(-.36, .96, .22, .24, .24, .24)]]],
+};
+// 武器は手元(右手)が原点。[名前, 部品, 木製か]
+const P_WEAPON = {
+  sword: ['剣', [[_B, M4(0, .52, 0, .07, .8, .14)], [_B, M4(0, .1, 0, .3, .06, .1)], [_B, M4(0, -.02, 0, .05, .18, .05)]]],
+  staff: ['杖', [[_CYL, M4(0, .35, 0, .07, 1.5, .07)], [_OCT, M4(0, 1.15, 0, .24, .24, .24)]], true],
+  bow: ['弓', [[new THREE.TorusGeometry(.45, .03, 4, 12, Math.PI), M4R(0, .1, 0, 1, 1, 1, 0, -Math.PI / 2, -Math.PI / 2)], [_B, M4(0, .1, 0, .015, .9, .015)]], true],
+  axe: ['斧', [[_CYL, M4(0, .3, 0, .07, 1, .07)], [_B, M4(.15, .7, 0, .3, .3, .06)]]],
+  dagger: ['短剣', [[_B, M4(0, .3, 0, .05, .42, .09)], [_B, M4(0, .07, 0, .18, .04, .07)]]],
+  spear: ['槍', [[_CYL, M4(0, .5, 0, .06, 1.9, .06)], [_CONE, M4(0, 1.55, 0, .1, .3, .1)]]],
+  hammer: ['ハンマー', [[_CYL, M4(0, .35, 0, .07, 1.1, .07)], [_B, M4(0, .95, 0, .42, .26, .26)]]],
+  greatsword: ['大剣', [[_B, M4(0, .82, 0, .12, 1.4, .24)], [_B, M4(0, .08, 0, .44, .08, .14)], [_B, M4(0, -.06, 0, .07, .22, .07)]]],
+  wand: ['短杖', [[_CYL, M4(0, .25, 0, .05, .6, .05)], [_OCT, M4(0, .62, 0, .18, .18, .18)]], true],
+};
+const SKINS = ['#f3d5b5', '#e8bf98', '#c68f63', '#8a5a36'];
+const HAIR_COLORS = ['#2b2320', '#5a3a22', '#8a5a2b', '#d9b36a', '#e8e2d0', '#a8322c', '#3f5fa8', '#6a4a8a'];
+function newLook(o = {}) {
+  return Object.assign({ body: 'tunic', hair: 'short', hat: 'none', back: 'none', off: 'none', color: '#d9534a', color2: '#e2c04a', hairColor: '#5a3a22', skin: SKINS[0], hairRand: true }, o);
+}
+function lookOf(c, p) { const L = c.looks; return L[(p.look || 0) % L.length] || L[0]; }
+
+// モンスターの部品。取り付け位置(アンカー)は形状ごとに決める [x, y, z, 大きさ]
+const M_HEAD = {
+  none: ['なし', null],
+  horns: ['角', [[_CONE, M4R(.14, .1, 0, .1, .32, .1, 0, 0, -.5)], [_CONE, M4R(-.14, .1, 0, .1, .32, .1, 0, 0, .5)]]],
+  crown: ['王冠', [[_CYL, M4(0, .06, 0, .32, .1, .32)], [_CONE, M4(.11, .16, 0, .06, .14, .06)], [_CONE, M4(-.11, .16, 0, .06, .14, .06)], [_CONE, M4(0, .16, .11, .06, .14, .06)], [_CONE, M4(0, .16, -.11, .06, .14, .06)]]],
+  antenna: ['触角', [[_CYL, M4R(.08, .14, 0, .03, .3, .03, 0, 0, -.3)], [_CYL, M4R(-.08, .14, 0, .03, .3, .03, 0, 0, .3)], [_SPH, M4(.13, .3, 0, .08, .08, .08)], [_SPH, M4(-.13, .3, 0, .08, .08, .08)]]],
+  halo: ['光輪', [[new THREE.TorusGeometry(.22, .03, 4, 20), M4R(0, .32, 0, 1, 1, 1, Math.PI / 2, 0, 0)]]],
+  mohawk: ['トサカ', [[_B, M4(0, .12, -.05, .06, .22, .4)]]],
+};
+const M_BACK = {
+  none: ['なし', null],
+  wings: ['翼', [[_B, M4R(.45, .1, 0, .8, .04, .45, 0, 0, .35)], [_B, M4R(-.45, .1, 0, .8, .04, .45, 0, 0, -.35)]]],
+  bat: ['コウモリ翼', [[_CONE, M4R(.5, .15, 0, .5, .9, .08, 0, 0, -1.2)], [_CONE, M4R(-.5, .15, 0, .5, .9, .08, 0, 0, 1.2)]]],
+  spikes: ['トゲ', [[_CONE, M4(0, .12, .15, .14, .3, .14)], [_CONE, M4(0, .14, -.05, .16, .34, .16)], [_CONE, M4(0, .1, -.25, .12, .26, .12)]]],
+  shell: ['甲羅', [[_HEMI, M4(0, -.05, 0, .7, .45, .8)]]],
+};
+const M_TAIL = {
+  none: ['なし', null],
+  tail: ['尻尾', [[_B, M4R(0, 0, -.2, .1, .1, .45, .35, 0, 0)]]],
+  stinger: ['毒針', [[_B, M4R(0, .08, -.18, .08, .08, .4, .7, 0, 0)], [_CONE, M4R(0, .24, -.36, .08, .18, .08, -.6, 0, 0)]]],
+  fluffy: ['もふもふ', [[_SPH, M4(0, .05, -.15, .3, .3, .4)]]],
+};
+const M_EYES = {
+  none: ['なし', null],
+  eyes: ['光る目', [[_SPH, M4(.1, 0, 0, .07, .07, .05)], [_SPH, M4(-.1, 0, 0, .07, .07, .05)]]],
+  cyclops: ['単眼', [[_SPH, M4(0, .02, 0, .13, .13, .06)]]],
+};
+const MON_ANCHOR = {
+  slime: { top: [0, .72, 0, 1], back: [0, .55, -.25, 1], rear: [0, .25, -.45, .8], front: [0, .45, .42, 1] },
+  beast: { top: [0, .98, .55, .8], back: [0, .8, -.1, 1], rear: [0, .7, -.5, 1], front: [0, .84, .77, .8] },
+  golem: { top: [0, 1.66, .02, 1], back: [0, 1.15, -.3, 1.2], rear: [0, .6, -.3, 1], front: [0, 1.48, .22, 1] },
+  wisp: { top: [0, 1.62, 0, .9], back: [0, 1.1, -.35, 1], rear: [0, .35, 0, .8], front: [0, 1.15, .38, .9] },
+  plant: { top: [0, .86, 0, 1], back: [0, .6, -.35, 1], rear: [0, .25, -.3, .8], front: [0, .5, .36, .9] },
+  bird: { top: [0, 1.28, .38, .7], back: [0, .95, -.05, 1.1], rear: [0, .72, -.55, .9], front: [0, 1.15, .58, .7] },
+  serpent: { top: [0, .82, .72, .7], back: [0, .5, .1, .9], rear: [0, .22, -.95, .8], front: [0, .68, .94, .7] },
+};
+function newMonLook(o = {}) {
+  return Object.assign({ shape: 'slime', color: '#6cc24a', color2: '#f2eee2', head: 'none', back: 'none', tail: 'none', eyes: 'eyes' }, o);
+}
+
+/* ════════════════════════════════════════════
+   モーション(スキルの動き)。並べた順に再生する
+   ════════════════════════════════════════════ */
+const easeS = u => u * u * (3 - 2 * u), sinP = u => Math.sin(Math.PI * u);
+const MOTIONS = {
+  swingDown: ['振り下ろし', (u, P) => { P.wp = lerp(-1.3, 1.7, u * u); P.lean = .15 * u; }],
+  swingSide: ['横薙ぎ', (u, P) => { P.wp = 1.35; P.wy = lerp(-1.7, 1.5, easeS(u)); P.spin = lerp(.4, -.4, u); }],
+  thrust: ['突き', (u, P) => { P.wp = 1.55; P.fwd = sinP(u) * .6; P.lean = .12 * sinP(u); }],
+  raise: ['掲げる', (u, P) => { P.wp = lerp(.35, -2.5, easeS(u)); P.y = .06 * sinP(u); }],
+  spin: ['回転', (u, P) => { P.spin = Math.PI * 2 * easeS(u); P.wp = 1.3; }],
+  jump: ['跳躍', (u, P) => { P.y = sinP(u) * 1.5; P.wp = lerp(-1.4, 1.4, u); }],
+  slam: ['叩きつけ', (u, P) => { P.y = sinP(Math.min(1, u * 1.4)) * .9; P.wp = u < .6 ? -2.2 : 1.9; P.lean = u < .6 ? -.1 : .3; }],
+  dash: ['突進', (u, P) => { P.fwd = sinP(u) * 2.2; P.lean = .3 * sinP(u); P.wp = 1.3; }],
+  backstep: ['後退', (u, P) => { P.fwd = -sinP(u) * 1.3; P.lean = -.2 * sinP(u); P.y = .3 * sinP(u); }],
+  crouch: ['溜め', (u, P) => { P.sy = 1 - .25 * easeS(u); P.wp = -.6; P.lean = .1 * u; }],
+  shake: ['力を込める', (u, P) => { P.side = Math.sin(u * 60) * .06; P.wp = -.8; P.sy = .95; }],
+  cast: ['詠唱', (u, P) => { P.wp = -2.0 + Math.sin(u * 18) * .18; P.y = .12 * sinP(u); }],
+  draw: ['引き絞る', (u, P) => { P.wp = 1.5; P.wy = -.5 * easeS(u); P.lean = -.12 * u; }],
+  flip: ['宙返り', (u, P) => { P.y = sinP(u) * 1.7 + .5 * sinP(u); P.flip = -Math.PI * 2 * easeS(u); P.wp = 1.2; }],
+};
+const SK_BASIC_P = { motion: [{ m: 'raise', d: .12 }, { m: 'swingDown', d: .2 }], hit: 1 };
+const SK_BASIC_M = { motion: [{ m: 'crouch', d: .12 }, { m: 'dash', d: .25 }], hit: 1 };
+const SK_GATHER = { motion: [{ m: 'swingDown', d: .35 }], hit: 0 };
+const _pose = { y: 0, lean: 0, spin: 0, fwd: 0, side: 0, sy: 1, wp: .35, wy: 0, flip: 0 };
+function resetPose() { _pose.y = _pose.lean = _pose.spin = _pose.fwd = _pose.side = _pose.wy = _pose.flip = 0; _pose.sy = 1; _pose.wp = .35; return _pose; }
+// 再生中のスキルの動きから、いまの姿勢を求める(u.anim = {id, t})
+function poseStep(u, adv, kind) {
+  resetPose();
+  const a = u.anim;
+  if (!a) return _pose;
+  const s = a.id > 0 ? Skills.byId(a.id) : a.id === -1 ? SK_GATHER : (kind === 'p' ? SK_BASIC_P : SK_BASIC_M);
+  if (!s || !s.motion.length) { u.anim = null; return _pose; }
+  a.t += adv;
+  let t = a.t;
+  for (const st of s.motion) {
+    if (t <= st.d) { const f = MOTIONS[st.m]; if (f) f[1](clamp(t / st.d, 0, 1), _pose); return _pose; }
+    t -= st.d;
+  }
+  u.anim = null;
+  return resetPose();
+}
+// 動きの速さはゲーム速度に合わせる(ただし速すぎ・遅すぎは抑える)。一時停止中は止める
+function animRate() { return SPEEDS[speedIdx] ? clamp(SPEEDS[speedIdx] * SIM_SCALE, .6, 2.4) : 0; }
+
+/* ════════════════════════════════════════════
+   スキルの効果と演出
+   ════════════════════════════════════════════ */
+const EFFECTS = {
+  dmg: { name: 'ダメージ', unit: '倍', min: .2, max: 6, step: .1, def: 1.5, desc: '攻撃力×倍率のダメージ' },
+  aoe: { name: '範囲化', unit: 'm', min: 1.5, max: 10, step: .5, def: 3, desc: '対象の周囲の敵すべてに効果が及ぶ' },
+  dot: { name: '燃焼・毒', unit: '%/秒', min: 10, max: 200, step: 5, def: 40, d: 4, desc: '毎秒、攻撃力×%のダメージ' },
+  stun: { name: 'スタン', unit: '秒', min: .5, max: 5, step: .5, def: 1.5, desc: '相手が行動できなくなる' },
+  slow: { name: 'スロー', unit: '秒', min: 1, max: 10, step: .5, def: 3, desc: '相手の移動速度が半分になる' },
+  knock: { name: 'ノックバック', unit: 'm', min: 1, max: 8, step: .5, def: 3, desc: '相手を後ろへ吹き飛ばす' },
+  heal: { name: '回復(自分)', unit: '%', min: 5, max: 80, step: 5, def: 25, desc: '自分の最大HPの%を回復' },
+  healAll: { name: '回復(周囲の味方)', unit: '%', min: 5, max: 60, step: 5, def: 15, desc: '半径8mの味方の最大HPの%を回復' },
+  buff: { name: '攻撃力アップ', unit: '%', min: 10, max: 150, step: 10, def: 40, d: 6, desc: '一定時間、自分の攻撃力が上がる' },
+  shield: { name: '守りの構え', unit: '%', min: 10, max: 80, step: 5, def: 40, d: 5, desc: '一定時間、受けるダメージを減らす' },
+  drain: { name: '吸収', unit: '%', min: 10, max: 100, step: 5, def: 30, desc: '与えたダメージの%だけ回復' },
+};
+const FXK = { none: 'なし', slash: '斬撃', burst: '爆発', wave: '衝撃波', pillar: '光の柱', bolt: '飛び道具', sparkle: 'きらめき', thunder: '雷', vortex: '竜巻' };
+const FX_COLORS = ['#ff8a3d', '#6fd3ff', '#ffe070', '#8de36b', '#b37bff', '#ffffff', '#ff4f4f', '#4f7dff'];
+const DEFAULT_SKILLS = [
+  { name: '強打', cd: 4, effects: [{ k: 'dmg', v: 1.8 }], motion: [{ m: 'raise', d: .25 }, { m: 'swingDown', d: .25 }], hit: 1, fx: 'slash', fxColor: '#ffffff' },
+  { name: '回転斬り', cd: 9, effects: [{ k: 'dmg', v: 2.2 }, { k: 'aoe', v: 3 }], motion: [{ m: 'crouch', d: .2 }, { m: 'spin', d: .45 }], hit: 1, fx: 'wave', fxColor: '#ffffff' },
+  { name: 'ファイア', cd: 5, effects: [{ k: 'dmg', v: 1.8 }, { k: 'dot', v: 50, d: 4 }], motion: [{ m: 'cast', d: .5 }, { m: 'thrust', d: .2 }], hit: 1, fx: 'bolt', fxColor: '#ff8a3d' },
+  { name: 'メテオ', cd: 14, effects: [{ k: 'dmg', v: 3.5 }, { k: 'aoe', v: 4 }], motion: [{ m: 'cast', d: .8 }, { m: 'raise', d: .3 }], hit: 1, fx: 'burst', fxColor: '#ff8a3d' },
+  { name: '狙い撃ち', cd: 5, effects: [{ k: 'dmg', v: 2 }], motion: [{ m: 'draw', d: .4 }, { m: 'thrust', d: .15 }], hit: 1, fx: 'bolt', fxColor: '#ffffff' },
+  { name: '連射', cd: 11, effects: [{ k: 'dmg', v: 2.8 }, { k: 'slow', v: 3 }], motion: [{ m: 'draw', d: .25 }, { m: 'draw', d: .25 }], hit: 1, fx: 'bolt', fxColor: '#6fd3ff' },
+  { name: '盾打ち', cd: 3, effects: [{ k: 'dmg', v: 1.4 }, { k: 'stun', v: 1.5 }], motion: [{ m: 'dash', d: .3 }], hit: 0, fx: 'burst', fxColor: '#ffffff' },
+  { name: '大地割り', cd: 12, effects: [{ k: 'dmg', v: 2.8 }, { k: 'aoe', v: 4 }, { k: 'knock', v: 3 }], motion: [{ m: 'jump', d: .45 }, { m: 'slam', d: .3 }], hit: 1, fx: 'wave', fxColor: '#ff8a3d' },
+  { name: '癒しの祈り', cd: 10, effects: [{ k: 'healAll', v: 25 }], motion: [{ m: 'cast', d: .6 }], hit: 0, fx: 'sparkle', fxColor: '#8de36b' },
+  { name: '雷撃', cd: 8, effects: [{ k: 'dmg', v: 2.2 }, { k: 'stun', v: 1 }], motion: [{ m: 'raise', d: .4 }], hit: 0, fx: 'thunder', fxColor: '#ffe070' },
+  { name: '宙返り斬り', cd: 7, effects: [{ k: 'dmg', v: 2 }, { k: 'drain', v: 30 }], motion: [{ m: 'backstep', d: .2 }, { m: 'flip', d: .45 }, { m: 'swingDown', d: .2 }], hit: 2, fx: 'slash', fxColor: '#b37bff' },
+  { name: '体当たり', cd: 5, effects: [{ k: 'dmg', v: 1.5 }, { k: 'knock', v: 2 }], motion: [{ m: 'crouch', d: .2 }, { m: 'dash', d: .3 }], hit: 1, fx: 'burst', fxColor: '#8de36b' },
+  { name: '噛みつき', cd: 4, effects: [{ k: 'dmg', v: 1.6 }, { k: 'dot', v: 30, d: 3 }], motion: [{ m: 'jump', d: .3 }], hit: 0, fx: 'slash', fxColor: '#ff4f4f' },
+  { name: '胞子', cd: 7, effects: [{ k: 'dmg', v: 1 }, { k: 'aoe', v: 3 }, { k: 'slow', v: 3 }], motion: [{ m: 'shake', d: .4 }], hit: 0, fx: 'wave', fxColor: '#b37bff' },
+  { name: '竜の咆哮', cd: 10, effects: [{ k: 'dmg', v: 2 }, { k: 'aoe', v: 6 }, { k: 'stun', v: 1.5 }], motion: [{ m: 'crouch', d: .3 }, { m: 'shake', d: .5 }], hit: 1, fx: 'wave', fxColor: '#ff4f4f' },
+];
+function newSkill(id, o = {}) {
+  const s = Object.assign({ id, name: '新しいスキル', cd: 6, effects: [{ k: 'dmg', v: 1.6 }], motion: [{ m: 'raise', d: .25 }, { m: 'swingDown', d: .25 }], hit: 1, fx: 'slash', fxColor: '#ffffff' }, o);
+  s.effects = s.effects.map(e => ({ ...e })); s.motion = s.motion.map(m => ({ ...m }));
+  return s;
+}
+
+/* ════════════════════════════════════════════
    クラス(職業)
    ════════════════════════════════════════════ */
-const WEAPONS = [['sword', '剣'], ['staff', '杖'], ['bow', '弓'], ['axe', '斧'], ['dagger', '短剣']];
-const WEAPON_RANGE = { sword: 1.3, staff: 6, bow: 7, axe: 1.3, dagger: 1.1 };
+const WEAPONS = Object.entries(P_WEAPON).map(([k, v]) => [k, v[0]]);
+const WEAPON_RANGE = { sword: 1.3, staff: 6, bow: 7, axe: 1.3, dagger: 1.1, spear: 1.8, hammer: 1.3, greatsword: 1.6, wand: 5 };
 const CLASS_COLORS = ['#d9534a', '#4a7fd9', '#4fae5a', '#c27f35', '#8e5bc4', '#e2c04a', '#3fb7b0', '#e07cae', '#dcdcd0', '#4a4f5c'];
 const DEFAULT_CLASSES = [
-  { name: '剣士', color: '#d9534a', weapon: 'sword', hp: 120, atk: 14, def: 6, spd: 5, gHp: 14, gAtk: 2.2, gDef: 1.2, skills: [{ name: '強打', mult: 1.8, cd: 4 }, { name: '回転斬り', mult: 2.6, cd: 9 }] },
-  { name: '魔法使い', color: '#4a7fd9', weapon: 'staff', hp: 80, atk: 19, def: 3, spd: 4.5, gHp: 9, gAtk: 3, gDef: .6, skills: [{ name: 'ファイア', mult: 2.2, cd: 5 }, { name: 'メテオ', mult: 4, cd: 14 }] },
-  { name: '弓使い', color: '#4fae5a', weapon: 'bow', hp: 95, atk: 16, def: 4, spd: 6, gHp: 11, gAtk: 2.5, gDef: .8, skills: [{ name: '狙い撃ち', mult: 2, cd: 5 }, { name: '連射', mult: 3, cd: 11 }] },
-  { name: '重戦士', color: '#c27f35', weapon: 'axe', hp: 160, atk: 11, def: 10, spd: 4, gHp: 18, gAtk: 1.6, gDef: 2, skills: [{ name: '盾打ち', mult: 1.5, cd: 3 }, { name: '大地割り', mult: 3.2, cd: 12 }] },
+  { name: '剣士', color: '#d9534a', weapon: 'sword', hp: 120, atk: 14, def: 6, spd: 5, gHp: 14, gAtk: 2.2, gDef: 1.2, skillNames: ['強打', '回転斬り'],
+    looks: [{ body: 'tunic', hair: 'short', back: 'cape', off: 'shield', color: '#d9534a', color2: '#e2c04a' }, { body: 'armor', hair: 'spiky', hat: 'helmet', off: 'shield', color: '#a8322c', color2: '#dcdcd0' }] },
+  { name: '魔法使い', color: '#4a7fd9', weapon: 'staff', hp: 80, atk: 19, def: 3, spd: 4.5, gHp: 9, gAtk: 3, gDef: .6, skillNames: ['ファイア', 'メテオ'],
+    looks: [{ body: 'robe', hair: 'long', hat: 'wizard', off: 'book', color: '#4a7fd9', color2: '#e2c04a' }, { body: 'robe', hair: 'ponytail', hat: 'hood', back: 'cape', off: 'orb', color: '#8e5bc4', color2: '#dcdcd0' }] },
+  { name: '弓使い', color: '#4fae5a', weapon: 'bow', hp: 95, atk: 16, def: 4, spd: 6, gHp: 11, gAtk: 2.5, gDef: .8, skillNames: ['狙い撃ち', '連射'],
+    looks: [{ body: 'slim', hair: 'ponytail', hat: 'feather', back: 'quiver', color: '#4fae5a', color2: '#8a6a44' }, { body: 'slim', hair: 'short', hat: 'bandana', back: 'quiver', color: '#3fb7b0', color2: '#d9534a' }] },
+  { name: '重戦士', color: '#c27f35', weapon: 'axe', hp: 160, atk: 11, def: 10, spd: 4, gHp: 18, gAtk: 1.6, gDef: 2, skillNames: ['盾打ち', '大地割り'],
+    looks: [{ body: 'armor', hair: 'bald', hat: 'horns', off: 'shield', color: '#c27f35', color2: '#8c877d' }, { body: 'armor', hair: 'short', hat: 'helmet', back: 'cape', color: '#4a4f5c', color2: '#e2c04a' }] },
 ];
 function newClass(id, o = {}) {
   const c = Object.assign({ id, name: '新しいクラス', color: '#dcdcd0', weapon: 'sword', hp: 100, atk: 14, def: 5, spd: 5, gHp: 12, gAtk: 2, gDef: 1, pop: 50, kills: 0, killTime: 0 }, o);
-  c.skills = (o.skills || [{ name: 'スキル1', mult: 1.8, cd: 5 }, { name: 'スキル2', mult: 3, cd: 12 }]).map(s => ({ ...s }));
+  delete c.skillNames;
+  c.skills = o.skillNames ? o.skillNames.map(n => Skills.byName(n)?.id).filter(Boolean) : o.skills ? [...o.skills] : [Skills.all()[0]?.id].filter(Boolean);
+  c.looks = (o.looks && o.looks.length ? o.looks : [{}]).map(l => newLook({ color: c.color, ...l }));
+  c.color = c.looks[0].color;
   c.basePower = classPower(c);
   return c;
 }
 // Lv10時点の耐久×火力を強さの目安にする(バフ/ナーフの判定用)
 function classPower(c) {
   const L = 9, hp = c.hp + c.gHp * L, atk = c.atk + c.gAtk * L, def = c.def + c.gDef * L;
-  const sk = c.skills.reduce((a, s) => a + (s.mult - 1) / Math.max(1, s.cd), 0);
-  return hp * (1 + def * .03) * atk * (1 + sk) * Math.pow(c.spd / 5, .3) / 1000;
+  return hp * (1 + def * .03) * atk * (1 + Skills.factor(c.skills)) * Math.pow(c.spd / 5, .3) / 1000;
 }
 const expNeed = lv => Math.round(100 * Math.pow(lv, 1.5));
 const calcDmg = (atk, def) => Math.max(1, Math.round(atk * (.8 + Math.random() * .4) - def));
@@ -1869,28 +2126,21 @@ const Players = {
   map: new Map(), visList: [], crowd: new Map(), simT: 0, time: 0, followId: 0, _o: new THREE.Object3D(), _c: new THREE.Color(),
   cells: Array.from({ length: 32 * 32 }, () => []),
   init() {
-    const B = GEO.box, cap = 300;
-    const body = mergeParts([[B, M4(.11, .3, 0, .17, .6, .2)], [B, M4(-.11, .3, 0, .17, .6, .2)], [B, M4(0, .9, 0, .46, .58, .3)], [B, M4(.31, .92, 0, .13, .52, .15)], [B, M4(-.31, .92, 0, .13, .52, .15)]]);
-    const head = mergeParts([[new THREE.SphereGeometry(.19, 10, 8), M4(0, 1.4, 0)], [B, M4(0, 1.5, -.03, .36, .14, .34)]]);
-    const cyl = new THREE.CylinderGeometry(.5, .5, 1, 6);
-    const R = (x, y, z, sx, sy, sz, rx = 0, ry = 0, rz = 0) => new THREE.Matrix4().compose(new THREE.Vector3(x, y, z), new THREE.Quaternion().setFromEuler(new THREE.Euler(rx, ry, rz)), new THREE.Vector3(sx, sy, sz));
-    const wg = {
-      sword: mergeParts([[B, M4(0, .52, 0, .07, .8, .14)], [B, M4(0, .1, 0, .3, .06, .1)], [B, M4(0, -.02, 0, .05, .18, .05)]]),
-      staff: mergeParts([[cyl, M4(0, .35, 0, .07, 1.5, .07)], [new THREE.OctahedronGeometry(.12), M4(0, 1.15, 0)]]),
-      bow: mergeParts([[new THREE.TorusGeometry(.45, .03, 4, 12, Math.PI), R(0, .1, 0, 1, 1, 1, 0, -Math.PI / 2, -Math.PI / 2)], [B, M4(0, .1, 0, .015, .9, .015)]]),
-      axe: mergeParts([[cyl, M4(0, .3, 0, .07, 1, .07)], [B, M4(.15, .7, 0, .3, .3, .06)]]),
-      dagger: mergeParts([[B, M4(0, .3, 0, .05, .42, .09)], [B, M4(0, .07, 0, .18, .04, .07)]]),
-    };
+    const cap = 300;
+    this.all = [];
+    this.metal = new THREE.MeshLambertMaterial({ color: 0xc8c4ba });
     const mk = (geo, mat, colored) => {
       const m = new THREE.InstancedMesh(geo, mat, cap);
       if (colored) m.setColorAt(0, this._c.set(0xffffff));
-      m.count = 0; m.frustumCulled = false; m.castShadow = true; scene.add(m); return m;
+      m.count = 0; m.frustumCulled = false; m.castShadow = true; m.userData.cap = cap; scene.add(m); this.all.push(m); return m;
     };
-    this.body = mk(body, new THREE.MeshLambertMaterial({ color: 0xffffff }), true);
-    this.head = mk(head, new THREE.MeshLambertMaterial({ color: 0xf0cfa8 }));
-    const wm = new THREE.MeshLambertMaterial({ color: 0xb8b4aa });
-    this.weapons = {};
-    for (const [w] of WEAPONS) this.weapons[w] = mk(wg[w], w === 'staff' || w === 'bow' ? MAT.wood : wm);
+    const tbl = (T, colored, matFn) => { const o = {}; for (const [k, v] of Object.entries(T)) if (v[1]) o[k] = mk(partGeo(T, k), matFn ? matFn(k, v) : new THREE.MeshLambertMaterial({ color: 0xffffff }), colored); return o; };
+    // 部品ごとにInstancedMeshを用意し、見た目バリエーションの組み合わせで描き分ける
+    this.parts = {
+      body: tbl(P_BODY, true), skin: mk(partGeo(P_SKIN_T, 'skin'), new THREE.MeshLambertMaterial({ color: 0xffffff }), true),
+      hair: tbl(P_HAIR, true), hat: tbl(P_HAT, true), back: tbl(P_BACK, true), off: tbl(P_OFF, true),
+      weapon: tbl(P_WEAPON, false, (k, v) => v[2] ? MAT.wood : this.metal),
+    };
     this.icons = {};
     const plane = new THREE.PlaneGeometry(1, 1);
     for (const k of ['fight', 'quest', 'sad', 'lost']) {
@@ -1919,7 +2169,8 @@ const Players = {
       id: G.nextId++, name: genName(), cls: c.id, lv: 1, exp: 0, hp: 1, gold: 50, sat: 70 + (Research.has('tutorial') ? 10 : 0), spent: 0,
       done: [], quest: null, owned: [], atkB: 0, defB: 0, boostUntil: 0,
       x: tw.x + (Math.random() - .5) * 10, z: tw.z + (Math.random() - .5) * 10, ry: Math.random() * 6.28,
-      st: 'idle', wait: Math.random() * 6, path: null, pi: 0, dest: null, purpose: '', sp: 0, mt: 0, atkCd: 0, sk: [0, 0],
+      st: 'idle', wait: Math.random() * 6, path: null, pi: 0, dest: null, purpose: '', sp: 0, mt: 0, atkCd: 0, cds: {},
+      look: Math.floor(Math.random() * c.looks.length), hairC: pick(HAIR_COLORS),
       kills: 0, goal: 0, swing: 0, cheat: Math.random() < .05, troll: Math.random() < .04, warned: 0,
       lost: false, lostCount: 0, deaths: 0, totalKills: 0, expToday: 0, expYesterday: 0, vis: false, noArea: false, joined: G.day,
     };
@@ -2048,6 +2299,7 @@ const Players = {
     const tw = this.nearestTown(p.x, p.z);
     p.x = tw.x + (Math.random() - .5) * 6; p.z = tw.z + (Math.random() - .5) * 6;
     p.hp = this.stats(p).hp; p.st = 'idle'; p.wait = 3 + Math.random() * 3; p.path = null; p.mt = 0; p.kills = 0; p.wt = null;
+    p.dot = p.buff = p.shield = p.anim = null; p.stun = p.slow = 0;
   },
   gainExp(p, a) {
     p.exp += a; p.expToday += a;
@@ -2058,13 +2310,22 @@ const Players = {
     }
     if (p.lv >= 50) p.exp = Math.min(p.exp, expNeed(50));
   },
+  atkMult(p) { return 1 + (p.buff && p.buff.t > 0 ? p.buff.v : 0); },
+  // 被ダメージ(守りの構えで軽減)。実際に受けた量を返す
+  takeDmg(p, dmg, m) {
+    const d = Math.max(1, Math.round(dmg * (p.shield && p.shield.t > 0 ? 1 - p.shield.v : 1)));
+    this.hurt(p, d, m); return d;
+  },
   kill(p, m, t) {
+    if (m.dead) return;
     m.dead = true; Monsters.anyDead = true;
-    const c = this.cls(p); c.kills++; c.killTime += this.simT - (p.fightT ?? this.simT);
+    const direct = p.mt === m.id;
+    const c = this.cls(p); c.kills++; c.killTime += direct ? this.simT - (p.fightT ?? this.simT) : 2;
     this.gainExp(p, t.exp * (p.cheat ? 8 : 1) * Econ.expMult(p));
     p.gold += t.gold; p.kills++; p.totalKills++;
     if (t.boss) { p.sat = Math.min(100, p.sat + 5); log(`${p.name}(${c.name})が${t.name}を討伐しました!`, 'good'); Sound.play('boss', 2000); }
     if (this.questKill(p, t)) return;
+    if (!direct) return;
     if (p.kills >= p.goal || p.hp < this.stats(p).hp * .35) this.goTown(p);
     else { p.st = 'hunt'; p.scan = .2; p.mt = 0; }
   },
@@ -2110,8 +2371,14 @@ const Players = {
     this.rebuildGrid();
     for (const p of this.visList) {
       p._mv = false;
+      // 状態異常と強化の時間経過
+      if (p.dot && p.dot.t > 0) { p.dot.t -= sdt; p.hp -= p.dot.dps * sdt; if (p.hp <= 0) { this.die(p); continue; } }
+      if (p.buff && p.buff.t > 0) p.buff.t -= sdt;
+      if (p.shield && p.shield.t > 0) p.shield.t -= sdt;
+      if (p.slow > 0) p.slow -= sdt;
+      if (p.stun > 0) { p.stun -= sdt; continue; }
       const s = this.stats(p);
-      const spd = s.spd * (PG.roadAt(p.x, p.z) ? 1.5 : 1) * sdt;
+      const spd = s.spd * (PG.roadAt(p.x, p.z) ? 1.5 : 1) * (p.slow > 0 ? .5 : 1) * sdt;
       switch (p.st) {
         case 'idle': {
           if (p.hp < s.hp) p.hp = Math.min(s.hp, p.hp + s.hp * .2 * sdt);
@@ -2159,22 +2426,24 @@ const Players = {
           const c = this.cls(p), reach = WEAPON_RANGE[c.weapon] + t.size * .4;
           const r = this.moveToward(p, m.x, m.z, spd, reach);
           if (r === null) { p.st = 'hunt'; p.mt = 0; p.scan = 1; break; }
-          p.atkCd -= sdt; p.sk[0] -= sdt; p.sk[1] -= sdt;
+          p.atkCd -= sdt;
+          if (p.cds) { for (const k in p.cds) p.cds[k] -= sdt; } else p.cds = {};
           if (r && p.atkCd <= 0) {
-            let mult = 1, used = -1;
-            for (let k = 0; k < 2; k++) if (p.sk[k] <= 0 && c.skills[k] && c.skills[k].mult > mult) { mult = c.skills[k].mult; used = k; }
-            if (used >= 0) p.sk[used] = c.skills[used].cd;
             p.ry = Math.atan2(m.x - p.x, m.z - p.z);
-            m.hp -= calcDmg(s.atk * mult, t.def); p.atkCd = 1; p.swing = .35;
             if (nearCam(p.x, p.z, 35)) Sound.play('hit', 90);
-            if (!m.tg) m.tg = p.id;
-            if (m.hp <= 0) this.kill(p, m, t);
+            const sk = Skills.pick(c.skills, p.cds, p, s.hp);
+            if (sk) { p.cds[sk.id] = sk.cd; Skills.use(p, 'p', m, sk); p.atkCd = Math.max(1, Skills.dur(sk) * .8); }
+            else {
+              m.hp -= monDmg(m, calcDmg(s.atk * this.atkMult(p), t.def)); p.atkCd = 1; p.anim = { id: 0, t: 0 };
+              if (!m.tg) m.tg = p.id;
+              if (m.hp <= 0) this.kill(p, m, t);
+            }
           }
           break;
         }
         case 'gather': {
           p.gT -= sdt;
-          if (Math.random() < sdt * 1.2) p.swing = .35;
+          if (!p.anim && Math.random() < sdt * 1.2) p.anim = { id: -1, t: 0 };
           if (p.gT <= 0) { if (p.quest) { p.quest.done = true; this.goBoard(p, Quests.byId(p.quest.id)); } else this.goTown(p); }
           break;
         }
@@ -2206,7 +2475,7 @@ const Players = {
         if (!t) { this.teleportTown(p); break; }
         if (PG.compAt(sp.x, sp.z) !== PG.compAt(p.x, p.z)) { this.pathFail(p); break; }
         if (p.st !== 'hunt') { const a = Math.random() * 6.28, r = Math.random() * sp.radius; p.x = sp.x + Math.cos(a) * r; p.z = sp.z + Math.sin(a) * r; p.st = 'hunt'; break; }
-        const c = this.cls(p), sk = 1 + c.skills.reduce((a, k) => a + (k.mult - 1) / Math.max(1, k.cd), 0);
+        const c = this.cls(p), sk = 1 + Skills.factor(c.skills);
         const dmg = Math.max(1, s.atk * sk - t.def), ttk = Math.ceil(t.hp / dmg) + 1.5;
         p.acc = (p.acc || 0) + H / ttk * (Monsters.count(sp.id) ? 1 : .3);
         p.hp -= Math.max(1, t.atk - s.def) / 1.2 * .8 * (ttk - 1.5) / ttk * H;
@@ -2266,39 +2535,46 @@ const Players = {
     });
     this.visList = arr.slice(0, cap);
   },
+  // 見た目バリエーションの部品を組み合わせて描画し、スキルの動きを再生する
   render(dt) {
     this.time += dt;
-    const o = this._o, cp = camera.position, hand = [.36, .72, .12];
-    o.rotation.order = 'YXZ';
-    let n = 0; const wn = {}, ic = { fight: 0, quest: 0, sad: 0, lost: 0 };
-    for (const [w] of WEAPONS) wn[w] = 0;
+    const o = this._o, cp = camera.position, rate = animRate(), cnt = this._cnt || (this._cnt = new Map());
+    cnt.clear();
+    const put = (mesh, mat4, color) => {
+      if (!mesh) return;
+      const i = cnt.get(mesh) || 0; if (i >= mesh.userData.cap) return;
+      mesh.setMatrixAt(i, mat4); if (color) mesh.setColorAt(i, this._c.set(color)); cnt.set(mesh, i + 1);
+    };
+    const ic = { fight: 0, quest: 0, sad: 0, lost: 0 }, P_ = this.parts;
     for (const p of this.visList) {
       const c = this.cls(p); if (!c || p.st === 'dungeon') continue;
-      const y = PG.groundY(p.x, p.z), bob = p._mv ? Math.abs(Math.sin(this.time * 10 + p.id)) * .08 : 0;
-      o.position.set(p.x, y + bob, p.z); o.rotation.set(0, p.ry, 0); o.scale.set(1, 1, 1); o.updateMatrix();
-      this.body.setMatrixAt(n, o.matrix); this.body.setColorAt(n, this._c.set(c.color)); this.head.setMatrixAt(n, o.matrix);
-      n++;
-      const W = this.weapons[c.weapon] || this.weapons.sword, cs = Math.cos(p.ry), sn = Math.sin(p.ry);
-      p.swing = Math.max(0, p.swing - dt * Math.max(1, SPEEDS[speedIdx]));
-      const sw = p.swing > 0 ? Math.sin((1 - p.swing / .35) * Math.PI) * 1.3 : 0;
-      o.position.set(p.x + hand[0] * cs + hand[2] * sn, y + bob + hand[1], p.z - hand[0] * sn + hand[2] * cs);
-      o.rotation.set(.35 + sw, p.ry, 0); o.updateMatrix();
-      W.setMatrixAt(wn[c.weapon] = (wn[c.weapon] || 0), o.matrix); wn[c.weapon]++;
+      const L = lookOf(c, p), P = poseStep(p, dt * rate, 'p');
+      const y = PG.groundY(p.x, p.z), bob = p._mv && !p.anim ? Math.abs(Math.sin(this.time * 10 + p.id)) * .08 : 0;
+      const fx = Math.sin(p.ry), fz = Math.cos(p.ry), ry = p.ry + P.spin;
+      o.rotation.order = 'YXZ';
+      o.position.set(p.x + fx * P.fwd + fz * P.side, y + bob + P.y, p.z + fz * P.fwd - fx * P.side);
+      o.rotation.set(P.lean + P.flip, ry, 0); o.scale.set(1, P.sy, 1); o.updateMatrix();
+      put(P_.body[L.body] || P_.body.tunic, o.matrix, L.color);
+      put(P_.skin, o.matrix, L.skin);
+      put(P_.hair[L.hair], o.matrix, L.hairRand ? p.hairC || L.hairColor : L.hairColor);
+      put(P_.hat[L.hat], o.matrix, L.color2);
+      put(P_.back[L.back], o.matrix, L.color2);
+      put(P_.off[L.off], o.matrix, L.color2);
+      _hv.set(.36, .72, .12).applyMatrix4(o.matrix);
+      o.position.copy(_hv); o.rotation.set(P.wp, ry + P.wy, 0); o.scale.set(1, 1, 1); o.updateMatrix();
+      put(P_.weapon[c.weapon] || P_.weapon.sword, o.matrix, null);
       // 頭上の状態アイコン(カメラに近い加入者のみ)
       const k = p.lost ? 'lost' : p.sat < 30 ? 'sad' : p.st === 'fight' ? 'fight' : p.quest ? 'quest' : null;
       if (k && ic[k] < 80) {
         const d = Math.hypot(p.x - cp.x, y - cp.y, p.z - cp.z);
         if (d < 90) {
-          o.position.set(p.x, y + 2.25, p.z); o.quaternion.copy(camera.quaternion);
+          o.position.set(p.x, y + 2.3 + P.y, p.z); o.quaternion.copy(camera.quaternion);
           const sc = clamp(d * .022, .7, 1.8); o.scale.set(sc, sc, sc); o.updateMatrix();
           this.icons[k].setMatrixAt(ic[k]++, o.matrix);
         }
       }
     }
-    this.body.count = this.head.count = n;
-    for (const m of [this.body, this.head]) m.instanceMatrix.needsUpdate = true;
-    if (this.body.instanceColor) this.body.instanceColor.needsUpdate = true;
-    for (const [w] of WEAPONS) { const m = this.weapons[w]; m.count = wn[w]; m.instanceMatrix.needsUpdate = true; }
+    for (const m of this.all) { m.count = cnt.get(m) || 0; m.instanceMatrix.needsUpdate = true; if (m.instanceColor) m.instanceColor.needsUpdate = true; }
     for (const k in this.icons) { this.icons[k].count = ic[k]; this.icons[k].instanceMatrix.needsUpdate = true; }
   },
   actLabel(p) {
@@ -3039,11 +3315,12 @@ const ICONS = {
   admin: '<path d="M12 3l8 3v6c0 5-3.6 8-8 9-4.4-1-8-4-8-9V6z"/><path d="M9 12l2 2 4-4"/>',
   research: '<path d="M9.5 3h5M10.5 3v6.5L5 18.5A1.8 1.8 0 006.6 21h10.8a1.8 1.8 0 001.6-2.5L13.5 9.5V3"/><path d="M7.5 15h9"/>',
   biz: '<path d="M4 20V11M10 20V5M16 20v-6M3 20.5h18"/>',
+  skill: '<path d="M12 3l2.1 5.6L20 11l-5.9 2.4L12 19l-2.1-5.6L4 11l5.9-2.4z"/>',
   other: '<path d="M4 7h9M17 7h3M4 17h3M11 17h9"/><circle cx="15" cy="7" r="2"/><circle cx="9" cy="17" r="2"/>',
 };
 const TABS = [
   ['terrain', '地形'], ['place', '配置'], ['area', 'エリア'], ['monster', 'モンスター'], ['class', 'クラス'],
-  ['quest', 'クエスト'], ['admin', '管理'], ['research', '研究'], ['biz', '経営'], ['other', 'その他'],
+  ['skill', 'スキル'], ['quest', 'クエスト'], ['admin', '管理'], ['research', '研究'], ['biz', '経営'], ['other', 'その他'],
 ];
 const UI = { tab: null, sheet: 'closed', layout: '' };
 const tools = $('#tools');
@@ -3168,6 +3445,7 @@ function renderPanel() {
   const t = UI.tab;
   const R = PANELS[t] || PANEL_EXT[t] || PANELS._todo;
   pb.innerHTML = R(t);
+  requestAnimationFrame(() => Preview.attach());
   if (t === 'biz') requestAnimationFrame(() => Charts.drawAll());
 }
 const TODO = {
@@ -3202,6 +3480,7 @@ const PANELS = {
   },
   biz() { return bizPanel(); },
   quest() { return questPanel(); },
+  skill() { return skillPanel(); },
   research() { return researchPanel(); },
   admin() { return adminPanel(); },
   other() {
@@ -3241,7 +3520,7 @@ const PANELS = {
 pb.addEventListener('click', e => {
   const b = e.target.closest('[data-act]'); if (!b || b.disabled) return;
   const a = b.dataset.act;
-  if (panelAction(a, b) || questAction(a, b) || adminAction(a, b) || saveAction(a)) return;
+  if (panelAction(a, b) || lookSkillAction(a, b) || questAction(a, b) || adminAction(a, b) || saveAction(a)) return;
   if (a === 'tool' || a === 'edit') {
     if (a === 'tool') Brush.tool = b.dataset.v;
     closePanel(); setMode('terrain');
@@ -3268,6 +3547,7 @@ function fieldChange(key, v) {
   v = +clamp(Math.round(v / F.step) * F.step, F.min, F.max).toFixed(2);
   F.set(v);
   syncField(key, v);
+  if (key.startsWith('ef') || key === 'sk.cd') { const sk = Skills.byId(UI.skEdit); if (sk) skillChanged(sk); }
   if (key.startsWith('cl.')) { const c = Classes.byId(UI.clEdit); if (c) { Classes.scheduleCheck(c); const el = document.getElementById('clPower'); if (el) el.textContent = powerText(c); } }
 }
 function syncField(key, v) {
@@ -3288,26 +3568,20 @@ function setName(key, v) {
   else if (kind === 'q') { const q = Quests.byId(+id); if (q) q.name = v || '名無しのクエスト'; }
   else if (kind === 'qi') { const q = Quests.byId(+id); if (q) q.item = v || '素材'; }
   else if (kind === 'it') { const it = G.items.find(x => x.id === +id); if (it) it.name = v || 'アイテム'; }
+  else if (kind === 'skl') { const s = Skills.byId(+id); if (s) s.name = v || '名無しのスキル'; }
   else if (kind === 'cl') { const c = Classes.byId(+id); if (c) c.name = v || '名無しのクラス'; }
-  else if (kind === 'sk') { const c = Classes.byId(+id), i = +key.split(':')[2]; if (c && c.skills[i]) c.skills[i].name = v || 'スキル'; }
   else if (kind === 'obj') { const o = G.objects.find(q => q.id === +id); if (o) o.name = v || PLACE_DEFS[o.type].name; }
 }
 function refreshSpawnViews() { for (const o of G.objects) if (o.type === 'spawn') Objects.refresh(o); }
 
 const intf = u => v => `${fmt(v)}${u}`;
 function classEditor(c) {
-  const sk = i => {
-    const s = c.skills[i];
-    return `<div class="ecard" style="border-left-color:${c.color}"><input class="txt" data-name="sk:${c.id}:${i}" maxlength="12" value="${esc(s.name)}" aria-label="スキル${i + 1}の名前">
-      ${stepper(`cl.s${i}m`, `スキル${i + 1}の倍率`, s.mult, 1, 6, .1, v => '×' + v.toFixed(1), v => { s.mult = v; })}
-      ${stepper(`cl.s${i}c`, `スキル${i + 1}のクールダウン`, s.cd, 1, 30, 1, intf('秒'), v => { s.cd = v; })}</div>`;
-  };
   return `<div class="row"><button class="btn sm" data-act="clBack"><svg class="i" viewBox="0 0 24 24"><path d="M15 6l-6 6 6 6"/></svg>一覧へ</button><span class="grow"></span>
       <button class="btn sm" data-act="clCopy">複製</button><button class="btn sm" data-act="clDel">削除</button></div>
     <div class="sec"><h4>名前</h4><input class="txt" data-name="cl:${c.id}" maxlength="12" value="${esc(c.name)}" aria-label="クラス名"></div>
-    <div class="sec"><h4>体の色</h4><div class="swatches">${CLASS_COLORS.map(k => `<button class="swc ${c.color === k ? 'on' : ''}" style="background:${k}" data-act="clColor" data-v="${k}" aria-label="色 ${k}"></button>`).join('')}</div></div>
+    ${lookEditor('c', c)}
     <div class="sec"><h4>武器</h4><div class="bb-row wrap">${WEAPONS.map(([w, n]) => `<button class="chip ${c.weapon === w ? 'on' : ''}" data-act="clWeapon" data-v="${w}">${n}</button>`).join('')}</div>
-      <p class="hint">杖と弓は離れた位置から攻撃します。</p></div>
+      <p class="hint">杖・弓・短杖は離れた位置から、槍は少し離れた位置から攻撃します。</p></div>
     <div class="sec"><h4>基礎能力(Lv1)</h4>
       ${stepper('cl.hp', 'HP', c.hp, 20, 500, 5, intf(''), v => { c.hp = v; })}
       ${stepper('cl.atk', '攻撃力', c.atk, 1, 100, 1, intf(''), v => { c.atk = v; })}
@@ -3317,7 +3591,7 @@ function classEditor(c) {
       ${stepper('cl.gHp', 'HP', c.gHp, 0, 50, 1, v => '+' + v, v => { c.gHp = v; })}
       ${stepper('cl.gAtk', '攻撃力', c.gAtk, 0, 10, .1, v => '+' + v.toFixed(1), v => { c.gAtk = v; })}
       ${stepper('cl.gDef', '防御力', c.gDef, 0, 5, .1, v => '+' + v.toFixed(1), v => { c.gDef = v; })}</div>
-    <div class="sec"><h4>スキル</h4>${sk(0)}${sk(1)}</div>
+    ${skillSlots(c, 4)}
     <div class="sec"><div class="card"><i>強さ(Lv10時点・全クラス平均との比較)</i><b id="clPower">${powerText(c)}</b></div>
       <p class="hint">変更はすぐに全加入者へ反映されます。強さが15%以上下がる調整(大幅なナーフ)をすると、このクラスの加入者の満足度が下がります。15%以上の強化では少し上がります。</p></div>`;
 }
@@ -3396,8 +3670,7 @@ function monsterEditor(t) {
   return `<div class="row"><button class="btn sm" data-act="mtBack"><svg class="i" viewBox="0 0 24 24"><path d="M15 6l-6 6 6 6"/></svg>一覧へ</button><span class="grow"></span>
       <button class="btn sm" data-act="mtCopy">複製</button><button class="btn sm" data-act="mtDel">削除</button></div>
     <div class="sec"><h4>名前</h4><input class="txt" data-name="mt:${t.id}" maxlength="16" value="${esc(t.name)}" aria-label="モンスター名"></div>
-    <div class="sec"><h4>色</h4><div class="swatches">${MON_COLORS.map(c => `<button class="swc ${t.color === c ? 'on' : ''}" style="background:${c}" data-act="mtColor" data-v="${c}" aria-label="色 ${c}"></button>`).join('')}</div></div>
-    <div class="sec"><h4>形状</h4><div class="bb-row wrap">${SHAPES.map(([s, n]) => `<button class="chip ${t.shape === s ? 'on' : ''}" data-act="mtShape" data-v="${s}">${n}</button>`).join('')}</div></div>
+    ${lookEditor('m', t)}
     <div class="sec"><h4>能力</h4>
       ${stepper(k + 'size', '大きさ', t.size, .5, 4, .1, v => '×' + v.toFixed(1), v => { t.size = v; })}
       ${stepper(k + 'hp', 'HP', t.hp, 5, 3000, 5, intf(''), v => { t.hp = v; })}
@@ -3406,6 +3679,7 @@ function monsterEditor(t) {
       ${stepper(k + 'spd', '移動速度', t.spd, .5, 10, .5, v => v.toFixed(1) + 'm/秒', v => { t.spd = v; })}
       ${stepper(k + 'exp', '経験値', t.exp, 1, 1000, 1, intf(''), v => { t.exp = v; })}
       ${stepper(k + 'gold', 'ドロップゴールド', t.gold, 0, 500, 1, intf('G'), v => { t.gold = v; })}</div>
+    ${skillSlots(t, 2)}
     <div class="sec"><h4>好む地形</h4><div class="bb-row wrap">${[-1, 0, 1, 2, 3, 4].map(h => `<button class="chip ${t.habitat === h ? 'on' : ''}" data-act="mtHab" data-v="${h}">${h < 0 ? 'どこでも' : TT_NAMES[h]}</button>`).join('')}</div>
       <p class="hint">好む地形にある出現地点では、再出現が2倍速になります。</p></div>
     <div class="sec"><div class="row"><span class="grow">ボスにする<br><span class="hint">出現地点ごとに1体だけ出現します</span></span>${Research.has('boss') ? `<button class="sw" role="switch" aria-checked="${!!t.boss}" data-act="mtBoss" aria-label="ボスにする"></button>` : '<span class="meta">研究で解放</span>'}</div>
@@ -3424,8 +3698,8 @@ function panelAction(a, b) {
       });
       return true;
     }
-    case 'mtEdit': UI.mtEdit = +v; renderPanel(); pb.scrollTop = 0; return true;
-    case 'clEdit': UI.clEdit = +v; renderPanel(); pb.scrollTop = 0; return true;
+    case 'mtEdit': UI.mtEdit = +v; UI.lookIdx = 0; UI.pvSkill = 0; renderPanel(); pb.scrollTop = 0; return true;
+    case 'clEdit': UI.clEdit = +v; UI.lookIdx = 0; UI.pvSkill = 0; renderPanel(); pb.scrollTop = 0; return true;
     case 'clBack': UI.clEdit = null; renderPanel(); return true;
     case 'clNew': {
       const n = G.classes.length, c = newClass(G.nextId++, { name: `クラス${n + 1}`, color: CLASS_COLORS[n % CLASS_COLORS.length] });
@@ -3454,11 +3728,11 @@ function panelAction(a, b) {
     case 'mtBack': UI.mtEdit = null; renderPanel(); return true;
     case 'mtNew': {
       const t = newMonsterType(G.nextId++, { name: `モンスター${G.monsterTypes.length + 1}`, color: MON_COLORS[G.monsterTypes.length % MON_COLORS.length] });
-      G.monsterTypes.push(t); UI.mtEdit = t.id; renderPanel(); pb.scrollTop = 0; return true;
+      G.monsterTypes.push(t); UI.mtEdit = t.id; UI.lookIdx = 0; UI.pvSkill = 0; renderPanel(); pb.scrollTop = 0; return true;
     }
     case 'mtCopy': {
       const s = Monsters.type(UI.mtEdit); if (!s) return true;
-      const t = { ...s, id: G.nextId++, name: s.name + 'の亜種' }; G.monsterTypes.push(t); UI.mtEdit = t.id; renderPanel(); toast('複製しました'); return true;
+      const t = newMonsterType(G.nextId++, { ...s, name: s.name + 'の亜種' }); G.monsterTypes.push(t); UI.mtEdit = t.id; renderPanel(); toast('複製しました'); return true;
     }
     case 'mtDel': {
       const t = Monsters.type(UI.mtEdit); if (!t) return true;
@@ -4207,17 +4481,18 @@ function goalReached() {
    ════════════════════════════════════════════ */
 function bytesToB64(u8) { let s = ''; for (let i = 0; i < u8.length; i += 0x8000) s += String.fromCharCode.apply(null, u8.subarray(i, i + 0x8000)); return btoa(s); }
 function b64ToBytes(b) { const s = atob(b), u = new Uint8Array(s.length); for (let i = 0; i < s.length; i++) u[i] = s.charCodeAt(i); return u; }
-const TRANSIENT = ['path', 'pi', 'queued', 'vis', '_d', '_mv', 'wt', '_annoy', 'swing', 'scan', 'huntT', 'fightT', 'mt', 'atkCd'];
+const TRANSIENT = ['path', 'pi', 'queued', 'vis', '_d', '_mv', 'wt', '_annoy', 'swing', 'scan', 'huntT', 'fightT', 'mt', 'atkCd', 'anim', 'cds', 'dot', 'buff', 'shield', 'stun', 'slow'];
 function serialize() {
   const h16 = new Int16Array(DN * DN);
   G.terrain.h.forEach((v, i) => { h16[i] = Math.round(v * 100); });
   const players = G.players.map(p => { const o = { ...p }; for (const k of TRANSIENT) delete o[k]; if (o.st === 'fight' || o.st === 'waitpath') o.st = o.purpose === 'town' ? 'return' : 'travel'; return o; });
   const out = {
-    format: 'arcana-online-save', v: 2, savedAt: new Date().toISOString(),
+    format: 'arcana-online-save', v: 3, savedAt: new Date().toISOString(),
     seed: G.seed, day: G.day, hour: G.hour, money: Math.round(G.money), research: G.research, model: G.model,
     terrain: { n: DN, h: bytesToB64(new Uint8Array(h16.buffer)), t: bytesToB64(G.terrain.t) },
     objects: G.objects, areas: G.areas, monsterTypes: G.monsterTypes,
-    monsters: G.monsters.map(m => ({ id: m.id, sp: m.sp, t: m.t, x: +m.x.toFixed(2), z: +m.z.toFixed(2), hp: Math.round(m.hp), tx: m.tx, tz: m.tz, wait: 1, ry: m.ry, ph: m.ph })),
+    skills: G.skills,
+    monsters: G.monsters.map(m => ({ id: m.id, sp: m.sp, t: m.t, look: m.look || 0, x: +m.x.toFixed(2), z: +m.z.toFixed(2), hp: Math.round(m.hp), tx: m.tx, tz: m.tz, wait: 1, ry: m.ry, ph: m.ph })),
     classes: G.classes, players, quests: G.quests, items: G.items, unlocked: G.unlocked, gms: G.gms,
     hist: G.hist, today: G.today, negDays: G.negDays, goalReached: G.goalReached, requests: G.requests, effects: G.effects, stats: G.stats,
     nextId: G.nextId, logs: G.logs.slice(-60),
@@ -4230,7 +4505,14 @@ function deserialize(text) {
   let d;
   try { d = JSON.parse(text); } catch (e) { throw new Error('JSONとして読み取れませんでした'); }
   if (!d || d.format !== 'arcana-online-save') throw new Error('このゲームのセーブデータではありません');
-  if (d.v !== 2) throw new Error(`対応していないバージョンです(v${d.v})`);
+  if (d.v !== 2 && d.v !== 3) throw new Error(`対応していないバージョンです(v${d.v})`);
+  // 旧形式(v2)はクラスのスキルを共通のスキル一覧に変換する
+  if (d.v === 2 && Array.isArray(d.classes)) {
+    d.skills = [];
+    let nid = +d.nextId || 1;
+    for (const c of d.classes) c.skills = (c.skills || []).map(k => { const sk = newSkill(nid++, { name: k.name || 'スキル', cd: +k.cd || 5, effects: [{ k: 'dmg', v: +k.mult || 1.5 }] }); d.skills.push(sk); return sk.id; });
+    d.nextId = nid;
+  }
   const num = (v, k) => { if (typeof v !== 'number' || !isFinite(v)) throw new Error(`${k} が数値ではありません`); return v; };
   const arr = (v, k) => { if (!Array.isArray(v)) throw new Error(`${k} がありません`); return v; };
   num(d.day, 'day'); num(d.hour, 'hour'); num(d.money, 'money'); num(d.nextId, 'nextId');
@@ -4244,13 +4526,23 @@ function deserialize(text) {
   if (!d.classes.length) throw new Error('クラスが1つもありません');
   if (!d.monsterTypes.length) throw new Error('モンスターの種類が1つもありません');
   for (const o of d.objects) { if (!PLACE_DEFS[o.type]) throw new Error(`不明な配置物 ${o.type}`); num(o.x, 'objects.x'); num(o.z, 'objects.z'); }
-  for (const p of d.players) { num(p.x, 'players.x'); num(p.z, 'players.z'); num(p.lv, 'players.lv'); if (!Array.isArray(p.done)) p.done = []; if (!Array.isArray(p.owned)) p.owned = []; p.sk = [0, 0]; p.vis = false; p.path = null; }
-  for (const c of d.classes) { if (!Array.isArray(c.skills) || c.skills.length < 2) throw new Error('クラスのスキル情報が壊れています'); }
+  if (!Array.isArray(d.skills)) throw new Error('スキル一覧がありません');
+  for (const k of d.skills) { if (!Array.isArray(k.effects) || !Array.isArray(k.motion)) throw new Error('スキルの情報が壊れています'); k.effects = k.effects.filter(e => EFFECTS[e.k]); k.motion = k.motion.filter(m => MOTIONS[m.m]); }
+  for (const p of d.players) { num(p.x, 'players.x'); num(p.z, 'players.z'); num(p.lv, 'players.lv'); if (!Array.isArray(p.done)) p.done = []; if (!Array.isArray(p.owned)) p.owned = []; p.cds = {}; p.vis = false; p.path = null; if (p.look == null) p.look = Math.floor(Math.random() * 3); if (!p.hairC) p.hairC = pick(HAIR_COLORS); }
+  for (const c of d.classes) {
+    if (!Array.isArray(c.skills)) throw new Error('クラスのスキル情報が壊れています');
+    c.skills = c.skills.filter(x => typeof x === 'number');
+    c.looks = (Array.isArray(c.looks) && c.looks.length ? c.looks : [{}]).map(l => newLook({ color: c.color, ...l }));
+  }
+  for (const t of d.monsterTypes) {
+    t.skills = Array.isArray(t.skills) ? t.skills.filter(x => typeof x === 'number') : [];
+    t.looks = (Array.isArray(t.looks) && t.looks.length ? t.looks : [{}]).map(l => newMonLook({ shape: t.shape, color: t.color, ...l }));
+  }
   return {
     version: 2, seed: d.seed || 1, day: d.day, hour: d.hour, money: d.money, research: +d.research || 0, model: d.model === 'f2p' ? 'f2p' : 'sub',
     subscribers: d.players.length, satisfaction: 0,
     terrain: { n: DN, h, t: new Uint8Array(tb) },
-    objects: d.objects, areas: d.areas, monsterTypes: d.monsterTypes, monsters: d.monsters, classes: d.classes, players: d.players,
+    objects: d.objects, areas: d.areas, monsterTypes: d.monsterTypes, monsters: d.monsters, classes: d.classes, players: d.players, skills: d.skills,
     quests: d.quests, items: d.items, unlocked: d.unlocked, gms: +d.gms || 0, hist: d.hist, today: Object.assign(newToday(), d.today || {}),
     negDays: +d.negDays || 0, goalReached: !!d.goalReached, requests: d.requests, effects: Object.assign({ outage: 0, rival: 0, buzz: 0 }, d.effects || {}),
     stats: Object.assign({ bans: 0, warns: 0, rescues: 0 }, d.stats || {}), nextId: d.nextId, logs: Array.isArray(d.logs) ? d.logs : [],
@@ -4329,6 +4621,442 @@ function saveAction(a) {
   if (a === 'newGame') { startScreen(false); return true; }
   return false;
 }
+
+/* ════════════════════════════════════════════
+   部品ジオメトリのキャッシュ(同じ部品は使い回す)
+   ════════════════════════════════════════════ */
+const _pgCache = new Map(), _monGeoCache = new Map();
+function partGeo(T, k) { const v = T[k]; if (!v || !v[1]) return null; let g = _pgCache.get(v); if (!g) { g = mergeParts(v[1]); _pgCache.set(v, g); } return g; }
+const P_SKIN_T = { skin: ['肌', P_SKIN] };
+function monGeo(shape) { let g = _monGeoCache.get(shape); if (!g) { g = shapeGeo(shape); _monGeoCache.set(shape, g); } return g; }
+const _am = new THREE.Matrix4(), _m2 = new THREE.Matrix4(), _hv = new THREE.Vector3();
+const ACCENT_COLORS = ['#e2c04a', '#dcdcd0', '#8c877d', '#3a4150', '#8a6a44', '#d9534a', '#4a7fd9', '#4fae5a', '#8e5bc4', '#ffe070'];
+
+/* ════════════════════════════════════════════
+   スキル(効果を組み合わせたもの)
+   ════════════════════════════════════════════ */
+const Skills = {
+  lib: null,
+  all() { return this.lib || (G ? G.skills : []); },
+  byId(id) { return this.all().find(s => s.id === id); },
+  byName(n) { return this.all().find(s => s.name === n); },
+  dur(s) { return s.motion.reduce((a, m) => a + m.d, 0) || .3; },
+  hitTime(s) {
+    const n = s.motion.length; if (!n) return 0;
+    const h = clamp(s.hit | 0, 0, n - 1); let t = 0;
+    for (let i = 0; i < h; i++) t += s.motion[i].d;
+    return t + s.motion[h].d * .6;
+  },
+  eff(s, k) { return s.effects.find(e => e.k === k); },
+  // 強さの目安(クラスの強さ・数値シミュレーション・AIの選択に使う)
+  value(s) {
+    const dmg = this.eff(s, 'dmg'), aoe = this.eff(s, 'aoe'), dot = this.eff(s, 'dot');
+    let v = 0;
+    if (dmg) v += (dmg.v - 1) * (aoe ? 1 + aoe.v * .12 : 1);
+    if (dot) v += dot.v / 100 * (dot.d || 3) * .6;
+    for (const e of s.effects) {
+      if (e.k === 'stun') v += e.v * .25; else if (e.k === 'slow') v += e.v * .04; else if (e.k === 'knock') v += e.v * .04;
+      else if (e.k === 'heal') v += e.v / 100 * 1.5; else if (e.k === 'healAll') v += e.v / 100 * 2;
+      else if (e.k === 'buff' || e.k === 'shield') v += e.v / 100 * (e.d || 5) * .15; else if (e.k === 'drain') v += e.v / 100 * .5;
+    }
+    return Math.max(0, v);
+  },
+  factor(ids) { let f = 0; for (const id of ids || []) { const s = this.byId(id); if (s) f += this.value(s) / Math.max(1, s.cd); } return f; },
+  // 使えるスキルのうち一番強いものを選ぶ(回復だけのスキルはHPが減っているときに使う)
+  pick(ids, cds, u, maxHp) {
+    let best = null, bv = -1;
+    for (const id of ids || []) {
+      const s = this.byId(id); if (!s || (cds[id] || 0) > 0) continue;
+      if (!this.eff(s, 'dmg') && (this.eff(s, 'heal') || this.eff(s, 'healAll')) && u.hp > maxHp * .7) continue;
+      const v = this.value(s) + Math.random() * .1;
+      if (v > bv) { bv = v; best = s; }
+    }
+    return best;
+  },
+  effText(e) {
+    const d = EFFECTS[e.k]; if (!d) return '';
+    const v = e.k === 'dmg' ? `×${e.v}` : `${e.v}${d.unit}`;
+    return `${d.name}${v}${d.d ? `(${e.d ?? d.d}秒)` : ''}`;
+  },
+  summary(s) { return s.effects.map(e => this.effText(e)).join('・') || '効果なし'; },
+  motionText(s) { return s.motion.map(m => (MOTIONS[m.m] || ['?'])[0]).join('→') || '動きなし'; },
+  users(s) { return G.classes.filter(c => c.skills.includes(s.id)).map(c => c.name).concat(G.monsterTypes.filter(t => (t.skills || []).includes(s.id)).map(t => t.name)); },
+  // スキルを使う。kind:'p'=加入者が使う(相手はモンスター)、'm'=モンスターが使う(相手は加入者)
+  use(c, kind, tgt, s) {
+    const isP = kind === 'p', ct = isP ? null : Monsters.type(c.t);
+    const buff = c.buff && c.buff.t > 0 ? 1 + c.buff.v : 1;
+    const atk = (isP ? Players.stats(c).atk : ct.atk) * buff;
+    const dmgE = this.eff(s, 'dmg'), aoe = this.eff(s, 'aoe');
+    const targets = [];
+    if (tgt) {
+      if (aoe) {
+        const r2 = aoe.v * aoe.v;
+        if (isP) { for (const m of G.monsters) if (!m.dead && (m.x - tgt.x) ** 2 + (m.z - tgt.z) ** 2 <= r2) targets.push(m); }
+        else for (const p of Players.visList) if (p.st !== 'dungeon' && p.st !== 'idle' && (p.x - tgt.x) ** 2 + (p.z - tgt.z) ** 2 <= r2) targets.push(p);
+      } else targets.push(tgt);
+    }
+    let dealt = 0;
+    for (const u of targets) {
+      if (isP) {
+        const mt = Monsters.type(u.t); if (!mt || u.dead) continue;
+        if (dmgE) { const d = monDmg(u, calcDmg(atk * dmgE.v, mt.def)); u.hp -= d; dealt += d; }
+        this.status(s, u, c, atk);
+        if (!u.tg) u.tg = c.id;
+        if (u.hp <= 0) Players.kill(c, u, mt);
+      } else {
+        if (dmgE) dealt += Players.takeDmg(u, calcDmg(atk * dmgE.v, Players.stats(u).def), c);
+        if (u.st !== 'idle') this.status(s, u, c, atk);
+      }
+    }
+    // 自分にかかる効果
+    const maxHp = isP ? Players.stats(c).hp : ct.hp;
+    for (const e of s.effects) {
+      if (e.k === 'heal') c.hp = Math.min(maxHp, c.hp + maxHp * e.v / 100);
+      else if (e.k === 'drain') c.hp = Math.min(maxHp, c.hp + dealt * e.v / 100);
+      else if (e.k === 'buff') c.buff = { v: e.v / 100, t: e.d || 6 };
+      else if (e.k === 'shield') c.shield = { v: e.v / 100, t: e.d || 5 };
+      else if (e.k === 'healAll') {
+        if (isP) { for (const q of Players.visList) if ((q.x - c.x) ** 2 + (q.z - c.z) ** 2 < 64) { const mh = Players.stats(q).hp; q.hp = Math.min(mh, q.hp + mh * e.v / 100); } }
+        else for (const m of G.monsters) if (!m.dead && m.sp === c.sp) { const mt = Monsters.type(m.t); if (mt) m.hp = Math.min(mt.hp, m.hp + mt.hp * e.v / 100); }
+      }
+    }
+    c.anim = { id: s.id, t: 0 };
+    if (nearCam(c.x, c.z, 70)) FX.spawn(s.fx, c, tgt || c, s.fxColor, this.hitTime(s) / Math.max(.6, animRate() || 1));
+  },
+  // 相手にかかる状態異常
+  status(s, u, c, atk) {
+    for (const e of s.effects) {
+      if (e.k === 'dot') u.dot = { dps: atk * e.v / 100, t: e.d || 4, by: c.id };
+      else if (e.k === 'stun') u.stun = Math.max(u.stun || 0, e.v);
+      else if (e.k === 'slow') u.slow = Math.max(u.slow || 0, e.v);
+      else if (e.k === 'knock') {
+        const dx = u.x - c.x, dz = u.z - c.z, d = Math.hypot(dx, dz) || 1;
+        for (let k = e.v; k > .4; k /= 2) { const nx = u.x + dx / d * k, nz = u.z + dz / d * k; if (PG.walkAt(nx, nz)) { u.x = nx; u.z = nz; break; } }
+      }
+    }
+  },
+};
+const monDmg = (m, d) => Math.max(1, Math.round(d * (m.shield && m.shield.t > 0 ? 1 - m.shield.v : 1)));
+
+/* ════════════════════════════════════════════
+   スキルの演出エフェクト(メッシュは使い回す)
+   ════════════════════════════════════════════ */
+const FX = {
+  pool: [], list: [], geos: null,
+  init() {
+    this.geos = {
+      slash: new THREE.RingGeometry(.7, 1.35, 24, 1, -Math.PI * .5, Math.PI).rotateX(-Math.PI / 2),
+      sphere: new THREE.SphereGeometry(.5, 14, 10),
+      ring: new THREE.RingGeometry(.8, 1, 40).rotateX(-Math.PI / 2),
+      cyl: new THREE.CylinderGeometry(.5, .5, 1, 14, 1, true).translate(0, .5, 0),
+      oct: new THREE.OctahedronGeometry(.18),
+      cone: new THREE.ConeGeometry(.7, 1.8, 12, 1, true).translate(0, .9, 0),
+      bolt: new THREE.BoxGeometry(.14, 1, .14).translate(0, .5, 0),
+    };
+    for (let i = 0; i < 60; i++) {
+      const m = new THREE.Mesh(this.geos.sphere, new THREE.MeshBasicMaterial({ transparent: true, depthWrite: false, blending: THREE.AdditiveBlending, side: THREE.DoubleSide }));
+      m.visible = false; m.frustumCulled = false; m.renderOrder = 15; m.userData.busy = false;
+      this.pool.push(m);
+    }
+  },
+  take(sc) {
+    const m = this.pool.find(q => !q.userData.busy);
+    if (!m) return null;
+    m.userData.busy = true; m.visible = false; sc.add(m);
+    return m;
+  },
+  spawn(kind, from, to, color, delay = 0, sc = scene, y0, y1, preview = false) {
+    if (!kind || kind === 'none' || !this.geos) return;
+    const fy = y0 ?? PG.groundY(from.x, from.z), ty = y1 ?? PG.groundY(to.x, to.z);
+    const base = { kind, fx: from.x, fz: from.z, fy, tx: to.x, tz: to.z, ty, color, preview, ry: Math.atan2(to.x - from.x, to.z - from.z) || 0 };
+    const add = (o) => { const m = this.take(sc); if (m) this.list.push({ ...base, ...o, m }); };
+    const DUR = { slash: .28, burst: .4, wave: .5, pillar: .6, sparkle: .9, thunder: .32, vortex: .7 };
+    if (kind === 'bolt') { add({ kind: 'bolt', t: -Math.max(0, delay - .25), dur: .25 }); add({ kind: 'burst', t: -delay, dur: .3, small: true }); }
+    else if (kind === 'sparkle') for (let k = 0; k < 4; k++) add({ t: -delay - k * .06, dur: DUR.sparkle, k });
+    else add({ t: -delay, dur: DUR[kind] || .4 });
+  },
+  update(dt) {
+    const rate = animRate();
+    for (let i = this.list.length - 1; i >= 0; i--) {
+      const e = this.list[i], m = e.m;
+      e.t += dt * (e.preview ? 1 : Math.max(rate, 0));
+      if (e.t < 0) continue;
+      const u = e.t / e.dur;
+      if (u >= 1) { m.visible = false; m.userData.busy = false; if (m.parent) m.parent.remove(m); this.list.splice(i, 1); continue; }
+      m.visible = true; m.material.color.set(e.color); m.rotation.set(0, 0, 0); m.scale.set(1, 1, 1);
+      let op = 1 - u;
+      switch (e.kind) {
+        case 'slash': m.geometry = this.geos.slash; m.position.set(e.fx + Math.sin(e.ry) * .6, e.fy + 1, e.fz + Math.cos(e.ry) * .6); m.rotation.set(0, e.ry + lerp(-.8, .8, u), -.3); m.scale.setScalar(1.1 + u * .3); break;
+        case 'burst': m.geometry = this.geos.sphere; m.position.set(e.tx, e.ty + .8, e.tz); m.scale.setScalar((e.small ? .3 : .5) + u * (e.small ? 1.2 : 2.8)); op *= .9; break;
+        case 'wave': m.geometry = this.geos.ring; m.position.set(e.fx, e.fy + .2, e.fz); m.scale.setScalar(1 + u * 6); break;
+        case 'pillar': m.geometry = this.geos.cyl; m.position.set(e.tx, e.ty, e.tz); m.scale.set(.6 + u, 7, .6 + u); op *= .8; break;
+        case 'bolt': m.geometry = this.geos.sphere; m.position.set(lerp(e.fx, e.tx, u), lerp(e.fy + 1.2, e.ty + .8, u), lerp(e.fz, e.tz, u)); m.scale.setScalar(.38); op = 1; break;
+        case 'sparkle': { const a = e.k * 1.57 + u * 4; m.geometry = this.geos.oct; m.position.set(e.fx + Math.cos(a) * .6, e.fy + .3 + u * 1.6, e.fz + Math.sin(a) * .6); m.rotation.set(u * 6, u * 8, 0); break; }
+        case 'thunder': m.geometry = this.geos.bolt; m.position.set(e.tx + Math.sin(u * 40) * .15, e.ty, e.tz); m.scale.set(1, 12, 1); op = (Math.floor(u * 12) % 2 ? .35 : 1) * (1 - u); break;
+        case 'vortex': m.geometry = this.geos.cone; m.position.set(e.tx, e.ty, e.tz); m.rotation.set(0, u * 14, 0); m.scale.set(1 + u * .5, 1 + u * .3, 1 + u * .5); op *= .7; break;
+      }
+      m.material.opacity = clamp(op, 0, 1);
+    }
+  },
+};
+
+/* ════════════════════════════════════════════
+   編集画面の3Dプレビュー(見た目・スキルの動きを確認)
+   ════════════════════════════════════════════ */
+const Preview = {
+  r: null, sc: null, cam: null, cv: null, grp: null, wpn: null, spec: null, anim: null, loop: 0, next: 0, on: false, last: 0, baseRy: .5, w: 0, h: 0,
+  ensure() {
+    if (this.r) return true;
+    try {
+      this.cv = document.createElement('canvas'); this.cv.className = 'pvcv';
+      this.r = new THREE.WebGLRenderer({ canvas: this.cv, antialias: true, alpha: true });
+      this.r.setPixelRatio(Math.min(2, devicePixelRatio || 1));
+      this.sc = new THREE.Scene();
+      this.sc.add(new THREE.HemisphereLight(0xfff4e0, 0x3a4150, .95));
+      const d = new THREE.DirectionalLight(0xffffff, .7); d.position.set(3, 6, 4); this.sc.add(d);
+      const g = new THREE.Mesh(new THREE.CylinderGeometry(3, 3, .1, 40), new THREE.MeshLambertMaterial({ color: 0x4d6b3a })); g.position.y = -.05; this.sc.add(g);
+      this.cam = new THREE.PerspectiveCamera(35, 1.6, .1, 200);
+    } catch (e) { this.r = null; return false; }
+    return true;
+  },
+  attach() {
+    const host = document.getElementById('pvHost'); if (!host) return;
+    let owner = null, kind = 'p', loop = UI.pvSkill || 0;
+    if (UI.tab === 'class') owner = Classes.byId(UI.clEdit);
+    else if (UI.tab === 'monster') { owner = Monsters.type(UI.mtEdit); kind = 'm'; }
+    else if (UI.tab === 'skill') {
+      const pv = UI.skPv || {};
+      owner = pv.kind === 'm' ? Monsters.type(pv.id) : Classes.byId(pv.id);
+      if (!owner) { const s = Skills.byId(UI.skEdit); const cu = s && G.classes.find(c => c.skills.includes(s.id)); const mu = s && G.monsterTypes.find(t => (t.skills || []).includes(s.id)); owner = cu || (mu ? (kind = 'm', mu) : G.classes[0]); }
+      else if (pv.kind === 'm') kind = 'm';
+      loop = UI.skEdit;
+    }
+    if (!owner) return;
+    const look = owner.looks[UI.tab === 'skill' ? 0 : clamp(UI.lookIdx | 0, 0, owner.looks.length - 1)];
+    this.show(host, kind === 'p' ? { kind, look, weapon: owner.weapon } : { kind, look, size: Math.min(owner.size, 3) }, loop);
+  },
+  show(host, spec, loop) {
+    if (!this.ensure()) { host.innerHTML = '<p class="hint">この端末では3Dプレビューを表示できません</p>'; return; }
+    host.appendChild(this.cv);
+    this.spec = spec; this.loop = loop || 0; this.anim = null; this.next = performance.now() + 300;
+    this.build();
+    if (!this.on) { this.on = true; this.last = performance.now(); requestAnimationFrame(t => this.tick(t)); }
+  },
+  build() {
+    for (const o of [this.grp, this.wpn]) if (o) { this.sc.remove(o); o.traverse(q => { if (q.material) q.material.dispose(); }); }
+    this.wpn = null;
+    const g = this.grp = new THREE.Group(), sp = this.spec, L = sp.look;
+    const add = (geo, color, basic) => { if (!geo) return null; const m = new THREE.Mesh(geo, basic ? new THREE.MeshBasicMaterial({ color }) : new THREE.MeshLambertMaterial({ color })); g.add(m); return m; };
+    if (sp.kind === 'p') {
+      add(partGeo(P_BODY, L.body), L.color); add(partGeo(P_SKIN_T, 'skin'), L.skin); add(partGeo(P_HAIR, L.hair), L.hairColor);
+      add(partGeo(P_HAT, L.hat), L.color2); add(partGeo(P_BACK, L.back), L.color2); add(partGeo(P_OFF, L.off), L.color2);
+      const W = P_WEAPON[sp.weapon] || P_WEAPON.sword;
+      this.wpn = new THREE.Mesh(partGeo(P_WEAPON, P_WEAPON[sp.weapon] ? sp.weapon : 'sword'), new THREE.MeshLambertMaterial({ color: W[2] ? 0x8a6a44 : 0xc8c4ba }));
+      this.wpn.rotation.order = 'YXZ'; this.sc.add(this.wpn);
+    } else {
+      add(monGeo(L.shape), L.color);
+      const A = MON_ANCHOR[L.shape] || MON_ANCHOR.slime;
+      for (const [f, T, an] of [['head', M_HEAD, A.top], ['back', M_BACK, A.back], ['tail', M_TAIL, A.rear], ['eyes', M_EYES, A.front]]) {
+        const m = add(partGeo(T, L[f]), f === 'eyes' ? '#fff6c0' : L.color2, f === 'eyes');
+        if (m) { m.position.set(an[0], an[1], an[2]); m.scale.setScalar(an[3]); }
+      }
+    }
+    g.rotation.order = 'YXZ';
+    this.sc.add(g);
+  },
+  tick(now) {
+    if (!this.cv || !this.cv.isConnected) { this.on = false; return; }
+    requestAnimationFrame(t => this.tick(t));
+    const dt = Math.min(.05, (now - this.last) / 1000); this.last = now;
+    const w = this.cv.clientWidth, h = this.cv.clientHeight;
+    if (!w || !h) return;
+    if (w !== this.w || h !== this.h) { this.w = w; this.h = h; this.r.setSize(w, h, false); this.cam.aspect = w / h; this.cam.updateProjectionMatrix(); }
+    const sp = this.spec, s = sp.kind === 'm' ? sp.size : 1;
+    if (this.loop && !this.anim && now > this.next) {
+      const sk = Skills.byId(this.loop);
+      if (sk) {
+        this.anim = { id: sk.id, t: 0 };
+        FX.spawn(sk.fx, { x: 0, z: 0 }, { x: Math.sin(this.baseRy) * 2.6 * s, z: Math.cos(this.baseRy) * 2.6 * s }, sk.fxColor, Skills.hitTime(sk), this.sc, 0, 0, true);
+      }
+    }
+    if (!this.loop) this.baseRy += dt * .7; else this.baseRy = .5;
+    const P = poseStep(this, dt, sp.kind);
+    if (this.loop && !this.anim && this.next < now) this.next = now + 800;
+    const g = this.grp, fx = Math.sin(this.baseRy), fz = Math.cos(this.baseRy), k = sp.kind === 'm' ? s * .5 : 1;
+    g.position.set(fx * P.fwd * k + fz * P.side, P.y * (sp.kind === 'm' ? s * .6 : 1), fz * P.fwd * k - fx * P.side);
+    g.rotation.set(P.lean * (sp.kind === 'm' ? .8 : 1) + P.flip, this.baseRy + P.spin, 0);
+    g.scale.set(s, s * P.sy, s);
+    if (this.wpn) { g.updateMatrix(); _hv.set(.36, .72, .12).applyMatrix4(g.matrix); this.wpn.position.copy(_hv); this.wpn.rotation.set(P.wp, this.baseRy + P.spin + P.wy, 0); }
+    const cd = sp.kind === 'm' ? .9 + .6 * s : 1.25;
+    this.cam.position.set(2.4 * cd, 1.7 * cd, 3.3 * cd); this.cam.lookAt(0, .85 * (sp.kind === 'm' ? s * .7 : 1), .3);
+    this.r.render(this.sc, this.cam);
+  },
+};
+
+/* ════════════════════════════════════════════
+   見た目・スキルの編集画面
+   ════════════════════════════════════════════ */
+function lookOwner() { return UI.tab === 'class' ? Classes.byId(UI.clEdit) : UI.tab === 'monster' ? Monsters.type(UI.mtEdit) : null; }
+function lookEditor(kind, owner) {
+  const L = owner.looks, i = clamp(UI.lookIdx | 0, 0, L.length - 1), lk = L[i];
+  UI.lookIdx = i;
+  const chips = (f, T) => `<div class="bb-row wrap">${Object.entries(T).map(([k, v]) => `<button class="chip ${lk[f] === k ? 'on' : ''}" data-act="lookSet" data-f="${f}" data-v="${k}">${v[0]}</button>`).join('')}</div>`;
+  const sw = (f, list) => `<div class="swatches">${list.map(c => `<button class="swc ${lk[f] === c ? 'on' : ''}" style="background:${c}" data-act="lookSet" data-f="${f}" data-v="${c}" aria-label="${c}"></button>`).join('')}</div>`;
+  const plays = (owner.skills || []).map(id => Skills.byId(id)).filter(Boolean);
+  return `<div class="sec"><h4>見た目のバリエーション(${L.length})</h4>
+      <div class="bb-row wrap">${L.map((x, j) => `<button class="chip ${j === i ? 'on' : ''}" data-act="lookSel" data-v="${j}"><span class="sw8" style="background:${x.color}"></span>見た目${j + 1}</button>`).join('')}
+        ${L.length < 6 ? '<button class="chip" data-act="lookAdd">+ 追加</button>' : ''}</div>
+      <div class="pvhost" id="pvHost"></div>
+      <div class="bb-row wrap"><button class="chip ${!UI.pvSkill ? 'on' : ''}" data-act="pvPlay" data-v="0">見回す</button>${plays.map(s => `<button class="chip ${UI.pvSkill === s.id ? 'on' : ''}" data-act="pvPlay" data-v="${s.id}">▶ ${esc(s.name)}</button>`).join('')}</div>
+      <p class="hint">${kind === 'c' ? '加入者は、このクラスの見た目バリエーションからランダムに1つが割り当てられます。' : '出現する個体には、見た目バリエーションからランダムに1つが割り当てられます。'}部品を組み合わせて作ってください。</p></div>
+    ${kind === 'c' ? `
+      <div class="sec"><h4>体型</h4>${chips('body', P_BODY)}</div>
+      <div class="sec"><h4>髪型</h4>${chips('hair', P_HAIR)}
+        <div class="row"><span class="grow">髪色を人ごとにランダムにする</span><button class="sw" role="switch" aria-checked="${!!lk.hairRand}" data-act="lookRand" aria-label="髪色をランダムにする"></button></div>
+        ${lk.hairRand ? '' : sw('hairColor', HAIR_COLORS)}</div>
+      <div class="sec"><h4>肌の色</h4>${sw('skin', SKINS)}</div>
+      <div class="sec"><h4>頭の装備</h4>${chips('hat', P_HAT)}</div>
+      <div class="sec"><h4>背中</h4>${chips('back', P_BACK)}</div>
+      <div class="sec"><h4>左手</h4>${chips('off', P_OFF)}</div>
+      <div class="sec"><h4>服の色</h4>${sw('color', CLASS_COLORS)}</div>
+      <div class="sec"><h4>装備の色(頭・背中・左手)</h4>${sw('color2', ACCENT_COLORS)}</div>`
+    : `
+      <div class="sec"><h4>形状</h4><div class="bb-row wrap">${SHAPES.map(([k, n]) => `<button class="chip ${lk.shape === k ? 'on' : ''}" data-act="lookSet" data-f="shape" data-v="${k}">${n}</button>`).join('')}</div></div>
+      <div class="sec"><h4>頭</h4>${chips('head', M_HEAD)}</div>
+      <div class="sec"><h4>背中</h4>${chips('back', M_BACK)}</div>
+      <div class="sec"><h4>尾</h4>${chips('tail', M_TAIL)}</div>
+      <div class="sec"><h4>目</h4>${chips('eyes', M_EYES)}</div>
+      <div class="sec"><h4>体の色</h4>${sw('color', MON_COLORS)}</div>
+      <div class="sec"><h4>部品の色(角・翼・尾など)</h4>${sw('color2', ACCENT_COLORS)}</div>`}
+    ${L.length > 1 ? `<div class="sec"><button class="btn sm" data-act="lookDel">見た目${i + 1}を削除</button></div>` : ''}`;
+}
+function skillSlots(owner, max) {
+  const cur = owner.skills || [];
+  return `<div class="sec"><h4>スキル(${cur.length}/${max})</h4>
+      <div class="bb-row wrap">${cur.map(id => { const s = Skills.byId(id); return s ? `<button class="chip on" data-act="slotDel" data-v="${id}" aria-label="${esc(s.name)}を外す">${esc(s.name)} ✕</button>` : ''; }).join('') || '<span class="meta">なし(通常攻撃のみ)</span>'}</div>
+      ${cur.map(id => Skills.byId(id)).filter(Boolean).map(s => `<p class="meta">${esc(s.name)}:${esc(Skills.summary(s))} · CD${s.cd}秒 · ${esc(Skills.motionText(s))}</p>`).join('')}
+      <p class="meta">付けられるスキル</p>
+      <div class="bb-row wrap">${G.skills.filter(s => !cur.includes(s.id)).map(s => `<button class="chip" data-act="slotAdd" data-v="${s.id}" ${cur.length >= max ? 'disabled' : ''}>+ ${esc(s.name)}</button>`).join('')}</div>
+      <button class="btn sm" data-act="goSkills">スキルを作る・編集する</button></div>`;
+}
+function skillPanel() {
+  if (UI.skEdit) { const s = Skills.byId(UI.skEdit); if (s) return skillEditor(s); UI.skEdit = null; }
+  return `<div class="sec"><h4>スキル(${G.skills.length})</h4>
+      ${G.skills.map(s => { const u = Skills.users(s); return `<div class="ecard" style="border-left-color:${s.fxColor}">
+        <div class="hd"><b>${esc(s.name)}</b><span class="meta">CD ${s.cd}秒</span></div>
+        <p class="meta">効果:${esc(Skills.summary(s))}</p>
+        <p class="meta">動き:${esc(Skills.motionText(s))} · 演出:${FXK[s.fx] || 'なし'}</p>
+        <p class="meta">使用:${u.length ? esc(u.join('、')) : 'だれも使っていません'}</p>
+        <div class="row"><span class="grow"></span><button class="btn sm" data-act="skEdit" data-v="${s.id}">編集</button></div></div>`; }).join('')}
+      <button class="btn pri" data-act="skNew">新しいスキルを作る</button>
+      <p class="hint">スキルは「効果」と「動き」と「演出」を組み合わせて作ります。作ったスキルはクラスやモンスターの編集画面で付けられます。</p></div>`;
+}
+function skillEditor(s) {
+  const pv = UI.skPv || {};
+  return `<div class="row"><button class="btn sm" data-act="skBack"><svg class="i" viewBox="0 0 24 24"><path d="M15 6l-6 6 6 6"/></svg>一覧へ</button><span class="grow"></span>
+      <button class="btn sm" data-act="skCopy">複製</button><button class="btn sm" data-act="skDel">削除</button></div>
+    <div class="sec"><div class="pvhost" id="pvHost"></div>
+      <div class="bb-row">${G.classes.map(c => `<button class="chip ${pv.kind !== 'm' && pv.id === c.id ? 'on' : ''}" data-act="skPv" data-k="c" data-v="${c.id}">${esc(c.name)}</button>`).join('')}${G.monsterTypes.map(t => `<button class="chip ${pv.kind === 'm' && pv.id === t.id ? 'on' : ''}" data-act="skPv" data-k="m" data-v="${t.id}">${esc(t.name)}</button>`).join('')}</div>
+      <p class="hint">プレビューで動きをくり返し再生します。上のボタンで演じるキャラクターを変えられます。</p></div>
+    <div class="sec"><h4>名前</h4><input class="txt" data-name="skl:${s.id}" maxlength="12" value="${esc(s.name)}" aria-label="スキル名"></div>
+    <div class="sec">${stepper('sk.cd', 'クールダウン', s.cd, 1, 30, .5, v => v + '秒', v => { s.cd = v; })}</div>
+    <div class="sec"><h4>効果(組み合わせ自由)</h4>
+      ${s.effects.map((e, i) => { const d = EFFECTS[e.k]; return `<div class="ecard slim" style="border-left-color:${s.fxColor}"><div class="hd"><b>${d.name}</b><button class="btn sm" data-act="effDel" data-v="${i}">外す</button></div>
+        <p class="meta">${d.desc}</p>
+        ${stepper(`ef${i}.v`, '強さ', e.v, d.min, d.max, d.step, v => (e.k === 'dmg' ? '×' : '') + v + (e.k === 'dmg' ? '' : d.unit), v => { e.v = v; })}
+        ${d.d ? stepper(`ef${i}.d`, '持続時間', e.d ?? d.d, 1, 15, .5, v => v + '秒', v => { e.d = v; }) : ''}</div>`; }).join('') || '<p class="hint">効果がありません</p>'}
+      <div class="bb-row wrap">${Object.entries(EFFECTS).filter(([k]) => !s.effects.some(e => e.k === k)).map(([k, d]) => `<button class="chip" data-act="effAdd" data-v="${k}">+ ${d.name}</button>`).join('')}</div></div>
+    <div class="sec"><h4>動き(上から順に再生)</h4>
+      ${s.motion.map((m, i) => `<div class="mrow ${s.hit === i ? 'hit' : ''}"><span class="qn num">${i + 1}</span>
+        <select class="msel" data-mot="${i}" aria-label="動き${i + 1}">${Object.entries(MOTIONS).map(([k, v]) => `<option value="${k}" ${m.m === k ? 'selected' : ''}>${v[0]}</option>`).join('')}</select>
+        <span class="mini-stp"><button class="sb" data-act="moDur" data-i="${i}" data-d="-1" aria-label="短く">−</button><output>${m.d.toFixed(2)}秒</output><button class="sb" data-act="moDur" data-i="${i}" data-d="1" aria-label="長く">+</button></span>
+        <button class="chip ${s.hit === i ? 'on' : ''}" data-act="moHit" data-v="${i}">命中</button>
+        <span class="mv"><button class="sb" data-act="moUp" data-v="${i}" ${i ? '' : 'disabled'} aria-label="上へ">↑</button><button class="sb" data-act="moDn" data-v="${i}" ${i < s.motion.length - 1 ? '' : 'disabled'} aria-label="下へ">↓</button><button class="sb" data-act="moDel" data-v="${i}" aria-label="削除">✕</button></span></div>`).join('') || '<p class="hint">動きがありません</p>'}
+      <div class="bb-row wrap">${Object.entries(MOTIONS).map(([k, v]) => `<button class="chip" data-act="moAdd" data-v="${k}">+ ${v[0]}</button>`).join('')}</div>
+      <p class="hint">「命中」にした動きのところで演出が出ます。合計 ${Skills.dur(s).toFixed(2)}秒。</p></div>
+    <div class="sec"><h4>演出</h4>
+      <div class="bb-row wrap">${Object.entries(FXK).map(([k, n]) => `<button class="chip ${s.fx === k ? 'on' : ''}" data-act="skFx" data-v="${k}">${n}</button>`).join('')}</div>
+      <div class="swatches">${FX_COLORS.map(c => `<button class="swc ${s.fxColor === c ? 'on' : ''}" style="background:${c}" data-act="skFxC" data-v="${c}" aria-label="演出の色 ${c}"></button>`).join('')}</div></div>
+    <div class="sec"><h4>このスキルを使う</h4>
+      <div class="bb-row wrap">${G.classes.map(c => `<button class="chip ${c.skills.includes(s.id) ? 'on' : ''}" data-act="skUse" data-k="c" data-v="${c.id}">${esc(c.name)}</button>`).join('')}</div>
+      <div class="bb-row wrap">${G.monsterTypes.map(t => `<button class="chip ${(t.skills || []).includes(s.id) ? 'on' : ''}" data-act="skUse" data-k="m" data-v="${t.id}">${esc(t.name)}</button>`).join('')}</div>
+      <p class="hint">クラスは4つまで、モンスターは2つまでスキルを付けられます。変更はすぐに反映されます。</p></div>`;
+}
+function syncLookOwner(o) {
+  o.color = o.looks[0].color;
+  if (o.looks[0].shape) o.shape = o.looks[0].shape;
+}
+function lookSkillAction(a, b) {
+  const v = b.dataset.v;
+  const owner = lookOwner();
+  switch (a) {
+    case 'lookSel': UI.lookIdx = +v; renderPanel(); return true;
+    case 'lookAdd': if (owner) { owner.looks.push({ ...owner.looks[clamp(UI.lookIdx | 0, 0, owner.looks.length - 1)] }); UI.lookIdx = owner.looks.length - 1; renderPanel(); } return true;
+    case 'lookDel': if (owner && owner.looks.length > 1) { owner.looks.splice(UI.lookIdx | 0, 1); UI.lookIdx = 0; syncLookOwner(owner); if (UI.tab === 'monster') refreshSpawnViews(); renderPanel(); } return true;
+    case 'lookSet': if (owner) { owner.looks[UI.lookIdx | 0][b.dataset.f] = v; syncLookOwner(owner); if (UI.tab === 'monster') refreshSpawnViews(); renderPanel(); } return true;
+    case 'lookRand': if (owner) { const lk = owner.looks[UI.lookIdx | 0]; lk.hairRand = !lk.hairRand; renderPanel(); } return true;
+    case 'pvPlay': UI.pvSkill = +v; renderPanel(); return true;
+    case 'slotAdd': case 'slotDel': {
+      if (!owner) return true;
+      const max = UI.tab === 'class' ? 4 : 2, id = +v;
+      owner.skills = owner.skills || [];
+      if (a === 'slotAdd' && owner.skills.length < max && !owner.skills.includes(id)) owner.skills.push(id);
+      if (a === 'slotDel') owner.skills = owner.skills.filter(x => x !== id);
+      if (UI.tab === 'class') Classes.scheduleCheck(owner);
+      renderPanel(); return true;
+    }
+    case 'goSkills': UI.skEdit = null; UI.tab = null; openTab('skill'); return true;
+    case 'skEdit': UI.skEdit = +v; UI.skPv = null; renderPanel(); pb.scrollTop = 0; return true;
+    case 'skBack': UI.skEdit = null; renderPanel(); return true;
+    case 'skNew': { const s = newSkill(G.nextId++, { name: `スキル${G.skills.length + 1}` }); G.skills.push(s); UI.skEdit = s.id; UI.skPv = null; renderPanel(); pb.scrollTop = 0; return true; }
+    case 'skCopy': { const s0 = Skills.byId(UI.skEdit); if (!s0) return true; const s = newSkill(G.nextId++, { ...s0, name: s0.name + '改' }); G.skills.push(s); UI.skEdit = s.id; renderPanel(); toast('複製しました'); return true; }
+    case 'skDel': {
+      const s = Skills.byId(UI.skEdit); if (!s) return true;
+      ask(`スキル「${s.name}」を削除しますか?使っているクラスとモンスターからも外れます。`, '削除する').then(ok => {
+        if (!ok) return;
+        G.skills.splice(G.skills.indexOf(s), 1);
+        for (const c of G.classes) { c.skills = c.skills.filter(x => x !== s.id); }
+        for (const t of G.monsterTypes) t.skills = (t.skills || []).filter(x => x !== s.id);
+        UI.skEdit = null; renderPanel();
+      });
+      return true;
+    }
+    case 'skPv': UI.skPv = { kind: b.dataset.k, id: +v }; renderPanel(); return true;
+    case 'skFx': { const s = Skills.byId(UI.skEdit); s.fx = v; renderPanel(); return true; }
+    case 'skFxC': { const s = Skills.byId(UI.skEdit); s.fxColor = v; renderPanel(); return true; }
+    case 'skUse': {
+      const s = Skills.byId(UI.skEdit), o = b.dataset.k === 'c' ? Classes.byId(+v) : Monsters.type(+v);
+      if (!s || !o) return true;
+      o.skills = o.skills || [];
+      const max = b.dataset.k === 'c' ? 4 : 2;
+      if (o.skills.includes(s.id)) o.skills = o.skills.filter(x => x !== s.id);
+      else if (o.skills.length >= max) { toast(`${o.name}のスキルは${max}つまでです`, 'warn'); return true; }
+      else o.skills.push(s.id);
+      if (b.dataset.k === 'c') Classes.scheduleCheck(o);
+      renderPanel(); return true;
+    }
+    case 'effAdd': { const s = Skills.byId(UI.skEdit), d = EFFECTS[v]; s.effects.push(d.d ? { k: v, v: d.def, d: d.d } : { k: v, v: d.def }); skillChanged(s); renderPanel(); return true; }
+    case 'effDel': { const s = Skills.byId(UI.skEdit); s.effects.splice(+v, 1); skillChanged(s); renderPanel(); return true; }
+    case 'moAdd': { const s = Skills.byId(UI.skEdit); s.motion.push({ m: v, d: .25 }); if (s.motion.length === 1) s.hit = 0; renderPanel(); return true; }
+    case 'moDel': { const s = Skills.byId(UI.skEdit); s.motion.splice(+v, 1); s.hit = clamp(s.hit > +v ? s.hit - 1 : s.hit, 0, Math.max(0, s.motion.length - 1)); renderPanel(); return true; }
+    case 'moHit': { const s = Skills.byId(UI.skEdit); s.hit = +v; renderPanel(); return true; }
+    case 'moDur': { const s = Skills.byId(UI.skEdit), m = s.motion[+b.dataset.i]; if (m) m.d = clamp(+(m.d + .05 * +b.dataset.d).toFixed(2), .05, 1.5); renderPanel(); return true; }
+    case 'moUp': case 'moDn': {
+      const s = Skills.byId(UI.skEdit), i = +v, j = a === 'moUp' ? i - 1 : i + 1;
+      if (j < 0 || j >= s.motion.length) return true;
+      [s.motion[i], s.motion[j]] = [s.motion[j], s.motion[i]];
+      if (s.hit === i) s.hit = j; else if (s.hit === j) s.hit = i;
+      renderPanel(); return true;
+    }
+  }
+  return false;
+}
+// スキルの強さが変わったら、使っているクラスのバランス判定を行う
+function skillChanged(s) { for (const c of G.classes) if (c.skills.includes(s.id)) Classes.scheduleCheck(c); }
+pb.addEventListener('change', e => {
+  const t = e.target;
+  if (t.dataset.mot != null) { const s = Skills.byId(UI.skEdit); if (s && s.motion[+t.dataset.mot]) { s.motion[+t.dataset.mot].m = t.value; Preview.anim = null; } }
+});
 
 /* ステータス詳細の展開 */
 $('#status').addEventListener('click', () => {
@@ -4794,6 +5522,7 @@ function frame(now) {
   Sky.update((G.hour + (SPEEDS[speedIdx] ? clamp(tickAcc, 0, .999) : 0)) % 24);
   Brush.apply(dt);
   simulateUnits(dt * SPEEDS[speedIdx] * SIM_SCALE, dt);
+  FX.update(dt);
   if (selection && (selection.kind === 'monster' || selection.kind === 'player')) placeSelRing();
   if (Brush.ring.visible) Brush.updateRing();
   if (selRing.visible) selRing.material.opacity = .7 + Math.sin(now / 250) * .25;
@@ -4815,6 +5544,7 @@ function boot() {
   Place.init();
   AreaEdit.init();
   Players.init();
+  FX.init();
   Players.reindex();
   Scenery.init();
   Minimap.init();
@@ -4846,6 +5576,6 @@ $('#pickBar').addEventListener('click', e => { if (e.target.closest('[data-pk]')
 boot();
 
 // デバッグ・後続段階用に参照を公開
-window.__arcana = { get G() { return G; }, Cam, Terrain, Brush, Minimap, Objects, Monsters, Place, AreaEdit, Areas, Players, PG, Classes, Quests, Econ, Research, Admin, Requests, serialize, deserialize, setMode, setSpeed, applyQuality, toast, heightAt, slopeAt };
+window.__arcana = { get G() { return G; }, Cam, Terrain, Brush, Minimap, Objects, Monsters, Place, AreaEdit, Areas, Players, PG, Classes, Skills, FX, Preview, Quests, Econ, Research, Admin, Requests, serialize, deserialize, setMode, setSpeed, applyQuality, toast, heightAt, slopeAt };
 })();
 </script>
