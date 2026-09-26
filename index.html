@@ -200,6 +200,15 @@ button:focus-visible{outline:2px solid var(--lumen);outline-offset:2px}
   #hint{display:none}
 }
 body.touch #skills{display:none}
+#mmwrap{cursor:pointer;pointer-events:auto}
+.pm{pointer-events:auto;cursor:pointer;transition:box-shadow .2s}
+.pm.ctrl{box-shadow:inset 0 0 0 1px rgba(230,198,122,.5),0 0 0 1.5px var(--gold),0 0 14px rgba(230,198,122,.35)}
+.pm.ctrl .nm b::after{content:" ◆";color:var(--gold);font-size:9px}
+#buffs{display:flex;gap:4px;flex-wrap:wrap}
+#buffs span{font-size:10.5px;padding:2px 7px;border:1px solid var(--gold);background:rgba(8,19,46,.7);color:#ffe7a6;border-radius:2px}
+.hgrid{display:flex;flex-wrap:wrap;gap:6px;margin:4px 0 14px}
+.hsec{font-family:var(--f-jp);font-size:14px;margin:6px 0 2px;color:var(--gold)}
+.btn.on{background:rgba(230,198,122,.45);color:#fff}
 body.touch #gold{bottom:calc(var(--bot) + 0px)}
 
 /* ---------- combat modes ---------- */
@@ -271,7 +280,7 @@ body.dlg #tbtns,body.dlg #joy{display:none!important}
   #dialog .dc button{padding:6px 12px;font-size:12px}
   #panel{max-height:calc(100% - 16px)}#panel .body{padding:10px 14px 12px}#panel header{padding:10px 14px 0}#panel h2{font-size:16px}
   #mapview .mf{padding:8px}#bigmap{max-height:calc(100vh - 60px)}
-  #tbtns{right:var(--sr);transform:scale(.8);transform-origin:bottom right;bottom:var(--bot)}
+  #tbtns{right:var(--sr);bottom:var(--bot)}
   #joy{width:100px;height:100px}#joy i{width:40px;height:40px;margin:-20px}
   #hint,#skills{display:none}
 }
@@ -284,6 +293,7 @@ body.dlg #tbtns,body.dlg #joy{display:none!important}
   <div id="hud" hidden>
     <div id="modefx"></div><div id="lbox"></div><div id="flash"></div><div id="modetag"></div>
     <div id="party"></div>
+    <div id="buffs" style="position:absolute;left:16px;top:calc(var(--top) + 290px)"></div>
     <div id="tr">
       <div id="mmwrap"><canvas id="minimap" width="352" height="352"></canvas><div id="mmN">N</div></div>
       <div id="place">―</div>
@@ -300,7 +310,7 @@ body.dlg #tbtns,body.dlg #joy{display:none!important}
     <div id="banner"><div class="b1"></div><div class="ln"></div><div class="b2"></div><div class="ln"></div></div>
     <div id="labels"></div>
     <div id="floaters"></div>
-    <div id="hint">WASD 移動 ・ ドラッグ 視点 ・ クリック/J 攻撃 ・ 1 2 3 スキル ・ R 奥義 ・ E 話す</div>
+    <div id="hint">WASD 移動 ・ ドラッグ 視点 ・ クリック/J 攻撃 ・ 1 2 3 スキル ・ R 奥義 ・ E 話す ・ Q 操作キャラ交代</div>
     <div id="prompt" class="pane" hidden></div>
     <div id="skills"></div>
     <div id="gold" class="pane"></div>
@@ -315,6 +325,7 @@ body.dlg #tbtns,body.dlg #joy{display:none!important}
         <div class="tbn s" data-t="jump" style="right:128px;bottom:84px">跳躍</div>
         <div class="tbn s" data-t="use" style="right:78px;bottom:132px">調べる</div>
         <div class="tbn s" data-t="pot" style="right:14px;bottom:146px">薬</div>
+        <div class="tbn s" data-t="swap" style="right:138px;bottom:142px;border-color:var(--gold)">交代</div>
       </div>
     </div>
   </div>
@@ -344,7 +355,7 @@ body.dlg #tbtns,body.dlg #joy{display:none!important}
   </div>
   <div id="intro" class="screen" hidden><p></p><small>クリックで進む</small></div>
   <div id="dead" class="screen" hidden><div><p class="big">力尽きた……</p><p class="muted">所持金の一割を失い、最後に訪れた町で目を覚ます。</p><button class="btn" id="bRevive" type="button">町で目覚める</button></div></div>
-  <div id="ending" class="screen" hidden><div><p class="muted" style="letter-spacing:.4em">蒼穹竜ヴェルザード、光に還る</p><p class="big en">LUMINOUS OATH</p><p class="muted" style="max-width:32em;margin:0 auto 18px">五つの欠片はひとつの誓いに戻り、アストラリアの空は再び澄み渡った。<br>アレン、セレス、リナ、コハク ── 四人の旅路は、まだ続いていく。</p><button class="btn" id="bEnd" type="button">冒険を続ける</button></div></div>
+  <div id="ending" class="screen" hidden><div><p class="muted" id="endSub" style="letter-spacing:.4em"></p><p class="big en" id="endTitle"></p><p class="muted" id="endText" style="max-width:32em;margin:0 auto 18px"></p><button class="btn" id="bEnd" type="button">冒険を続ける</button></div></div>
   <div id="fade"></div>
   <div id="loading">世界を紡いでいます……</div>
 </div>
@@ -379,12 +390,25 @@ const SKY={x:-20,y:120,z:-60,r:40};
 const CAPLK=(()=>{const x=LAKE.x-CAP.x,z=LAKE.z-CAP.z,l=Math.hypot(x,z);return{x:x/l,z:z/l};})();
 const GATE={x:Math.SQRT1_2,z:Math.SQRT1_2};
 const PERP={x:-GATE.z,z:GATE.x};
+const W2={cx:1600,cz:0};
+const TS2=600,TN2=200,TST2=TS2/TN2,TW2=TN2+1;
+const HG2=new Float32Array(TW2*TW2);
+const T2={x:W2.cx-140,z:W2.cz+140,r:34,h:6};
+const THRONE={x:W2.cx+40,z:W2.cz-200,r:34,h:26};
+const VOLC={x:W2.cx+170,z:W2.cz-160};
+const L2=a=>a.map(([x,z])=>[W2.cx+x,W2.cz+z]);
+const ROADS2=[L2([[-140,140],[-60,90],[40,60],[120,150]]),L2([[40,60],[150,20],[190,30]]),L2([[150,20],[120,-60],[140,-110]]),L2([[-140,140],[-150,40],[-160,-80]]),L2([[-150,40],[-80,-60],[-50,-140]]),L2([[-50,-140],[20,-160],[40,-200]]),L2([[-60,90],[-60,170]])];
 const SHARDS=[
   {name:'湖畔の祠',x:62,z:136,boss:'kingslime'},
   {name:'黒霧の森の環状列石',x:-228,z:-58,boss:'grimfang'},
   {name:'ゴブリン砦',x:-40,z:-200,boss:'gobgeneral'},
   {name:'氷の祠',x:-186,z:178,boss:'frostgolem'},
   {name:'古代遺跡アルケイオン',x:200,z:128,boss:'ancientgolem'},
+  {name:'砂の神殿',x:W2.cx+120,z:W2.cz+150,boss:'desertqueen'},
+  {name:'王家の墓所',x:W2.cx+190,z:W2.cz+30,boss:'boneking'},
+  {name:'炎の祭壇',x:W2.cx+140,z:W2.cz-110,boss:'lavagolem'},
+  {name:'翠晶の谷',x:W2.cx-160,z:W2.cz-80,boss:'jadewyrm'},
+  {name:'黒鉄の砦',x:W2.cx-50,z:W2.cz-140,boss:'galvas'},
 ];
 const ROADS=[
   [[177,-93],[205,-40],[200,40],[165,100],[90,150],[0,170],[-80,165],[-130,150]],
@@ -410,18 +434,26 @@ function terrainRaw(x,z){
   return h;
 }
 const FLATS=[{x:VIL.x,z:VIL.z,r:VIL.r,f:32,h:VIL.h}];
-for(const s of SHARDS)FLATS.push({x:s.x,z:s.z,r:14,f:14,h:Math.max(2.5,terrainRaw(s.x,s.z))});
+for(const s of SHARDS.slice(0,5))FLATS.push({x:s.x,z:s.z,r:14,f:14,h:Math.max(2.5,terrainRaw(s.x,s.z))});
 function terrainH(x,z){let h=terrainRaw(x,z);for(const f of FLATS){const d=Math.hypot(x-f.x,z-f.z);if(d<f.r+f.f)h=lerp(h,f.h,smoothstep(f.r+f.f,f.r,d));}return h;}
 const TS=720,TN=240,TSTEP=TS/TN,TW=TN+1;
 const HG=new Float32Array(TW*TW);
 function groundH(x,z){
+  if(x>W2.cx-TS2/2-40)return groundH2(x,z);
   const gx=(x+TS/2)/TSTEP,gz=(z+TS/2)/TSTEP;
   if(gx<0||gz<0||gx>=TN||gz>=TN)return 200;
   const i=gx|0,j=gz|0,fx=gx-i,fz=gz-j,k=j*TW+i;
   return lerp(lerp(HG[k],HG[k+1],fx),lerp(HG[k+TW],HG[k+TW+1],fx),fz);
 }
+function groundH2(x,z){
+  const gx=(x-W2.cx+TS2/2)/TST2,gz=(z-W2.cz+TS2/2)/TST2;
+  if(gx<0||gz<0||gx>=TN2||gz>=TN2)return 200;
+  const i=gx|0,j=gz|0,fx=gx-i,fz=gz-j,k=j*TW2+i;
+  return lerp(lerp(HG2[k],HG2[k+1],fx),lerp(HG2[k+TW2],HG2[k+TW2+1],fx),fz);
+}
+function outOfBounds(x,z){if(x>1000){if(Math.hypot(x-W2.cx,z-W2.cz)>282)return true;if(G.main<12&&Math.hypot(x-THRONE.x,z-THRONE.z)<THRONE.r+3)return true;return false;}return Math.hypot(x,z)>305;}
 function slopeAt(x,z){const a=groundH(x+1.5,z)-groundH(x-1.5,z),b=groundH(x,z+1.5)-groundH(x,z-1.5);return Math.hypot(a,b)/3;}
-function inTown(x,z,m=0){return Math.hypot(x-VIL.x,z-VIL.z)<VIL.r+m||Math.hypot(x-CAP.x,z-CAP.z)<CAP.r+m;}
+function inTown(x,z,m=0){return Math.hypot(x-VIL.x,z-VIL.z)<VIL.r+m||Math.hypot(x-CAP.x,z-CAP.z)<CAP.r+m||Math.hypot(x-T2.x,z-T2.z)<T2.r+4+m;}
 function forestD(x,z){let d=.05+smoothstep(.05,.42,fbm(x*.011+50,z*.011+50,3))*.55;
   if(x<-150&&z>-190&&z<60)d+=.6*smoothstep(-150,-185,x);
   if(Math.hypot(x+60,z-40)<40)d+=.2;return clamp(d,0,.95);}
@@ -459,8 +491,8 @@ const stars=new THREE.Points(starGeo,starMat);scene.add(stars);
 
 const cloudTex=canvasTex(256,128,(g,w,h)=>{for(let i=0;i<22;i++){const x=w*.15+rnd()*w*.7,y=h*.35+rnd()*h*.35,r=18+rnd()*34;const gr=g.createRadialGradient(x,y,0,x,y,r);gr.addColorStop(0,'rgba(255,255,255,.95)');gr.addColorStop(1,'rgba(255,255,255,0)');g.fillStyle=gr;g.fillRect(0,0,w,h);}});
 const glowTex=canvasTex(64,64,(g)=>{const gr=g.createRadialGradient(32,32,0,32,32,32);gr.addColorStop(0,'rgba(255,255,255,1)');gr.addColorStop(.3,'rgba(255,255,255,.5)');gr.addColorStop(1,'rgba(255,255,255,0)');g.fillStyle=gr;g.fillRect(0,0,64,64);});
-const clouds=[];const cloudMat=new THREE.SpriteMaterial({map:cloudTex,transparent:true,opacity:.92,depthWrite:false,fog:false});
-for(let i=0;i<46;i++){const s=new THREE.Sprite(cloudMat);const a=rnd()*TAU,r=120+rnd()*650;s.position.set(Math.cos(a)*r,95+rnd()*120,Math.sin(a)*r);const sc=90+rnd()*140;s.scale.set(sc,sc*.5,1);scene.add(s);clouds.push(s);}
+const cloudG=new THREE.Group();scene.add(cloudG);const clouds=[];const cloudMat=new THREE.SpriteMaterial({map:cloudTex,transparent:true,opacity:.92,depthWrite:false,fog:false});
+for(let i=0;i<46;i++){const s=new THREE.Sprite(cloudMat);const a=rnd()*TAU,r=120+rnd()*650;s.position.set(Math.cos(a)*r,95+rnd()*120,Math.sin(a)*r);const sc=90+rnd()*140;s.scale.set(sc,sc*.5,1);cloudG.add(s);clouds.push(s);}
 
 // ================================================================ terrain mesh
 const tGeo=new THREE.BufferGeometry();
@@ -762,6 +794,158 @@ const sanctum=new THREE.Group();sanctum.position.set(SKY.x,SKY.y,SKY.z);scene.ad
   for(const a of rocks)if(a[3]>1.2)addTreeCol(a[0],a[2],a[3]*.8);
 }
 
+// ================================================================ WORLD 2 : 黄昏の大陸ノクティス
+const W1_EXCL=new Set([hemi,sun,sun.target,amb,sky,stars,pts,cloudG]);
+const W1_OBJS=scene.children.filter(o=>!W1_EXCL.has(o));
+const w2G=new THREE.Group();w2G.visible=false;scene.add(w2G);
+for(const r of ROADS2)ROADS.push(r);
+const ROADS2L=ROADS2.map(r=>r.map(([x,z])=>[x-W2.cx,z-W2.cz]));
+function roadDistL(x,z){let m=1e9;for(const r of ROADS2L)for(let i=0;i<r.length-1;i++){const d=segDist(x,z,r[i][0],r[i][1],r[i+1][0],r[i+1][1]);if(d<m)m=d;}return m;}
+function t2Raw(x,z){
+  let h=fbm(x*.005+71,z*.005-33,4)*10+7;
+  const desert=smoothstep(-40,90,x*.6+z*.8);
+  const dune=1-Math.abs(vnoise(x*.017+z*.006+5,z*.021-x*.004));
+  h+=dune*dune*7*desert+fbm(x*.03,z*.03,2)*1.2;
+  const dl=Math.hypot(x+55,(z-55)*1.1),edge=46+fbm(x*.03+2,z*.03,2)*10;
+  h=lerp(h,-7,smoothstep(edge+30,edge-14,dl));
+  const canyon=smoothstep(-30,-130,x+z);
+  if(canyon>0){const mesa=smoothstep(.02,.2,fbm(x*.013+9,z*.013+4,3));h+=canyon*mesa*20*smoothstep(5,16,roadDistL(x,z));}
+  const dv=Math.hypot(x-170,z+160);
+  if(dv<130){const cone=Math.pow(1-dv/130,1.4)*80;h=Math.max(h,h*.35+cone);if(dv<15)h-=(15-dv)*1.5;}
+  const r=Math.hypot(x,z);if(r>228){const m=r-228,ridge=1-Math.abs(vnoise(x*.02+3,z*.02+8));h+=m*m*.012*(.5+ridge)+m*.5*ridge;}
+  return h;
+}
+const FLATS2=[{x:T2.x-W2.cx,z:T2.z-W2.cz,r:T2.r+2,f:30,h:T2.h},{x:THRONE.x-W2.cx,z:THRONE.z-W2.cz,r:THRONE.r+10,f:48,h:THRONE.h}];
+for(let i=5;i<10;i++){const s=SHARDS[i],lx=s.x-W2.cx,lz=s.z-W2.cz;FLATS2.push({x:lx,z:lz,r:14,f:14,h:Math.max(2.5,t2Raw(lx,lz))});}
+function t2H(x,z){let h=t2Raw(x,z);for(const f of FLATS2){const d=Math.hypot(x-f.x,z-f.z);if(d<f.r+f.f)h=lerp(h,f.h,smoothstep(f.r+f.f,f.r,d));}return h;}
+const t2Geo=new THREE.BufferGeometry();
+{
+  const pos=new Float32Array(TW2*TW2*3),col=new Float32Array(TW2*TW2*3);
+  for(let j=0;j<TW2;j++)for(let i=0;i<TW2;i++){const lx=-TS2/2+i*TST2,lz=-TS2/2+j*TST2,h=t2H(lx,lz),k=j*TW2+i;HG2[k]=h;pos[k*3]=W2.cx+lx;pos[k*3+1]=h;pos[k*3+2]=W2.cz+lz;}
+  const idx=[];for(let j=0;j<TN2;j++)for(let i=0;i<TN2;i++){const a=j*TW2+i,b=a+1,c=a+TW2,d=c+1;idx.push(a,c,b,b,c,d);}
+  t2Geo.setAttribute('position',new THREE.BufferAttribute(pos,3));t2Geo.setIndex(idx);t2Geo.computeVertexNormals();
+  const nrm=t2Geo.attributes.normal.array,C=h=>new THREE.Color(h);
+  const sA=C(0xe6c690),sB=C(0xd2a468),wet=C(0x8a7050),red=C(0xb26a48),cry=C(0x7a62a8),cryD=C(0x54447a),bas=C(0x3d3338),grass=C(0x7aa84a),road=C(0xb0905c),pave=C(0xe2d2aa),dark=C(0x3a3044),tmp=new THREE.Color(),o=new THREE.Color();
+  for(let k=0;k<TW2*TW2;k++){
+    const x=pos[k*3],h=pos[k*3+1],z=pos[k*3+2],lx=x-W2.cx,lz=z-W2.cz,ny=nrm[k*3+1],n=fbm(lx*.03,lz*.03,2);
+    if(h<-.4)o.copy(wet);else o.copy(sA).lerp(sB,clamp(.5+n,0,1));
+    const canyon=smoothstep(-30,-130,lx+lz);if(canyon>0&&h>2)o.lerp(cry,canyon*.55);
+    if(ny<.85&&h>0)o.lerp(canyon>.5?cryD:red,clamp((.85-ny)*4,0,1));
+    const dl=Math.hypot(lx+55,(lz-55)*1.1);if(dl<80&&h>.8)o.lerp(grass,smoothstep(80,52,dl)*.85);
+    const dv=Math.hypot(lx-170,lz+160);if(dv<120)o.lerp(bas,smoothstep(120,50,dv));
+    const rd=roadDist(x,z);if(rd<4&&h>0)o.lerp(road,smoothstep(4,2,rd)*.85);
+    if(Math.hypot(x-T2.x,z-T2.z)<T2.r+1)o.lerp(pave,.85);
+    if(Math.hypot(x-THRONE.x,z-THRONE.z)<THRONE.r+1)o.lerp(dark,.9);
+    for(let s=5;s<10;s++){const S=SHARDS[s],ds=Math.hypot(x-S.x,z-S.z);if(ds<9)o.lerp(tmp.set(0xa89878),smoothstep(9,6,ds)*.7);}
+    const v=.92+hash(k,11)*.12;col[k*3]=o.r*v;col[k*3+1]=o.g*v;col[k*3+2]=o.b*v;
+  }
+  t2Geo.setAttribute('color',new THREE.BufferAttribute(col,3));
+}
+const terrain2=new THREE.Mesh(t2Geo,lam(0xffffff,{vertexColors:true}));terrain2.receiveShadow=true;w2G.add(terrain2);
+{const w=new THREE.Mesh(new THREE.PlaneGeometry(TS2,TS2),water.material);w.rotation.x=-Math.PI/2;w.position.set(W2.cx,0,W2.cz);w.receiveShadow=true;w2G.add(w);}
+{const ly=groundH(VOLC.x,VOLC.z)+2;const lv=new THREE.Mesh(new THREE.CircleGeometry(16,28),basic(0xff5a1a));lv.rotation.x=-Math.PI/2;lv.position.set(VOLC.x,ly,VOLC.z);w2G.add(lv);anim.lava={x:VOLC.x,y:ly,z:VOLC.z};}
+const M2={sand:lam(0xe8d0a0),sandD:lam(0xc8a878),teal:lam(0x2f8f9a),white:lam(0xf4efe6),cloth:[0xc0392b,0x2e86c1,0xf1c40f,0x8e44ad,0x16a085].map(c=>lam(c,{side:THREE.DoubleSide})),
+  dark:lam(0x2e2836),darkR:lam(0x6a1a2a),purple:lam(0xb080ff,{emissive:0x4a1a8a}),basalt:lam(0x3a3035),lavaM:basic(0xff6a2a),
+  crystal:lam(0x9a7ae0,{emissive:0x3a1a6a,transparent:true,opacity:.9}),jade:lam(0x6affc0,{emissive:0x1a6a4a,transparent:true,opacity:.9})};
+function makeRuneTex(col){return canvasTex(256,256,(g)=>{g.translate(128,128);g.strokeStyle=col;g.lineWidth=3;for(const r of[120,100,70])g.beginPath(),g.arc(0,0,r,0,TAU),g.stroke();
+  g.lineWidth=2;for(let i=0;i<6;i++){const a=i/6*TAU;g.beginPath();g.moveTo(Math.cos(a)*100,Math.sin(a)*100);g.lineTo(Math.cos(a+2.094)*100,Math.sin(a+2.094)*100);g.stroke();}
+  g.font='bold 16px serif';g.fillStyle=col;for(let i=0;i<24;i++){g.save();g.rotate(i/24*TAU);g.fillText('ᚠᚢᚦᚨᚱᚲᚷᚹᚺᚾᛁᛃ'[i%12],-6,-104);g.restore();}});}
+function dome(parent,x,y,z,r,mat){const d=part(new THREE.SphereGeometry(r,16,10,0,TAU,0,Math.PI/2),mat,x,y,z,parent);d.scale.y=1.2;part(new THREE.ConeGeometry(r*.12,r*.7,6),M.gold,x,y+r*1.2+r*.3,z,parent,false);return d;}
+function minaret(parent,x,z,h){part(cyl(1,1.2,h,10),M2.sand,x,h/2,z,parent);part(cyl(1.6,1.6,.6,10),M2.sandD,x,h*.78,z,parent);dome(parent,x,h,z,1.2,M2.teal);}
+function house2(parent,x,z,w,d,h,rot){const g=new THREE.Group();g.position.set(x,0,z);g.rotation.y=rot;parent.add(g);
+  part(BOX(w,h,d),rnd()<.5?M2.sand:M2.white,0,h/2,0,g);part(BOX(w+.3,.4,d+.3),M2.sandD,0,h+.2,0,g);
+  for(let i=0;i<4;i++)part(BOX(.5,.5,.5),M2.sandD,(i%2?1:-1)*(w/2-.1),h+.6,(i>1?1:-1)*(d/2-.1),g,false);
+  part(BOX(1.1,2,.12),M.dark,0,1,d/2+.02,g,false);part(BOX(.7,.7,.1),M.dark,w*.3,h*.65,d/2+.02,g,false);
+  if(rnd()<.45)dome(g,0,h+.4,0,Math.min(w,d)*.32,rnd()<.5?M2.teal:M2.white);
+  if(rnd()<.6){const aw=part(BOX(2.2,.08,1.2),pick(M2.cloth),0,2.3,d/2+.55,g,false);aw.rotation.x=.3;}
+  return g;}
+// ---- town アル＝ミラージュ
+const town2=new THREE.Group();town2.position.set(T2.x,T2.h,T2.z);w2G.add(town2);
+const t2c=(lx,lz,r)=>addCol(T2.x+lx,T2.z+lz,r);
+{
+  const pal=new THREE.Group();pal.position.set(0,0,26);pal.rotation.y=Math.PI;town2.add(pal);
+  part(BOX(22,9,12),M2.sand,0,4.5,0,pal);part(BOX(23,.8,13),M2.sandD,0,9.2,0,pal);
+  part(cyl(6.3,6.3,1.4,20),M2.sandD,0,10.2,0,pal);dome(pal,0,10.9,0,6,M2.teal);
+  for(const sx of[-1,1])dome(pal,sx*7.5,9.6,0,2.4,M2.white);
+  for(const [x,z] of[[-11,-6],[11,-6],[-11,6],[11,6]])minaret(pal,x,z,20);
+  for(const x of[-6,6])part(BOX(2.2,4.4,.2),M.dark,x,2.6,6.05,pal,false);part(BOX(3.4,6,.2),M.dark,0,3,6.05,pal,false);
+  for(const x of[-7,0,7])t2c(x,26,6.6);for(const [x,z] of[[-11,20],[11,20],[-11,32],[11,32]])t2c(x,z,1.6);
+  part(cyl(3.4,3.6,.9,20),M2.sandD,0,.45,0,town2);part(cyl(2.9,2.9,.2,20),lam(0x3a9ad0),0,.85,0,town2,false);part(cyl(.35,.5,2.4,10),M2.sand,0,1.2,0,town2);part(new THREE.SphereGeometry(.7,10,8),M2.teal,0,2.6,0,town2);t2c(0,0,3.6);
+  const rt=makeRuneTex('#ffe3a8');const rm=new THREE.MeshBasicMaterial({map:rt,transparent:true,opacity:.7,blending:THREE.AdditiveBlending,depthWrite:false});
+  const rune=new THREE.Mesh(new THREE.PlaneGeometry(9,9),rm);rune.rotation.x=-Math.PI/2;rune.position.set(0,.08,-14);town2.add(rune);part(cyl(4.8,5,.3,24),M2.sandD,0,0,-14,town2);
+  for(const s of[-1,1]){part(cyl(.7,.9,1.2,6),M2.sandD,s*6,.6,-14,town2);const ob=part(new THREE.OctahedronGeometry(.8),new THREE.MeshLambertMaterial({color:0xffe3a8,emissive:0x8a5a1a}),s*6,2.2,-14,town2);ob.scale.y=2;anim.runes.push(ob);}
+  anim.portal2={x:T2.x,z:T2.z-14,rune};
+  // market tents
+  for(const [x,z] of[[-21,-6],[-22,3],[-12,-10]]){const tg=new THREE.Group();tg.position.set(x,0,z);tg.rotation.y=rnd()*3;town2.add(tg);for(const [a,b] of[[-1.3,-1.3],[1.3,-1.3],[-1.3,1.3],[1.3,1.3]])part(cyl(.08,.08,2.8,5),M.wood,a,1.4,b,tg);
+    const cv=part(BOX(3.2,.12,3.2),pick(M2.cloth),0,2.85,0,tg,false);cv.rotation.x=.12;part(BOX(2.4,.8,1),M.wood,0,.4,.6,tg);t2c(x,z,1.9);}
+  // smithy
+  {const sm=new THREE.Group();sm.position.set(22,0,-4);sm.rotation.y=-Math.PI/2;town2.add(sm);part(BOX(7,4.5,5),M2.sandD,0,2.25,-1,sm);part(BOX(7.6,.4,7),M.wood,0,4.7,0,sm);
+    part(BOX(1.4,1,.8),lam(0x4a4a52),0,.5,2.2,sm);const fg=part(BOX(1.6,1.2,1.4),M2.basalt,2.2,.6,1.8,sm);anim.forge={x:T2.x+22-1.8,y:T2.h+1.3,z:T2.z-4-2.2};t2c(22,-4,3.6);}
+  // inn
+  {const g=house2(town2,24,13,8,6.5,6,-Math.PI/2);const sign=part(BOX(2,1,.1),pick(M2.cloth),0,4.4,3.4,g,false);t2c(24,13,5);}
+  const spots=[[0,14],[-6,14],[-15,-2],[15,-2],[16,10],[-16,10],[8,-22],[-6,-8],[7,7],[0,-14],[0,0],[-21,-6],[-22,3],[-12,-10],[22,-4],[24,13]];
+  const gaps=[Math.atan2(-50,80),Math.atan2(-100,-10)];const placed=[];
+  for(let k=0;k<500&&placed.length<22;k++){
+    const a=rnd()*TAU,r=19+rnd()*14,x=Math.cos(a)*r,z=Math.sin(a)*r;
+    if(Math.abs(x)<17&&z>13)continue;if(gaps.some(g=>Math.abs(angDiff(a,g))<.28))continue;
+    if(spots.some(s=>Math.hypot(x-s[0],z-s[1])<7.5))continue;if(placed.some(p=>Math.hypot(x-p[0],z-p[1])<7))continue;
+    placed.push([x,z]);const w=4.5+rnd()*2.5,d=4.5+rnd()*2,h=4+rnd()*3;house2(town2,x,z,w,d,h,Math.atan2(-x,-z));t2c(x,z,Math.max(w,d)*.62);}
+  for(let i=0;i<36;i++){const a0=i/36*TAU,a1=(i+1)/36*TAU,am=(a0+a1)/2;if(gaps.some(g=>Math.abs(angDiff(am,g))<.2))continue;
+    const R0=38,x0=Math.cos(a0)*R0,z0=Math.sin(a0)*R0,x1=Math.cos(a1)*R0,z1=Math.sin(a1)*R0;wallBetween(town2,x0,z0,x1,z1,3.4,1.2,M2.sandD);t2c((x0+x1)/2,(z0+z1)/2,1.4);
+    if(i%3===0){part(cyl(1,1.1,5,8),M2.sand,x0,2.5,z0,town2);dome(town2,x0,5,z0,1,M2.teal);}}
+}
+// ---- guardian sites
+function siteG(i){const s=SHARDS[i];const g=new THREE.Group();g.position.set(s.x,groundH(s.x,s.z),s.z);w2G.add(g);return g;}
+{const s=SHARDS[5],g=siteG(5);const py=part(new THREE.ConeGeometry(15,14,4),M2.sandD,0,6,-24,g);py.rotation.y=Math.PI/4;addCol(s.x,s.z-24,11);
+  for(let i=0;i<8;i++){const a=i/8*TAU;part(cyl(.7,.8,6,8),M2.sand,Math.cos(a)*10,3,Math.sin(a)*10,g);addCol(s.x+Math.cos(a)*10,s.z+Math.sin(a)*10,1);}
+  for(const sx of[-1,1]){const sp=new THREE.Group();sp.position.set(sx*6,0,-11);g.add(sp);part(BOX(2,2,4),M2.sand,0,1,0,sp);part(BOX(1.6,1.8,1.4),M2.sand,0,2.6,1.4,sp);addCol(s.x+sx*6,s.z-11,2.2);}}
+{const s=SHARDS[6],g=siteG(6);for(let i=0;i<6;i++){const a=i/6*TAU+.3,x=Math.cos(a)*11,z=Math.sin(a)*11;const ob=part(cyl(.3,1,9,4),M2.sandD,x,4.5,z,g);ob.rotation.y=Math.PI/4;part(new THREE.ConeGeometry(.45,1,4),M.gold,x,9.5,z,g);addCol(s.x+x,s.z+z,1.1);}
+  for(let i=0;i<5;i++){const b=part(BOX(1.4,1,3),M2.sand,(rnd()-.5)*14,.5,(rnd()-.5)*14,g);b.rotation.y=rnd()*3;}
+  const gt=new THREE.Group();gt.position.set(0,0,-14);g.add(gt);for(const x of[-3,3])part(BOX(1.6,8,1.6),M2.sandD,x,4,0,gt);part(BOX(8,1.4,2),M2.sandD,0,8.5,0,gt);addCol(s.x-3,s.z-14,1.2);addCol(s.x+3,s.z-14,1.2);}
+{const s=SHARDS[7],g=siteG(7);for(let i=0;i<8;i++){const a=i/8*TAU,x=Math.cos(a)*10,z=Math.sin(a)*10;part(BOX(1.4,5+rnd()*3,1.4),M2.basalt,x,3,z,g);addCol(s.x+x,s.z+z,1);}
+  for(let i=0;i<4;i++){const a=i/4*TAU+.4;const p=part(new THREE.CircleGeometry(1.6,14),M2.lavaM,Math.cos(a)*5,.12,Math.sin(a)*5,g,false);p.rotation.x=-Math.PI/2;}
+  part(cyl(2,2.4,1,8),M2.basalt,0,.5,0,g);anim.fire2={x:s.x,y:g.position.y+1,z:s.z};}
+{const s=SHARDS[8],g=siteG(8);for(let i=0;i<18;i++){const a=rnd()*TAU,r=8+rnd()*8,c=part(new THREE.OctahedronGeometry(1),rnd()<.5?M2.jade:M2.crystal,Math.cos(a)*r,2,Math.sin(a)*r,g);c.scale.set(1+rnd(),3+rnd()*4,1+rnd());c.rotation.set((rnd()-.5)*.5,rnd()*3,(rnd()-.5)*.5);if(r<13)addCol(s.x+Math.cos(a)*r,s.z+Math.sin(a)*r,1.2);}}
+{const s=SHARDS[9],g=siteG(9);for(let i=0;i<14;i++){const a0=i/14*TAU,a1=(i+1)/14*TAU;if(Math.abs(angDiff((a0+a1)/2,Math.PI/2))<.3)continue;wallBetween(g,Math.cos(a0)*16,Math.sin(a0)*16,Math.cos(a1)*16,Math.sin(a1)*16,5,1.6,M2.dark);for(let t=0;t<=1;t+=.25)addCol(s.x+Math.cos(lerp(a0,a1,t))*16,s.z+Math.sin(lerp(a0,a1,t))*16,1.4);}
+  for(let i=0;i<4;i++){const a=i/4*TAU+.78,x=Math.cos(a)*16,z=Math.sin(a)*16;part(cyl(2,2.2,9,8),M2.dark,x,4.5,z,g);part(new THREE.ConeGeometry(2.6,4,8),M2.darkR,x,11,z,g);addCol(s.x+x,s.z+z,2.4);}}
+// ---- throne of twilight
+{const g=new THREE.Group();g.position.set(THRONE.x,THRONE.h,THRONE.z);w2G.add(g);
+  part(cyl(THRONE.r,THRONE.r+.5,.4,40),M2.dark,0,.1,0,g);
+  const ring=part(new THREE.RingGeometry(20,21,48),basic(0xb070ff,{side:THREE.DoubleSide,transparent:true,opacity:.6}),0,.35,0,g,false);ring.rotation.x=-Math.PI/2;
+  for(let i=0;i<8;i++){const a=i/8*TAU,x=Math.cos(a)*28,z=Math.sin(a)*28;part(BOX(1.6,10,1.6),M2.dark,x,5,z,g);const c=part(new THREE.OctahedronGeometry(1),M2.purple,x,11.5,z,g,false);c.scale.y=1.8;anim.runes.push(c);addCol(THRONE.x+x,THRONE.z+z,1.3);}
+  const cs=new THREE.Group();cs.position.set(0,0,-44);g.add(cs);part(BOX(26,16,10),M2.dark,0,8,0,cs);
+  for(const x of[-13,13]){part(cyl(3,3.4,24,8),M2.dark,x,12,0,cs);part(new THREE.ConeGeometry(4,10,8),M2.darkR,x,29,0,cs);}
+  part(cyl(4,4.4,34,8),M2.dark,0,17,-3,cs);part(new THREE.ConeGeometry(5.2,14,8),M2.darkR,0,41,-3,cs);
+  const th=new THREE.Group();th.position.set(0,0,-26);g.add(th);part(BOX(6,1,4),M2.dark,0,.5,0,th);part(BOX(4,2,3),M2.darkR,0,2,0,th);part(BOX(4.4,8,1),M2.dark,0,5,-1.5,th);for(const x of[-2.4,2.4])part(new THREE.ConeGeometry(.5,3,6),M.gold,x,10,-1.5,th);addCol(THRONE.x,THRONE.z-26,3);
+  const bar=new THREE.Mesh(new THREE.SphereGeometry(THRONE.r+3,32,16,0,TAU,0,Math.PI/2),new THREE.MeshBasicMaterial({color:0x9a5aff,transparent:true,opacity:.22,side:THREE.DoubleSide,blending:THREE.AdditiveBlending,depthWrite:false}));g.add(bar);anim.barrier=bar;}
+// ---- vegetation
+{
+  const palms=[],cacti=[],crys=[],rocks2=[],deadT=[];
+  for(let k=0;k<20000;k++){const lx=(rnd()*2-1)*280,lz=(rnd()*2-1)*280;if(Math.hypot(lx,lz)>272)continue;const x=W2.cx+lx,z=W2.cz+lz,h=groundH(x,z);if(h<1.4)continue;const sl=slopeAt(x,z);
+    if(inTown(x,z,6)||roadDist(x,z)<4.5||Math.hypot(x-THRONE.x,z-THRONE.z)<48||SHARDS.slice(5).some(s=>Math.hypot(x-s.x,z-s.z)<18))continue;
+    const dl=Math.hypot(lx+55,(lz-55)*1.1),dv=Math.hypot(lx-170,lz+160),canyon=smoothstep(-30,-130,lx+lz),desert=smoothstep(-40,90,lx*.6+lz*.8),r=rnd();
+    if(dl<85&&r<.3&&sl<.8)palms.push([x,h,z,.8+rnd()*.5]);
+    else if(dv<115&&r<.05)deadT.push([x,h,z,.8+rnd()*.6]);
+    else if(canyon>.4&&r<.06)crys.push([x,h,z,.6+rnd()*1.4]);
+    else if(desert>.3&&r<.03&&sl<.6)cacti.push([x,h,z,.8+rnd()*.6]);
+    else if(r<.02)rocks2.push([x,h,z,.5+rnd()*2]);
+    else if(r<.027&&dl>85&&sl<.6)palms.push([x,h,z,.7+rnd()*.4]);
+  }
+  const dmy=new THREE.Object3D(),cl=new THREE.Color();
+  function inst2(geo,mat,arr,fn,shadow){const m=new THREE.InstancedMesh(geo,mat,Math.max(1,arr.length));m.count=arr.length;arr.forEach((a,i)=>{fn(a,dmy,cl,i);dmy.updateMatrix();m.setMatrixAt(i,dmy.matrix);m.setColorAt(i,cl);});if(m.instanceColor)m.instanceColor.needsUpdate=true;m.castShadow=!!shadow;m.receiveShadow=true;w2G.add(m);return m;}
+  const W=()=>lam(0xffffff);
+  for(const a of palms)a[4]=(rnd()-.5)*.3,a[5]=rnd()*TAU;
+  inst2(cyl(.22,.34,5.5,6),W(),palms,(a,d,c)=>{d.position.set(a[0],a[1]+2.7*a[3],a[2]);d.rotation.set(a[4],a[5],0);d.scale.setScalar(a[3]);c.set(0x8a6a42);},true);
+  inst2(new THREE.ConeGeometry(3,1.3,7),W(),palms,(a,d,c)=>{d.position.set(a[0]+Math.sin(a[4])*Math.sin(a[5])*5.4*a[3],a[1]+5.5*a[3],a[2]+Math.sin(a[4])*Math.cos(a[5])*5.4*a[3]);d.rotation.set(0,a[5],0);d.scale.set(a[3],a[3]*.55,a[3]);c.setHSL(.27+rnd()*.05,.45,.3+rnd()*.08);},true);
+  inst2(cyl(.4,.45,3.2,8),W(),cacti,(a,d,c)=>{d.position.set(a[0],a[1]+1.6*a[3],a[2]);d.rotation.set(0,0,0);d.scale.setScalar(a[3]);c.setHSL(.3,.45,.32+rnd()*.06);},true);
+  const arms=[];for(const a of cacti){const yaw=rnd()*TAU;for(const s of[-1,1])arms.push([a[0]+Math.cos(yaw)*.75*s*a[3],a[1]+(1.9+s*.3)*a[3],a[2]+Math.sin(yaw)*.75*s*a[3],a[3]]);}
+  inst2(cyl(.24,.24,1.3,6),W(),arms,(a,d,c)=>{d.position.set(a[0],a[1],a[2]);d.rotation.set(0,0,0);d.scale.setScalar(a[3]);c.setHSL(.3,.45,.34);},false);
+  inst2(new THREE.OctahedronGeometry(1),lam(0xffffff,{emissive:0x2a1a4a}),crys,(a,d,c)=>{d.position.set(a[0],a[1]+a[3]*1.4,a[2]);d.scale.set(a[3]*.8,a[3]*2.4,a[3]*.8);d.rotation.set((rnd()-.5)*.4,rnd()*3,(rnd()-.5)*.4);c.set(rnd()<.35?0x7affc0:0xa888ff);},true);
+  inst2(cyl(.18,.35,4.2,5),W(),deadT,(a,d,c)=>{d.position.set(a[0],a[1]+2*a[3],a[2]);d.rotation.set((rnd()-.5)*.3,rnd()*3,(rnd()-.5)*.3);d.scale.setScalar(a[3]);c.set(0x2e2622);},true);
+  inst2(new THREE.DodecahedronGeometry(1,0),W(),rocks2,(a,d,c)=>{d.position.set(a[0],a[1]+a[3]*.25,a[2]);d.scale.set(a[3],a[3]*.7,a[3]*(.8+rnd()*.4));d.rotation.set(rnd(),rnd()*3,rnd());c.setHSL(.05,.35,.35+rnd()*.12);},true);
+  for(const a of palms)addTreeCol(a[0],a[2],.45*a[3]);for(const a of cacti)addTreeCol(a[0],a[2],.6*a[3]);for(const a of crys)addTreeCol(a[0],a[2],.7*a[3]);for(const a of deadT)addTreeCol(a[0],a[2],.4);for(const a of rocks2)if(a[3]>1.2)addTreeCol(a[0],a[2],a[3]*.8);
+}
+
 // ================================================================ characters
 function makeHumanoid(o){
   const g=new THREE.Group(),P={};
@@ -816,7 +1000,7 @@ function animHumanoid(m,t,mv,o={}){
 
 // ================================================================ state
 const G={state:'boot',time:.3,dayLen:720,t:0,inSky:false,shake:0,gold:150,potions:3,ethers:1,weaponLv:0,armorLv:0,lvl:1,exp:0,
-  main:0,slimeKills:0,shards:[0,0,0,0,0],bossDead:[0,0,0,0,0],side:{wolf:0,wolfKills:0,gob:0,gobKills:0},dragonDead:0,lastTown:'village',ult:0,focus:null,modalPause:false,seenEnding:0};
+  main:0,slimeKills:0,shards:Array(10).fill(0),bossDead:Array(10).fill(0),side:{wolf:0,wolfKills:0,gob:0,gobKills:0,scorp:0,scorpKills:0,skel:0,skelKills:0},dragonDead:0,zervanDead:0,scKills:0,hipot:0,feathers:0,seenEnding2:0,w2Arrived:0,ctrl:'allen',help:{god:false,dmg:1,taken:1},buff:{atk:0,haste:0},lastTown:'village',ult:0,focus:null,modalPause:false,seenEnding:0};
 const SAVE_KEY='luminous-oath-save-v1';
 const cam={yaw:-.8,pitch:.32,dist:11,tx:0,ty:0,tz:0};
 
@@ -831,22 +1015,22 @@ function member(key,name,role,ch,look,mult){
   return{key,name,role,ch,model:m,pos:new THREE.Vector3(),vel:new THREE.Vector3(),vy:0,rotY:0,hp:100,maxHp:100,mp:50,maxMp:50,atk:10,mag:10,def:3,alive:true,mult,
     cd:0,cd2:0,animT:rnd()*10,mv:0,castT:0,downT:0,invuln:0,radius:.55,lastHit:0};
 }
-const player=member('allen','アレン','剣士','ア','allen',{hp:1,atk:1,mag:1,def:1});
-Object.assign(player,{isPlayer:true,atkT:0,atkDur:0,combo:0,queued:false,hitDone:false,spinT:0,onGround:true,skillCd:[0,0,0],hurtT:0,regenT:0});
-const comps=[
+let player=member('allen','アレン','剣士','ア','allen',{hp:1,atk:1,mag:1,def:1});
+let comps=[
   member('celes','セレス','聖女','セ','celes',{hp:.8,atk:.6,mag:1.15,def:.8}),
   member('rina','リナ','炎術士','リ','rina',{hp:.82,atk:.7,mag:1.25,def:.75}),
   member('kohaku','コハク','弓使い','コ','kohaku',{hp:.92,atk:1.05,mag:.6,def:.9}),
 ];
 const party=[player,...comps];
+for(const m of party)Object.assign(m,{atkT:0,atkDur:0,combo:0,queued:false,hitDone:false,spinT:0,onGround:true,skillCd:[0,0,0]});
 const FACE={allen:'linear-gradient(135deg,#3a4a7a,#1a2140)',celes:'linear-gradient(135deg,#f4eefc,#9bb6e8)',rina:'linear-gradient(135deg,#ffc2cf,#c8453a)',kohaku:'linear-gradient(135deg,#f3dfa8,#5f7f4f)'};
 function needExp(l){return Math.floor(30*Math.pow(l,1.75));}
 function recalc(full){
   const L=G.lvl;
   for(const m of party){const u=m.mult;
-    const mh=Math.round((120+(L-1)*22+G.armorLv*32)*u.hp),mm=Math.round((60+(L-1)*6)*(m.isPlayer?1:.8));
+    const mh=Math.round((120+(L-1)*22+G.armorLv*32)*u.hp),mm=Math.round(60+(L-1)*6);
     const ratio=m.maxHp?m.hp/m.maxHp:1;m.maxHp=mh;m.maxMp=mm;
-    m.atk=Math.round((12+(L-1)*3.2+(m.isPlayer?G.weaponLv*7:G.weaponLv*3))*u.atk);m.mag=Math.round((10+(L-1)*3)*u.mag+G.weaponLv*2);m.def=Math.round((4+(L-1)*1.3+G.armorLv*3)*u.def);
+    m.atk=Math.round((12+(L-1)*3.2+G.weaponLv*({allen:7,kohaku:5}[m.key]||3))*u.atk);m.mag=Math.round((10+(L-1)*3)*u.mag+G.weaponLv*(m.key==='rina'||m.key==='celes'?4:2));m.def=Math.round((4+(L-1)*1.3+G.armorLv*3)*u.def);
     if(full){m.hp=mh;m.mp=mm;}else{m.hp=Math.min(mh,Math.round(mh*ratio));m.mp=Math.min(m.mp,mm);}
   }
 }
@@ -911,6 +1095,7 @@ function sfx(k){if(!AU.ctx)return;switch(k){
 }}
 const TRACKS={
   field:{spb:.4,vol:.22,ch:[[62,66,69],[59,62,66],[55,59,62],[57,61,64]],sc:[62,64,66,69,71,74,76,78,81],lead:'sine',lv:.07,lp:.55,pad:'triangle',pv:.05,po:-12,pa:.6,bp:[0,null,null,null,0,null,null,null],bt:'sine',bv:.12},
+  field2:{spb:.34,vol:.22,ch:[[64,68,71],[65,69,72],[62,65,69],[64,68,71]],sc:[64,65,68,69,71,72,74,76,77,80],lead:'triangle',lv:.06,lp:.5,pad:'triangle',pv:.045,po:-12,pa:.5,bp:[0,null,null,7,0,null,null,null],bt:'sine',bv:.11,perc:[0,3,6]},
   battle:{spb:.19,vol:.24,ch:[[57,60,64],[53,57,60],[55,59,62],[52,56,59]],sc:[69,71,72,74,76,77,80,81],lead:'square',lv:.032,lp:.72,pad:'sawtooth',pv:.016,po:-12,pa:.05,bp:[0,12,0,12,0,12,0,12],bt:'sawtooth',bv:.05,kick:[0,3,4],snare:[2,6],hat:1},
   boss:{spb:.17,vol:.26,ch:[[62,65,69],[58,62,65],[60,64,67],[57,61,64]],sc:[62,64,65,67,69,70,73,74,76,77],lead:'sawtooth',lv:.026,lp:.6,pad:'sawtooth',pv:.024,po:-12,pa:.04,bp:[0,0,12,0,1,0,12,0],bt:'sawtooth',bv:.065,kick:[0,1,4,5],snare:[2,6],hat:1,crash:1,stab:1},
   final:{spb:.15,vol:.28,ch:[[60,63,67],[56,60,63],[58,62,65],[55,59,62]],sc:[72,74,75,77,79,80,83,84],lead:'sawtooth',lv:.022,lp:.4,pad:'triangle',pv:.045,po:0,pa:.3,choir:1,arp:1,bp:[0,0,12,0,0,0,12,-1],bt:'sawtooth',bv:.07,kick:[0,2,3,4,6],snare:[2,6],hat:1,crash:1,fill:1},
@@ -944,6 +1129,7 @@ function startMusic(){
       const bo=T.bp[step];if(bo!==null&&bo!==undefined)mNote(mf(ch[0]-24+bo),t,spb*(T.kick?.9:3.5),T.bt,T.bv,T.kick?AU.dry:AU.mus);
       if(T.arp)mNote(mf(ch[step%3]+12*(1+(step>>2&1))),t,spb*1.5,'square',.018,AU.mus);
       if(R()<T.lp&&!(T.arp&&step%2)){mel=clamp(mel+pick([-2,-1,-1,0,1,1,2]),0,T.sc.length-1);mNote(mf(T.sc[mel]),t,spb*(T.kick?1.6:1.8),T.lead,T.lv,AU.mus,.02);}
+      if(T.perc&&T.perc.includes(step))mNoise(t,.07,.12,step?1800:900,'bandpass',2);
       if(T.kick){if(T.kick.includes(step))mDrum('kick',t);if(T.snare.includes(step))mDrum('snare',t);if(T.hat)mDrum('hat',t+(T===TRACKS.battle?spb*.5:0));
         if(T.fill&&bar%4===3&&step>=4)mDrum('tom',t);}
       next+=spb;step++;if(step>=8){step=0;bar++;}
@@ -955,18 +1141,28 @@ function setSound(on){AU.on=on;if(AU.master)AU.master.gain.value=on?.55:0;$('#sn
 // ================================================================ enemies
 const enemies=[];
 const ET={
-  slime:{name:'スライム',hp:42,atk:9,def:2,spd:3.6,exp:10,gold:4,range:1.9,rad:1,aggro:15,wind:.42,cd:1.35},
-  wolf:{name:'グレイウルフ',hp:84,atk:14,def:4,spd:8.6,exp:20,gold:7,range:2.4,rad:1.2,aggro:21,wind:.32,cd:1.05},
-  goblin:{name:'ゴブリン',hp:118,atk:18,def:7,spd:5.8,exp:30,gold:14,range:2.1,rad:.9,aggro:19,wind:.42,cd:1.15},
-  golem:{name:'ストーンゴーレム',hp:360,atk:32,def:15,spd:3,exp:88,gold:35,range:3.2,rad:1.9,aggro:16,wind:.75,cd:2},
-  wisp:{name:'ウィスプ',hp:76,atk:19,def:3,spd:4.8,exp:33,gold:10,range:16,rad:.8,aggro:24,wind:.45,cd:2.1,ranged:true,fly:2.6},
+  slime:{name:'スライム',hp:65,atk:14,def:3,spd:3.8,exp:12,gold:5,range:1.9,rad:1,aggro:16,wind:.4,cd:1.25},
+  wolf:{name:'グレイウルフ',hp:130,atk:21,def:6,spd:9,exp:24,gold:8,range:2.4,rad:1.2,aggro:22,wind:.3,cd:.95},
+  goblin:{name:'ゴブリン',hp:185,atk:27,def:10,spd:6.2,exp:36,gold:16,range:2.1,rad:.9,aggro:20,wind:.4,cd:1.05},
+  golem:{name:'ストーンゴーレム',hp:560,atk:48,def:22,spd:3.2,exp:100,gold:40,range:3.2,rad:1.9,aggro:17,wind:.7,cd:1.8},
+  wisp:{name:'ウィスプ',hp:120,atk:28,def:5,spd:5,exp:40,gold:12,range:17,rad:.8,aggro:25,wind:.42,cd:1.9,ranged:true,fly:2.6},
+  scorpion:{name:'デススコーピオン',hp:150,atk:30,def:12,spd:7,exp:50,gold:24,range:2.6,rad:1.4,aggro:21,wind:.38,cd:1.05},
+  skeleton:{name:'スケルトン兵',hp:170,atk:33,def:14,spd:5.8,exp:56,gold:26,range:2.3,rad:.9,aggro:21,wind:.4,cd:1.05},
+  imp:{name:'ファイアインプ',hp:120,atk:31,def:8,spd:5.4,exp:54,gold:22,range:17,rad:.8,aggro:26,wind:.42,cd:1.7,ranged:true,fly:2.8,pc:0xff6a2a},
+  wyvern:{name:'ワイバーン',hp:260,atk:38,def:16,spd:7.8,exp:82,gold:36,range:3.4,rad:2,aggro:25,wind:.45,cd:1.4},
+  darkknight:{name:'暗黒騎士',hp:320,atk:40,def:24,spd:5.6,exp:98,gold:42,range:2.8,rad:1,aggro:23,wind:.45,cd:1.2},
 };
 const BOSS={
-  kingslime:{base:'slime',name:'キングスライム',hp:980,atk:27,def:6,lv:4,scale:3.2,exp:160,gold:120,color:0x5fb8ff,shard:0},
-  grimfang:{base:'wolf',name:'森の主グリムファング',hp:1600,atk:36,def:10,lv:6,scale:2.6,exp:320,gold:200,color:0x2b2b35,shard:1},
-  gobgeneral:{base:'goblin',name:'ゴブリン将軍ザグ',hp:2100,atk:43,def:14,lv:8,scale:2.2,exp:460,gold:260,shard:2},
-  frostgolem:{base:'golem',name:'氷晶のフロストゴーレム',hp:3000,atk:51,def:18,lv:10,scale:1.7,exp:700,gold:340,color:0x9fdcff,shard:3},
-  ancientgolem:{base:'golem',name:'古代兵ゴーレム・アルケイオン',hp:4000,atk:59,def:22,lv:12,scale:1.9,exp:900,gold:420,color:0xc9b88a,shard:4},
+  kingslime:{base:'slime',name:'キングスライム',hp:1600,atk:40,def:8,lv:4,scale:3.2,exp:200,gold:150,color:0x5fb8ff,shard:0,abil:['slam']},
+  grimfang:{base:'wolf',name:'森の主グリムファング',hp:2600,atk:54,def:12,lv:6,scale:2.6,exp:400,gold:240,color:0x2b2b35,shard:1,abil:['slam','charge']},
+  gobgeneral:{base:'goblin',name:'ゴブリン将軍ザグ',hp:3400,atk:64,def:16,lv:8,scale:2.2,exp:560,gold:300,shard:2,abil:['slam','summon'],minion:'goblin'},
+  frostgolem:{base:'golem',name:'氷晶のフロストゴーレム',hp:4800,atk:76,def:20,lv:10,scale:1.7,exp:820,gold:380,color:0x9fdcff,shard:3,abil:['slam','volley'],pc:0x9fe3ff},
+  ancientgolem:{base:'golem',name:'古代兵ゴーレム・アルケイオン',hp:6400,atk:88,def:24,lv:12,scale:1.9,exp:1100,gold:480,color:0xc9b88a,shard:4,abil:['slam','volley','summon'],minion:'golem',pc:0xffd080},
+  desertqueen:{base:'scorpion',name:'砂漠の女王デザートクイーン',hp:14000,atk:120,def:34,lv:18,scale:3,exp:2600,gold:1000,color:0xd8a040,shard:5,abil:['slam','charge','summon'],minion:'scorpion'},
+  boneking:{base:'skeleton',name:'骸骨王ボーンキング',hp:17000,atk:130,def:38,lv:20,scale:2.6,exp:3000,gold:1100,shard:6,abil:['slam','summon','volley'],minion:'skeleton',pc:0x9fffcf},
+  lavagolem:{base:'golem',name:'溶岩巨人ヴォルカノン',hp:21000,atk:142,def:44,lv:22,scale:2.2,exp:3500,gold:1200,color:0xa8402a,shard:7,abil:['slam','volley'],pc:0xff6a2a},
+  jadewyrm:{base:'wyvern',name:'翠晶竜ジェイドラグーン',hp:25000,atk:150,def:46,lv:24,scale:2.2,exp:4000,gold:1400,color:0x3aa87a,shard:8,abil:['slam','volley','charge'],pc:0x7affc0},
+  galvas:{base:'darkknight',name:'黒鉄の暗黒騎士ガルヴァス',hp:30000,atk:162,def:52,lv:26,scale:2.1,exp:4800,gold:1600,shard:9,abil:['slam','charge','summon','volley'],minion:'darkknight',pc:0xb070ff},
 };
 function buildSlime(c){const g=new THREE.Group(),P={};P.body=part(new THREE.SphereGeometry(1,18,14),lam(c,{transparent:true,opacity:.86,emissive:c,emissiveIntensity:.18}),0,.75,0,g);P.body.scale.set(1,.78,1);
   for(const s of[-1,1])part(new THREE.SphereGeometry(.12,8,6),basic(0x10152a),.32*s,.95,.82,P.body.parent);return{g,P};}
@@ -987,8 +1183,8 @@ function buildGolem(c){const g=new THREE.Group(),P={},m=lam(c||0x8d877c),dk=lam(
 function buildWisp(){const g=new THREE.Group(),P={};P.core=part(new THREE.SphereGeometry(.4,12,10),basic(0xd8f6ff),0,0,0,g,false);
   const halo=new THREE.Sprite(new THREE.SpriteMaterial({map:glowTex,color:0x7fd0ff,transparent:true,blending:THREE.AdditiveBlending,depthWrite:false}));halo.scale.set(2.6,2.6,1);g.add(halo);
   P.orbs=[];for(let i=0;i<3;i++)P.orbs.push(part(new THREE.SphereGeometry(.1,6,5),basic(0x9fe3ff),0,0,0,g,false));return{g,P};}
-function buildDragon(){
-  const g=new THREE.Group(),P={},m=lam(0x23407e),belly=lam(0xa9bfdf),horn=lam(0xece4cc),eyeM=basic(0x9ff6ff),wingM=lam(0x2d5aa8,{side:THREE.DoubleSide});
+function buildDragon(cm,cb,cw,ce){
+  const g=new THREE.Group(),P={},m=lam(cm||0x23407e),belly=lam(cb||0xa9bfdf),horn=lam(0xece4cc),eyeM=basic(ce||0x9ff6ff),wingM=lam(cw||0x2d5aa8,{side:THREE.DoubleSide});
   const body=part(new THREE.SphereGeometry(1,18,14),m,0,4.2,0,g);body.scale.set(2.6,2.3,4.6);
   part(new THREE.SphereGeometry(1,14,10),belly,0,3.4,.4,g).scale.set(2.1,1.6,3.8);
   for(let i=0;i<6;i++)part(new THREE.ConeGeometry(.35,1.3,5),horn,0,6.5-i*.1,2.5-i*1.3,g).rotation.x=-.3;
@@ -1007,10 +1203,55 @@ function buildDragon(){
   P.legs=[];for(const [x,z] of[[-1.9,2.2],[1.9,2.2],[-1.9,-2],[1.9,-2]]){const l=new THREE.Group();l.position.set(x,3,z);g.add(l);part(cyl(.75,.5,3,8),m,0,-1.5,0,l);part(BOX(1,.4,1.3),m,0,-3,.3,l);P.legs.push(l);}
   return{g,P};
 }
+function buildScorpion(c){const g=new THREE.Group(),P={},m=lam(c),dk=lam(new THREE.Color(c).multiplyScalar(.6));
+  part(new THREE.SphereGeometry(1,12,10),m,0,.8,0,g).scale.set(1,.45,1.5);part(new THREE.SphereGeometry(.55,10,8),dk,0,.85,1.35,g).scale.set(1.1,.6,.9);
+  for(const s of[-1,1])part(BOX(.1,.08,.05),basic(0xff3a2a),.18*s,.95,1.8,g,false);
+  P.claws=[];for(const s of[-1,1]){const a=new THREE.Group();a.position.set(.7*s,.8,1.3);a.rotation.y=.35*s;g.add(a);part(BOX(.22,.22,1),dk,0,0,.5,a);const p=part(BOX(.5,.3,.6),m,0,0,1.2,a);P.claws.push(a);}
+  P.legs=[];for(const s of[-1,1])for(let i=0;i<3;i++){const l=new THREE.Group();l.position.set(.75*s,.75,.6-i*.6);g.add(l);const lm=part(BOX(1,.12,.12),dk,.45*s,-.2,0,l);lm.rotation.z=-.5*s;P.legs.push(l);}
+  const tail=new THREE.Group();tail.position.set(0,.95,-1.3);g.add(tail);P.tail=tail;let t=tail;
+  for(let i=0;i<5;i++){const sg=new THREE.Group();sg.position.set(0,0,i?-.45:0);sg.rotation.x=.55;t.add(sg);part(new THREE.SphereGeometry(.3-i*.02,8,6),m,0,0,-.22,sg);t=sg;}
+  const st=part(new THREE.ConeGeometry(.16,.6,6),lam(0x2a1a1a,{emissive:0x5a0a0a}),0,0,-.55,t);st.rotation.x=-Math.PI/2;
+  return{g,P};}
+function buildSkeleton(boss){const h=makeHumanoid({skin:0xe8e2d0,hair:0xe8e2d0,body:0xd8d2c0,sleeve:0xe8e2d0,legs:0xd8d2c0,boots:0xb8b2a0,eye:0xff3a3a,weapon:boss?'axe':'sword',crown:boss,cape:boss?0x3a2a5a:null,belt:0x5a4a3a});
+  const g=new THREE.Group();g.add(h.g);for(let i=0;i<3;i++)part(BOX(.62,.05,.36),lam(0x2a2620),0,1.15+i*.14,.02,h.P.torso,false).position.y=.25+i*.16;return{g,P:h.P,hum:true};}
+function buildImp(){const g=new THREE.Group(),P={};P.core=part(new THREE.SphereGeometry(.42,12,10),basic(0xffb070),0,0,0,g,false);
+  for(const s of[-1,1]){const c=part(new THREE.ConeGeometry(.1,.4,5),basic(0x3a1a0a),.2*s,.4,0,g,false);c.rotation.z=-.4*s;}
+  for(const s of[-1,1])part(BOX(.08,.06,.04),basic(0x220a00),.13*s,.08,.4,g,false);
+  const halo=new THREE.Sprite(new THREE.SpriteMaterial({map:glowTex,color:0xff5a2a,transparent:true,blending:THREE.AdditiveBlending,depthWrite:false}));halo.scale.set(2.8,2.8,1);g.add(halo);
+  P.orbs=[];for(let i=0;i<3;i++)P.orbs.push(part(new THREE.SphereGeometry(.1,6,5),basic(0xffd060),0,0,0,g,false));return{g,P};}
+function buildWyvern(c){const d=buildDragon(c,0xd8c8a0,new THREE.Color(c).multiplyScalar(.8).getHex(),0xffe060);d.g.scale.setScalar(.32);const g=new THREE.Group();g.add(d.g);return{g,P:d.P};}
+function buildDarkKnight(boss){const h=makeHumanoid({skin:0x3a3040,hair:0x1a1a22,body:0x2a2a38,sleeve:0x22222e,legs:0x1a1a24,boots:0x111118,helm:0x2e2e3e,pauldron:0x4a3a6a,cape:boss?0x6a1030:0x3a2050,capeL:1.5,eye:0xb070ff,weapon:'sword',belt:0x6a5a3a});
+  h.g.scale.setScalar(1.15);const g=new THREE.Group();g.add(h.g);return{g,P:h.P,hum:true};}
+function wingGeo(){const wg=new THREE.BufferGeometry();const W=[[0,0,0],[4,1.6,.4],[10,2.8,-1.4],[12.5,0,-4.6],[8,-1,-6.4],[3,-.6,-5]];const wp=[];for(let i=1;i<W.length-1;i++)wp.push(...W[0],...W[i],...W[i+1]);wg.setAttribute('position',new THREE.Float32BufferAttribute(wp,3));wg.computeVertexNormals();return wg;}
+function buildZervan(){
+  const h=makeHumanoid({skin:0x4a3a5a,hair:0x120c1a,hs:'long',body:0x1e1a2a,sleeve:0x2a2338,legs:0x15121e,boots:0x0e0c14,cape:0x5a0f2a,capeL:1.7,helm:0x241e30,pauldron:0x3a2a4a,weapon:'sword',eye:0xff3a6a,belt:0x8a6a2a});
+  const P=h.P;for(const s of[-1,1]){const c=part(new THREE.ConeGeometry(.07,.55,6),lam(0xe8e0d0),.18*s,.5,.02,P.head);c.rotation.z=-.5*s;c.rotation.x=-.3;}
+  part(BOX(.18,.09,2),new THREE.MeshLambertMaterial({color:0x3a1a5a,emissive:0x5a1aa0}),0,0,1.5,P.weapon);
+  const wm=lam(0x2a1030,{side:THREE.DoubleSide}),wg=wingGeo();P.wings=[];
+  for(const s of[-1,1]){const w=new THREE.Group();w.position.set(.2*s,.55,-.2);P.torso.add(w);const m=part(wg,wm,0,0,0,w);m.scale.set(.2*s,.2,.2);P.wings.push(w);}
+  const g=new THREE.Group();h.g.scale.setScalar(3.3);g.add(h.g);
+  P.orbs=[];for(let i=0;i<4;i++)P.orbs.push(part(new THREE.SphereGeometry(.45,10,8),basic(0xb070ff),0,0,0,g,false));
+  const aura=new THREE.Sprite(new THREE.SpriteMaterial({map:glowTex,color:0x8a3aff,transparent:true,opacity:.45,blending:THREE.AdditiveBlending,depthWrite:false}));aura.scale.set(14,14,1);aura.position.y=5;g.add(aura);
+  return{g,P,hum:true};
+}
+function bossAbility(e,t,dx,dz,d){
+  const B=BOSS[e.boss];if(!B||!B.abil)return false;const k=e.hp<e.maxHp*.5?.65:1;
+  if(B.abil.includes('volley')&&e.volCd<=0&&d<30){e.volCd=(9+R()*3)*k;e.windT=.9;e.slamW=true;const n=k<1?7:5;
+    for(let i=0;i<n;i++)later(.5+i*.28,()=>{if(e.dead)return;const al=party.filter(m=>m.alive);if(!al.length)return;const m=pick(al);
+      eVolley(new THREE.Vector3(e.pos.x,e.pos.y+e.rad*2.2,e.pos.z),m.pos.x+(R()-.5)*3,m.pos.z+(R()-.5)*3,e.atk*.8,B.pc||0xff7a2a,3.2);sfx('fire');});
+    return true;}
+  if(B.abil.includes('summon')&&e.sumCd<=0){e.sumCd=(22+R()*6)*k;const alive=enemies.filter(x=>x.summoner===e&&!x.dead).length;
+    if(alive<4){e.windT=.8;e.slamW=true;for(let i=0;i<3;i++){const a=R()*TAU,x=e.pos.x+Math.cos(a)*6,z=e.pos.z+Math.sin(a)*6;const m=spawnEnemy(B.minion,x,z,Math.max(1,e.lv-2));m.summoner=e;m.home.copy(e.home);m.target=t;emit(x,groundH(x,z)+1,z,30,{c:B.pc||0xb070ff,sp:5,life:.8,s:.7,up:2});}
+      sfx('roar');toast(`${e.name}が手下を呼んだ！`,'red');return true;}}
+  if(B.abil.includes('charge')&&e.chCd<=0&&d>5&&d<22){e.chCd=(8+R()*3)*k;const L=Math.min(d+2,16),tx=e.pos.x+dx/d*L,tz=e.pos.z+dz/d*L;e.windT=1;e.slamW=true;e.lunge={x:dx/d,z:dz/d,t:1,sp:L/.25};
+    telegraph(tx,tz,4.2,1,()=>{if(e.dead)return;sfx('boom');G.shake=Math.max(G.shake,.3);emit(tx,groundH(tx,tz)+.5,tz,40,{c:0xffd8a0,sp:8,life:.6,s:.8,flat:true});for(const m of party)if(m.alive&&Math.hypot(m.pos.x-tx,m.pos.z-tz)<4.6)hurt(m,e.atk*1.4);});return true;}
+  return false;
+}
+function eVolley(from,tx,tz,dmg,col,aoe){const gy=groundAt(tx,tz),to=new THREE.Vector3(tx,gy,tz);telegraph(tx,tz,aoe,Math.max(.35,from.distanceTo(to)/26),null);shoot({from,team:'enemy',point:to,dmg,aoe,color:col,speed:26,size:2,trail:1.1,life:5});}
 function spawnEnemy(type,x,z,lv,opt={}){
   let b=ET[type]||ET.slime,bd=null,name=b.name,hp=b.hp,atk=b.atk,def=b.def,exp=b.exp,gold=b.gold,scale=1;
   if(opt.boss){bd=BOSS[opt.boss];b=ET[bd.base];name=bd.name;hp=bd.hp;atk=bd.atk;def=bd.def;exp=bd.exp;gold=bd.gold;lv=bd.lv;scale=bd.scale;}
-  else{const k=lv-1;hp=Math.round(hp*(1+.33*k));atk=Math.round(atk*(1+.25*k));def=Math.round(def*(1+.15*k));exp=Math.round(exp*(1+.25*k));gold=Math.round(gold*(1+.2*k));}
+  else{const k=lv-1;hp=Math.round(hp*(1+.3*k));atk=Math.round(atk*(1+.22*k));def=Math.round(def*(1+.12*k));exp=Math.round(exp*(1+.25*k));gold=Math.round(gold*(1+.2*k));}
   const base=bd?bd.base:type;let mdl;
   const tint=opt.tint;
   if(base==='slime')mdl=buildSlime(bd&&bd.color||tint||pick([0x6fd06a,0x5fb8ff,0x9f7fe0]));
@@ -1018,12 +1259,18 @@ function spawnEnemy(type,x,z,lv,opt={}){
   else if(base==='goblin')mdl=buildGoblin(!!bd);
   else if(base==='golem')mdl=buildGolem(bd&&bd.color||tint);
   else if(base==='wisp')mdl=buildWisp();
+  else if(base==='scorpion')mdl=buildScorpion(bd&&bd.color||tint||0x7a4a32);
+  else if(base==='skeleton')mdl=buildSkeleton(!!bd);
+  else if(base==='imp')mdl=buildImp();
+  else if(base==='wyvern')mdl=buildWyvern(bd&&bd.color||tint||0x8a5a3a);
+  else if(base==='darkknight')mdl=buildDarkKnight(!!bd);
+  if(!bd&&opt.zone&&opt.zone.names&&opt.zone.names[type])name=opt.zone.names[type];
   mdl.g.scale.multiplyScalar(scale);scene.add(mdl.g);mdl.g.position.set(x,groundH(x,z),z);
   mdl.g.traverse(o=>{if(o.isMesh)o.castShadow=true;});
   const y=groundH(x,z);
   const e={type:base,name,lv,boss:opt.boss||null,hp,maxHp:hp,atk,def,exp,gold,spd:b.spd*(bd?1.15:1),range:b.range*(bd?scale*.75:1),rad:b.rad*scale,aggro:bd?30:b.aggro,wind:b.wind*(bd?1.2:1),cdBase:b.cd,ranged:b.ranged,fly:b.fly||0,
     model:mdl,pos:new THREE.Vector3(x,y,z),home:new THREE.Vector3(x,y,z),rotY:rnd()*TAU,kb:new THREE.Vector3(),target:null,atkCd:1+R(),windT:0,wanderT:R()*3,wanderTo:null,
-    dead:false,deathT:0,hitT:0,barT:0,animT:R()*9,mv:0,zone:opt.zone||null,world:'ground',slamCd:5,scale,hopT:0};
+    dead:false,deathT:0,hitT:0,barT:0,animT:R()*9,mv:0,zone:opt.zone||null,world:'ground',slamCd:5,scale,hopT:0,volCd:3+R()*3,sumCd:6+R()*4,chCd:4+R()*3,pc:(bd&&bd.pc)||b.pc||0x7fd0ff};
   enemies.push(e);return e;
 }
 const ZONES=[
@@ -1037,6 +1284,16 @@ const ZONES=[
   {x:-175,z:175,r:35,types:['golem','wisp'],max:4,lv:9,tint:0x9fdcff},
   {x:60,z:-150,r:40,types:['goblin','wolf'],max:5,lv:5},
 ];
+ZONES.push(
+  {x:W2.cx-60,z:W2.cz+175,r:45,types:['scorpion'],max:7,lv:14},
+  {x:W2.cx-40,z:W2.cz+10,r:40,types:['scorpion','imp'],max:6,lv:15},
+  {x:W2.cx+95,z:W2.cz+160,r:50,types:['scorpion','skeleton'],max:7,lv:17},
+  {x:W2.cx+165,z:W2.cz+55,r:40,types:['skeleton'],max:7,lv:18},
+  {x:W2.cx+100,z:W2.cz-75,r:45,types:['imp','golem'],max:6,lv:20,tint:0xa8402a,names:{golem:'ラヴァゴーレム'}},
+  {x:W2.cx-150,z:W2.cz-55,r:50,types:['golem','wyvern'],max:6,lv:19,tint:0x8a6ad0,names:{golem:'クリスタルゴーレム'}},
+  {x:W2.cx-65,z:W2.cz-115,r:40,types:['darkknight','skeleton'],max:7,lv:21},
+  {x:W2.cx+15,z:W2.cz-150,r:32,types:['darkknight','wyvern'],max:5,lv:23},
+);
 function zoneCount(z){let n=0;for(const e of enemies)if(e.zone===z&&!e.dead)n++;return n;}
 function spawnInZone(z,avoidNear){
   for(let k=0;k<12;k++){const a=R()*TAU,r=Math.sqrt(R())*z.r,x=z.x+Math.cos(a)*r,zz=z.z+Math.sin(a)*r;const h=groundH(x,zz);
@@ -1057,7 +1314,7 @@ function shoot(o){
 const _t=new THREE.Vector3();
 function updProjs(dt){
   for(let i=projs.length-1;i>=0;i--){const p=projs[i];p.life-=dt;let boom=false,hitE=null;
-    if(p.homing&&p.target&&!p.target.dead&&p.target.alive!==false){_t.set(p.target.pos.x,p.target.pos.y+(p.target.fly||1)+(p.target.boss==='dragon'?3:0),p.target.pos.z).sub(p.pos).normalize().multiplyScalar(p.speed);p.vel.lerp(_t,clamp(p.homing*dt,0,1));}
+    if(p.homing&&p.target&&!p.target.dead&&p.target.alive!==false){_t.set(p.target.pos.x,p.target.pos.y+(p.target.fly||1)+(p.target.big?3:0),p.target.pos.z).sub(p.pos).normalize().multiplyScalar(p.speed);p.vel.lerp(_t,clamp(p.homing*dt,0,1));}
     const step=p.vel.length()*dt;p.pos.addScaledVector(p.vel,dt);p.trav+=step;p.mesh.position.copy(p.pos);
     if(p.arrow)p.mesh.lookAt(_t.copy(p.pos).add(p.vel));
     emit(p.pos.x,p.pos.y,p.pos.z,1,{c:p.color,s:p.trail,sp:.4,life:.35});
@@ -1087,19 +1344,20 @@ const curWorld=()=>G.inSky?'sky':'ground';
 function groundAt(x,z){if(G.inSky){const d=Math.hypot(x-SKY.x,z-SKY.z);return d<SKY.r?SKY.y+1.5:SKY.y-200;}return groundH(x,z);}
 function dmgEnemy(e,amt,src,kb){
   if(e.dead)return;
-  const crit=R()<(src===player?.14:.06);let d=Math.max(1,Math.round((amt*(.9+R()*.2)-e.def*.5)*(crit?1.8:1)));
+  if(src&&src.key)amt*=G.help.dmg*(G.buff.atk>0?1.35:1);
+  const crit=R()<(src===player?.14:.06)+(G.buff.haste>0?.12:0);let d=Math.max(1,Math.round((amt*(.9+R()*.2)-e.def*.5)*(crit?1.8:1)));
   e.hp-=d;e.hitT=.12;e.barT=5;
   floatText(new THREE.Vector3(e.pos.x,e.pos.y+(e.boss==='dragon'?9:e.rad*2+.8)+(e.fly||0),e.pos.z),d,crit?'crit':'');
   if(src)e.target=src;
   if(src===player||!src){G.ult=Math.min(100,G.ult+d*.05+(crit?2:0));G.focus=e;}
-  if(kb&&e.boss!=='dragon'&&src){const dx=e.pos.x-src.pos.x,dz=e.pos.z-src.pos.z,l=Math.hypot(dx,dz)||1;const k=e.boss?kb*.15:kb;e.kb.x+=dx/l*k;e.kb.z+=dz/l*k;}
+  if(kb&&!e.big&&src){const dx=e.pos.x-src.pos.x,dz=e.pos.z-src.pos.z,l=Math.hypot(dx,dz)||1;const k=e.boss?kb*.15:kb;e.kb.x+=dx/l*k;e.kb.z+=dz/l*k;}
   sfx(crit?'crit':'hit');
   emit(e.pos.x,e.pos.y+(e.boss==='dragon'?5:e.rad),e.pos.z,crit?12:6,{c:crit?0xffe08a:0xffffff,sp:6,life:.35,s:.35});
   if(e.boss&&G.bossE!==e){G.bossE=e;}
   if(e.hp<=0)killEnemy(e);
 }
 function killEnemy(e){
-  e.dead=true;e.deathT=e.boss==='dragon'?3:.7;e.hp=0;
+  e.dead=true;e.deathT=e.big?3:.7;e.hp=0;
   emit(e.pos.x,e.pos.y+1,e.pos.z,e.boss?80:22,{c:e.type==='slime'?0x9fe3ff:0xfff0c0,sp:e.boss?12:6,life:1,s:.7,up:3});
   gainExp(e.exp);G.gold+=e.gold;sfx('coin');
   toast(`${e.name}を倒した　EXP +${e.exp}　${e.gold}G`);
@@ -1108,17 +1366,26 @@ function killEnemy(e){
   if(e.type==='wolf'&&G.side.wolf===1&&!e.boss){G.side.wolfKills++;if(G.side.wolfKills>=6){G.side.wolf=2;toast('オオカミ狩り 完了 ─ 狩人ガルドに報告','gold');}}
   if(e.type==='goblin'&&G.side.gob===1&&!e.boss){G.side.gobKills++;if(G.side.gobKills>=8){G.side.gob=2;toast('ゴブリン討伐 完了 ─ 衛兵ブランに報告','gold');}}
   if(e.boss&&BOSS[e.boss]){const i=BOSS[e.boss].shard;G.bossDead[i]=1;spawnShard(i,e.pos.x,e.pos.z);G.bossActive=false;G.bossE=null;saveGame(true);}
-  if(e.boss==='dragon'){G.dragonDead=1;G.bossActive=false;G.bossE=null;sfx('boom');setTimeout(()=>{if(G.main<6){G.main=6;saveGame(true);}showEnding();},3200);}
+  if(e.type==='scorpion'&&G.main===8&&G.scKills<6){G.scKills++;if(G.scKills>=6)toast('サソリ退治 完了 ─ 太守ラシードに報告','gold');}
+  if(e.type==='scorpion'&&G.side.scorp===1&&!e.boss){G.side.scorpKills++;if(G.side.scorpKills>=8){G.side.scorp=2;toast('サソリ掃討 完了 ─ 探検家ユーリに報告','gold');}}
+  if(e.type==='skeleton'&&G.side.skel===1&&!e.boss){G.side.skelKills++;if(G.side.skelKills>=10){G.side.skel=2;toast('眠れぬ兵たち 完了 ─ 墓守オズに報告','gold');}}
+  if(e.lv>=14&&!e.boss&&R()<.05){G.hipot++;toast('ハイポーションを手に入れた','cyan');}
+  if(e.boss&&BOSS[e.boss]&&e.lv>=14){G.feathers++;toast('蘇生の羽根を手に入れた','cyan');}
+  if(e.boss==='dragon'){G.dragonDead=1;G.bossActive=false;G.bossE=null;sfx('boom');setTimeout(()=>{if(G.main<6){G.main=6;saveGame(true);}chapterEnd(1);},3200);}
+  if(e.boss==='zervan'){G.zervanDead=1;G.bossActive=false;G.bossE=null;sfx('boom');for(const x of enemies)if(x.summoner===e&&!x.dead)x.hp=1;setTimeout(()=>{G.main=13;saveGame(true);chapterEnd(2);},3500);}
 }
 function hurt(m,raw){
   if(!m.alive||m.invuln>0)return;
+  if(G.help.god){if(m===player)floatText(new THREE.Vector3(m.pos.x,m.pos.y+2.2,m.pos.z),'0','hurt');return;}
+  raw*=G.help.taken;
   const d=Math.max(1,Math.round(raw*(.9+R()*.2)-m.def*.6));m.hp-=d;m.lastHit=G.t;
   floatText(new THREE.Vector3(m.pos.x,m.pos.y+2.2,m.pos.z),d,'hurt');
-  if(m.isPlayer){G.shake=Math.max(G.shake,.18);sfx('hurt');G.ult=Math.min(100,G.ult+d*.12);m.invuln=.25;}
-  if(m.hp<=0){m.hp=0;m.alive=false;
-    if(m.isPlayer){G.state='dead';G.bossActive=false;$('#dead').hidden=false;exitPointerLock();}
-    else{m.downT=20;toast(`${m.name}が倒れた……（しばらくすると起き上がる）`,'red');}}
+  if(m===player){G.shake=Math.max(G.shake,.18);sfx('hurt');G.ult=Math.min(100,G.ult+d*.12);m.invuln=.25;}
+  if(m.hp<=0){m.hp=0;m.alive=false;m.downT=20;
+    if(m===player){const nx=party.find(x=>x.alive);if(nx){switchTo(party.indexOf(nx),true);toast(`${m.name}が倒れた！ ${nx.name}に交代`,'red');}else gameOver();}
+    else toast(`${m.name}が倒れた……（しばらくすると起き上がる）`,'red');}
 }
+function gameOver(){G.state='dead';G.bossActive=false;$('#dead').hidden=false;exitPointerLock();}
 function heal(m,amt,silent){if(!m.alive)return;const h=Math.min(m.maxHp-m.hp,Math.round(amt));m.hp+=h;if(!silent&&h>0)floatText(new THREE.Vector3(m.pos.x,m.pos.y+2.2,m.pos.z),'+'+h,'heal');emit(m.pos.x,m.pos.y+1,m.pos.z,14,{c:0x8dffb0,sp:2,life:1,s:.4,up:2,r:1});}
 function gainExp(n){G.exp+=n;let up=false;while(G.exp>=needExp(G.lvl)){G.exp-=needExp(G.lvl);G.lvl++;up=true;}
   if(up){recalc(true);for(const m of party){if(!m.alive){m.alive=true;m.downT=0;}}sfx('lvl');banner('LEVEL UP',`レベル ${G.lvl}`);
@@ -1127,32 +1394,63 @@ function nearestEnemy(p,maxD){let best=null,bd=maxD;for(const e of enemies){if(e
 
 // ---- player actions
 const ATK=[{dur:.34,mult:1,kb:3},{dur:.34,mult:1.15,kb:3},{dur:.52,mult:1.75,kb:9}];
+const laters=[];function later(t,fn){laters.push({t,fn});}
+function updLaters(dt){for(let i=laters.length-1;i>=0;i--){const l=laters[i];l.t-=dt;if(l.t<=0){laters.splice(i,1);try{l.fn();}catch(err){}}}}
 function canAct(){return G.state==='play'&&player.alive;}
-function faceSoft(){const e=nearestEnemy(player.pos,7);if(e){player.rotY=Math.atan2(e.pos.x-player.pos.x,e.pos.z-player.pos.z);return e;}return null;}
+function faceSoft(r){const e=nearestEnemy(player.pos,r||7);if(e){player.rotY=Math.atan2(e.pos.x-player.pos.x,e.pos.z-player.pos.z);return e;}return null;}
+function dirOf(m){return new THREE.Vector3(Math.sin(m.rotY),0,Math.cos(m.rotY));}
+function castFrom(m){return new THREE.Vector3(m.pos.x+Math.sin(m.rotY)*.7,m.pos.y+1.4,m.pos.z+Math.cos(m.rotY)*.7);}
 function startSwing(c){player.combo=c;player.atkDur=player.atkT=ATK[c].dur;player.hitDone=false;faceSoft();sfx('swing');player.vel.x+=Math.sin(player.rotY)*4;player.vel.z+=Math.cos(player.rotY)*4;}
-function playerAttack(){if(!canAct())return;if(player.spinT>0)return;if(player.atkT>0){if(player.atkT<player.atkDur*.6&&player.combo<2)player.queued=true;return;}startSwing(0);}
+const BASIC={celes:{cd:.5,col:0xe0f6ff},rina:{cd:.72,col:0xff7a3a},kohaku:{cd:.34,col:0xfff0c0}};
+function playerAttack(){if(!canAct())return;if(player.key!=='allen'){rangedBasic();return;}if(player.spinT>0)return;if(player.atkT>0){if(player.atkT<player.atkDur*.6&&player.combo<2)player.queued=true;return;}startSwing(0);}
+function rangedBasic(){
+  if(player.atkT>0)return;const b=BASIC[player.key];player.atkT=player.atkDur=b.cd;player.hitDone=true;player.castT=.22;
+  const e=faceSoft(26),from=castFrom(player),dir=dirOf(player);
+  if(player.key==='celes'){shoot({from,team:'party',target:e,dir,dmg:player.mag*1.35,color:b.col,speed:26,homing:6,src:player,size:.9,trail:.5,life:1.4});sfx('magic');}
+  if(player.key==='rina'){shoot({from,team:'party',target:e,dir,dmg:player.mag*1.6,aoe:2.4,color:b.col,speed:22,homing:4,src:player,size:1.1,trail:.8,life:1.5});sfx('fire');}
+  if(player.key==='kohaku'){shoot({from,team:'party',target:e,dir,dmg:player.atk*1.3,color:b.col,speed:44,homing:7,src:player,arrow:true,trail:.25,kb:1,life:1.2});sfx('arrow');}
+}
 function meleeHit(c){
   const a=ATK[c],fx=Math.sin(player.rotY),fz=Math.cos(player.rotY);let any=false;
   for(const e of enemies){if(e.dead||e.world!==curWorld())continue;const dx=e.pos.x-player.pos.x,dz=e.pos.z-player.pos.z,d=Math.hypot(dx,dz);
-    const reach=3.2+e.rad*(e.boss==='dragon'?1:.9);if(d>reach)continue;if(Math.abs(e.pos.y+(e.fly||0)-player.pos.y)>(e.boss==='dragon'?9:4))continue;
+    const reach=3.2+e.rad*(e.big?1:.9);if(d>reach)continue;if(Math.abs(e.pos.y+(e.fly||0)-player.pos.y)>(e.big?9:4))continue;
     if(d>1&&(dx*fx+dz*fz)/d<.15)continue;dmgEnemy(e,player.atk*a.mult,player,a.kb);any=true;}
   for(let i=0;i<14;i++){const ang=player.rotY+(i/13-.5)*2.2;emit(player.pos.x+Math.sin(ang)*2.2,player.pos.y+1.1+(c===2?-.3:0)+Math.sin(i*.5)*.2,player.pos.z+Math.cos(ang)*2.2,1,{c:c===2?0xffe08a:0xaee8ff,sp:.5,life:.25,s:.55});}
   if(any&&c===2)G.shake=Math.max(G.shake,.15);
 }
-const SK=[
-  {name:'蒼閃斬',mp:18,cd:5,icon:'spin'},{name:'光弾',mp:12,cd:1.4,icon:'orb'},{name:'誓約の癒し',mp:30,cd:12,icon:'heal'},
-];
+const SKILLS={
+  allen:[{name:'蒼閃斬',short:'蒼閃',mp:18,cd:5,icon:'spin',fn:skSpin},{name:'光弾',short:'光弾',mp:12,cd:1.4,icon:'orb',fn:skOrb},{name:'誓約の癒し',short:'癒し',mp:30,cd:12,icon:'heal',fn:skHeal}],
+  celes:[{name:'聖光陣',short:'聖陣',mp:22,cd:6,icon:'holy',fn:skHoly},{name:'聖槍',short:'聖槍',mp:16,cd:2.2,icon:'lance',fn:skLance},{name:'大いなる癒し',short:'大癒',mp:45,cd:25,icon:'heal',fn:skGreatHeal}],
+  rina:[{name:'フレアバースト',short:'爆炎',mp:20,cd:4,icon:'flare',fn:skFlare},{name:'メテオ',short:'隕石',mp:40,cd:14,icon:'meteor',fn:skMeteor},{name:'炎の加護',short:'加護',mp:30,cd:30,icon:'buff',fn:skBless}],
+  kohaku:[{name:'三連射',short:'三連',mp:10,cd:2,icon:'arrows',fn:skTriple},{name:'矢の雨',short:'矢雨',mp:26,cd:8,icon:'rain',fn:skRain},{name:'疾風',short:'疾風',mp:25,cd:28,icon:'wind',fn:skHaste}],
+};
+function curSkills(){return SKILLS[player.key];}
 function useSkill(i){
-  if(!canAct())return;const s=SK[i];if(player.skillCd[i]>0)return;if(player.mp<s.mp){floatText(new THREE.Vector3(player.pos.x,player.pos.y+2.6,player.pos.z),'MPが足りない','info');return;}
-  player.mp-=s.mp;player.skillCd[i]=s.cd;
-  if(i===0){player.spinT=.5;player.atkT=0;sfx('swing');setTimeout(()=>sfx('swing'),120);
-    for(const e of enemies){if(e.dead||e.world!==curWorld())continue;if(d2(e.pos,player.pos)<6.5+e.rad&&Math.abs(e.pos.y+(e.fly||0)-player.pos.y)<(e.boss==='dragon'?9:4))dmgEnemy(e,player.atk*2.3,player,8);}
-    for(let k=0;k<40;k++){const a=k/40*TAU;emit(player.pos.x+Math.cos(a)*3,player.pos.y+1,player.pos.z+Math.sin(a)*3,1,{c:0x7fd8ff,dir:[Math.cos(a),0,Math.sin(a)],spread:.1,sp:9,life:.4,s:.7});}}
-  if(i===1){const e=faceSoft()||nearestEnemy(player.pos,26);player.castT=.3;sfx('magic');
-    const from=new THREE.Vector3(player.pos.x+Math.sin(player.rotY)*.8,player.pos.y+1.4,player.pos.z+Math.cos(player.rotY)*.8);
-    shoot({from,team:'party',target:e,dir:new THREE.Vector3(Math.sin(player.rotY),0,Math.cos(player.rotY)),dmg:player.mag*2.6,aoe:3,color:0x9fe3ff,speed:30,homing:6,src:player,size:1.3,trail:.7,life:1.6});}
-  if(i===2){sfx('heal');for(const m of party)if(m.alive)heal(m,m.maxHp*.4);emit(player.pos.x,player.pos.y+.2,player.pos.z,60,{c:0xbfffe0,sp:6,life:1,s:.5,flat:true,up:1.5});}
+  if(!canAct())return;const s=curSkills()[i];if(player.skillCd[i]>0)return;if(player.mp<s.mp){floatText(new THREE.Vector3(player.pos.x,player.pos.y+2.6,player.pos.z),'MPが足りない','info');return;}
+  player.mp-=s.mp;player.skillCd[i]=s.cd;s.fn();
 }
+function inReach(e,r){return!e.dead&&e.world===curWorld()&&d2(e.pos,player.pos)<r+e.rad&&Math.abs(e.pos.y+(e.fly||0)-player.pos.y)<(e.big?9:4);}
+function ringFx(x,y,z,r,col,n){for(let k=0;k<n;k++){const a=k/n*TAU;emit(x+Math.cos(a)*r,y,z+Math.sin(a)*r,1,{c:col,dir:[Math.cos(a),0,Math.sin(a)],spread:.1,sp:9,life:.4,s:.7});}}
+function skSpin(){player.spinT=.5;player.atkT=0;sfx('swing');setTimeout(()=>sfx('swing'),120);for(const e of enemies)if(inReach(e,6.5))dmgEnemy(e,player.atk*2.3,player,8);ringFx(player.pos.x,player.pos.y+1,player.pos.z,3,0x7fd8ff,40);}
+function skOrb(){const e=faceSoft()||nearestEnemy(player.pos,26);player.castT=.3;sfx('magic');shoot({from:castFrom(player),team:'party',target:e,dir:dirOf(player),dmg:player.mag*2.6,aoe:3,color:0x9fe3ff,speed:30,homing:6,src:player,size:1.3,trail:.7,life:1.6});}
+function skHeal(){sfx('heal');for(const m of party)if(m.alive)heal(m,m.maxHp*.4);emit(player.pos.x,player.pos.y+.2,player.pos.z,60,{c:0xbfffe0,sp:6,life:1,s:.5,flat:true,up:1.5});}
+function skHoly(){player.castT=.5;sfx('magic');sfx('heal');for(const e of enemies)if(inReach(e,7.5))dmgEnemy(e,player.mag*2.4,player,6);for(const m of party)if(m.alive)heal(m,m.maxHp*.12,true);ringFx(player.pos.x,player.pos.y+.4,player.pos.z,2,0xfff3c0,50);emit(player.pos.x,player.pos.y+.2,player.pos.z,40,{c:0xffffff,dir:[0,1,0],spread:.3,sp:8,life:.8,s:.6,r:10});}
+function skLance(){const e=faceSoft(28)||nearestEnemy(player.pos,28);player.castT=.3;sfx('magic');shoot({from:castFrom(player),team:'party',target:e,dir:dirOf(player),dmg:player.mag*3.4,aoe:2.6,color:0xfff6c0,speed:42,homing:8,src:player,size:1.5,trail:.9,life:1.4});}
+function skGreatHeal(){player.castT=.7;sfx('heal');sfx('lvl');for(const m of party){if(!m.alive){m.alive=true;m.downT=0;m.hp=Math.round(m.maxHp*.4);m.model.g.rotation.x=0;toast(`${m.name}が復活した`,'cyan');}else heal(m,m.maxHp*.6);}
+  emit(player.pos.x,player.pos.y+.2,player.pos.z,120,{c:0xbfffe0,sp:9,life:1.2,s:.6,flat:true,up:2});}
+function aimPoint(r){const e=faceSoft(r)||nearestEnemy(player.pos,r);return e?e.pos.clone():player.pos.clone().add(dirOf(player).multiplyScalar(9));}
+function skFlare(){const p=aimPoint(24);player.castT=.4;sfx('fire');emit(p.x,groundAt(p.x,p.z)+.5,p.z,20,{c:0xffb040,sp:2,life:.3,s:.8,r:4});
+  later(.3,()=>{sfx('boom');G.shake=Math.max(G.shake,.15);emit(p.x,groundAt(p.x,p.z)+1,p.z,70,{c:pick([0xff7a2a,0xffb040]),sp:10,life:.7,s:1.1,up:2});for(const x of enemies)if(!x.dead&&x.world===curWorld()&&d2(x.pos,p)<5+x.rad)dmgEnemy(x,player.mag*3,player,6);});}
+function skMeteor(){const c=aimPoint(30);player.castT=.6;sfx('fire');
+  for(let i=0;i<7;i++)later(i*.18,()=>{const a=R()*TAU,r=R()*5,tx=c.x+Math.cos(a)*r,tz=c.z+Math.sin(a)*r,gy=groundAt(tx,tz);sfx('fire');
+    shoot({from:new THREE.Vector3(tx+6,gy+34,tz-4),team:'party',point:new THREE.Vector3(tx,gy,tz),dmg:player.mag*2.1,aoe:3.6,color:0xff6a2a,speed:42,src:player,size:2.4,trail:1.4,life:3,kb:4});});}
+function skBless(){player.castT=.5;G.buff.atk=15;sfx('lvl');for(const m of party)if(m.alive)emit(m.pos.x,m.pos.y+1,m.pos.z,24,{c:0xff9a4a,sp:3,life:1,s:.5,up:2,r:1});toast('炎の加護：15秒間 与ダメージ+35%','gold');}
+function skTriple(){const list=enemies.filter(e=>!e.dead&&e.world===curWorld()&&d2(e.pos,player.pos)<26).sort((a,b)=>d2(a.pos,player.pos)-d2(b.pos,player.pos));faceSoft(26);player.castT=.3;sfx('arrow');
+  for(let k=0;k<3;k++){const t=list.length?list[k%list.length]:null,f=castFrom(player);f.x+=(k-1)*.3;shoot({from:f,team:'party',target:t,dir:dirOf(player),dmg:player.atk*1.7,color:0xfff0c0,speed:46,homing:9,src:player,arrow:true,trail:.3,kb:2,life:1.2});}}
+function skRain(){const c=aimPoint(30);player.castT=.4;sfx('arrow');
+  for(let i=0;i<10;i++)later(.2+i*.16,()=>{const gy=groundAt(c.x,c.z);for(let k=0;k<6;k++){const a=R()*TAU,r=R()*6;emit(c.x+Math.cos(a)*r,gy+9,c.z+Math.sin(a)*r,1,{c:0xfff0c0,dir:[0,-1,0],spread:.02,sp:30,life:.3,s:.35});}
+    if(i%2)sfx('arrow');for(const x of enemies)if(!x.dead&&x.world===curWorld()&&d2(x.pos,c)<6+x.rad)dmgEnemy(x,player.atk*.85,player,.5);});}
+function skHaste(){player.castT=.3;G.buff.haste=12;sfx('magic');for(const m of party)if(m.alive)emit(m.pos.x,m.pos.y+1,m.pos.z,24,{c:0x9fffd0,sp:4,life:.8,s:.45,flat:true,r:1});toast('疾風：12秒間 移動速度・会心率・仲間の攻撃速度アップ','gold');}
 function useUlt(){
   if(!canAct()||G.ult<100)return;G.ult=0;sfx('boom');sfx('shard');G.shake=.6;
   banner('OATH ARTS','ルミナス・オース');
@@ -1162,47 +1460,77 @@ function useUlt(){
 }
 function usePotion(){if(!canAct())return;if(G.potions<=0){toast('ポーションがない','red');return;}G.potions--;sfx('heal');for(const m of party)if(m.alive)heal(m,m.maxHp*.45);toast('ポーションを使った（パーティのHP回復）','cyan');}
 function useEther(){if(!canAct())return;if(G.ethers<=0){toast('エーテルがない','red');return;}G.ethers--;sfx('magic');for(const m of party)m.mp=Math.min(m.maxMp,m.mp+m.maxMp*.6);toast('エーテルを使った（MP回復）','cyan');}
+function useHipot(){if(!canAct())return;if(G.hipot<=0){toast('ハイポーションがない','red');return;}G.hipot--;sfx('heal');for(const m of party)if(m.alive)heal(m,m.maxHp*.85);toast('ハイポーションを使った','cyan');}
+function useFeather(){if(!canAct())return;if(G.feathers<=0){toast('蘇生の羽根がない','red');return;}const down=party.filter(m=>!m.alive);if(!down.length){toast('戦闘不能の仲間はいない');return;}
+  G.feathers--;sfx('lvl');for(const m of down){m.alive=true;m.downT=0;m.hp=Math.round(m.maxHp*.5);m.model.g.rotation.x=0;emit(m.pos.x,m.pos.y+1,m.pos.z,40,{c:0xffe08a,sp:4,life:1,s:.6,up:3});}toast('蘇生の羽根で仲間が復活した','cyan');}
+function switchTo(i,forced){
+  const m=party[i];if(!m||m===player)return;if(!m.alive){if(!forced)toast(`${m.name}は戦闘不能です`,'red');return;}
+  if(!forced&&!canAct())return;
+  const old=player;old.atkT=0;old.spinT=0;old.castT=0;old.queued=false;old.combo=0;old.vel.set(0,0,0);
+  player=m;comps=party.filter(x=>x!==player);m.vy=0;m.atkT=0;m.spinT=0;m.castT=0;m.vel.set(0,0,0);m.model.g.rotation.x=0;m.onGround=true;
+  G.ctrl=m.key;G.focus=null;buildSkillBar();sfx('ui');emit(m.pos.x,m.pos.y+1,m.pos.z,30,{c:0xffe08a,sp:3,life:.7,s:.5,up:2,r:1});
+  if(!forced)toast(`${m.name}（${m.role}）を操作中`,'gold');
+}
+function switchNext(){const s=party.indexOf(player);for(let k=1;k<party.length;k++){const i=(s+k)%party.length;if(party[i].alive){switchTo(i);return;}}}
 
 // ================================================================ shards
 const shardObjs=[];
 function spawnShard(i,x,z){
   if(G.shards[i]||shardObjs.some(s=>s.i===i))return;
   const s=SHARDS[i];x=x===undefined?s.x:x;z=z===undefined?s.z:z;
-  const g=new THREE.Group();const c=new THREE.Mesh(new THREE.OctahedronGeometry(.7),new THREE.MeshLambertMaterial({color:0xbff0ff,emissive:0x3aa0e0}));c.scale.y=1.7;g.add(c);
-  const sp=new THREE.Sprite(new THREE.SpriteMaterial({map:glowTex,color:0x9fe3ff,transparent:true,blending:THREE.AdditiveBlending,depthWrite:false}));sp.scale.set(5,5,1);g.add(sp);
+  const seal=i>=5;const g=new THREE.Group();const c=new THREE.Mesh(new THREE.OctahedronGeometry(.7),new THREE.MeshLambertMaterial({color:seal?0xe0c0ff:0xbff0ff,emissive:seal?0x6a2aa0:0x3aa0e0}));c.scale.y=1.7;g.add(c);
+  const sp=new THREE.Sprite(new THREE.SpriteMaterial({map:glowTex,color:seal?0xc090ff:0x9fe3ff,transparent:true,blending:THREE.AdditiveBlending,depthWrite:false}));sp.scale.set(5,5,1);g.add(sp);
   g.position.set(x,groundH(x,z)+1.6,z);scene.add(g);shardObjs.push({i,g,c,pos:g.position});
 }
 function takeShard(o){
   G.shards[o.i]=1;scene.remove(o.g);shardObjs.splice(shardObjs.indexOf(o),1);sfx('shard');
   emit(o.pos.x,o.pos.y,o.pos.z,80,{c:0x9fe3ff,sp:7,life:1.2,s:.7,up:2});
-  const n=G.shards.reduce((a,b)=>a+b,0);banner('OATH SHARD',`誓約の欠片 ${n} / 5`);
-  if(G.main===3&&n>=5)setMain(4);
+  if(o.i>=5){const n=cnt2();banner('ECLIPSE SEAL',`蝕の封印 ${n} / 5`);if(G.main===10&&n>=5)setMain(11);}
+  else{const n=cnt1();banner('OATH SHARD',`誓約の欠片 ${n} / 5`);if(G.main===3&&n>=5)setMain(4);}
   saveGame(true);
 }
 
 // ================================================================ quests
-function setMain(n){G.main=n;const q=questInfo();banner('QUEST',q[0]);if(n===3&&G.shards.reduce((a,b)=>a+b,0)>=5)G.main=4;saveGame(true);}
+function cnt1(){let n=0;for(let i=0;i<5;i++)n+=G.shards[i]?1:0;return n;}
+function cnt2(){let n=0;for(let i=5;i<10;i++)n+=G.shards[i]?1:0;return n;}
+function setMain(n){G.main=n;const q=questInfo();banner('QUEST',q[0]);if(n===3&&cnt1()>=5)G.main=4;if(n===10&&cnt2()>=5)G.main=11;saveGame(true);}
 function questInfo(){
-  const n=G.shards.reduce((a,b)=>a+b,0);
   switch(G.main){
     case 0:return['草原の異変','エルムの村のエルダ村長と話す'];
     case 1:return G.slimeKills<5?['草原の異変',`村の南の草原でスライムを倒す（${G.slimeKills}/5）`]:['草原の異変','エルダ村長に報告する'];
     case 2:return['王都へ','湖の東の街道を進み、王都ルミナリアの騎士団長レオニスに会う'];
-    case 3:return['誓約の欠片',`各地の守護者を倒し、欠片を集める（${n}/5）`];
+    case 3:return['誓約の欠片',`各地の守護者を倒し、欠片を集める（${cnt1()}/5）`];
     case 4:return['光の転移陣','王都の広場で大賢者オルフェに欠片を届ける'];
-    case 5:return G.dragonDead?['蒼穹の決戦','討伐完了']:['蒼穹の決戦','王都の転移陣から天空の祭壇へ向かい、蒼穹竜ヴェルザードを討つ'];
-    default:return['誓いの果てに','アストラリアを自由に旅しよう'];
+    case 5:return['蒼穹の決戦','王都の転移陣から天空の祭壇へ向かい、蒼穹竜ヴェルザードを討つ'];
+    case 6:return['第二章：黄昏の大陸','王都の大賢者オルフェに報告する'];
+    case 7:return['黄昏の大陸',player.pos.x>1000?'砂上都市アル＝ミラージュの太守ラシードに会う':'王都の転移陣から黄昏の大陸ノクティスへ渡る'];
+    case 8:return G.scKills<6?['砂の街の危機',`町の南の砂漠でデススコーピオンを倒す（${G.scKills}/6）`]:['砂の街の危機','太守ラシードに報告する'];
+    case 9:return['月影の騎士','宮殿の前にいる月影の騎士シリウスと話す'];
+    case 10:return['蝕の封印',`五体の守護者を倒し、封印を集める（${cnt2()}/5）`];
+    case 11:return['結界を断て','月影の騎士シリウスに封印を届ける'];
+    case 12:return['黄昏の玉座','北の黄昏の玉座で蝕の魔王ゼルヴァーンを討つ'];
+    default:return['誓いの果てに','二つの大陸を自由に旅しよう'];
   }
 }
 function questTarget(){
-  const N=id=>npcs.find(n=>n.id===id);
+  const N=id=>npcs.find(n=>n.id===id).pos;const inW2=player.pos.x>1000;
+  const shardT=(a,b)=>{let best=null,bd=1e9;for(let i=a;i<b;i++){if(G.shards[i])continue;const s=SHARDS[i],d=Math.hypot(s.x-player.pos.x,s.z-player.pos.z);if(d<bd){bd=d;best={x:s.x,y:groundH(s.x,s.z),z:s.z};}}return best;};
+  const portal={x:anim.portal.x,y:CAP.h,z:anim.portal.z};
+  if(G.inSky)return null;
   switch(G.main){
-    case 0:return N('elder').pos;
-    case 1:return G.slimeKills<5?{x:-40,y:groundH(-40,195),z:195}:N('elder').pos;
-    case 2:return N('leonis').pos;
-    case 3:{let best=null,bd=1e9;SHARDS.forEach((s,i)=>{if(G.shards[i])return;const d=Math.hypot(s.x-player.pos.x,s.z-player.pos.z);if(d<bd){bd=d;best={x:s.x,y:groundH(s.x,s.z),z:s.z};}});return best;}
-    case 4:return N('orphe').pos;
-    case 5:if(G.dragonDead)return null;if(G.inSky)return null;return{x:anim.portal.x,y:CAP.h,z:anim.portal.z};
+    case 0:return N('elder');
+    case 1:return G.slimeKills<5?{x:-40,y:groundH(-40,195),z:195}:N('elder');
+    case 2:return N('leonis');
+    case 3:return shardT(0,5);
+    case 4:return N('orphe');
+    case 5:return G.dragonDead?null:portal;
+    case 6:return inW2?{x:anim.portal2.x,y:T2.h,z:anim.portal2.z}:N('orphe');
+    case 7:return inW2?N('rashid'):portal;
+    case 8:return !inW2?portal:G.scKills<6?{x:W2.cx-60,y:groundH(W2.cx-60,W2.cz+175),z:W2.cz+175}:N('rashid');
+    case 9:return inW2?N('sirius'):portal;
+    case 10:return inW2?shardT(5,10):portal;
+    case 11:return inW2?N('sirius'):portal;
+    case 12:return inW2?{x:THRONE.x,y:THRONE.h,z:THRONE.z}:portal;
   }
   return null;
 }
@@ -1246,15 +1574,16 @@ function buildNPCs(){
     const N='騎士団長レオニス';
     if(G.main<2)return dialog([{n:N,t:'見ない顔だな。王都ルミナリアへようこそ。困りごとがあれば騎士団を頼るといい。'}]);
     if(G.main===2)return dialog([{n:N,t:'君たちがエルム村の……エルダ殿から話は聞いている。'},{n:N,t:'散った「誓約の欠片」は五つ。湖畔の祠、黒霧の森、ゴブリン砦、氷の祠、そして古代遺跡アルケイオン。'},{n:N,t:'いずれも強大な守護者が居座っている。欠片を五つ集めたら、広場の大賢者オルフェ様のもとへ。'},{n:'リナ',t:'五か所も！？　……でも、やるしかないよね。'},{n:N,t:'地図（M キー）に場所を記しておこう。鍛冶屋ボルクで装備を鍛えるのも忘れるな。'}],()=>setMain(3));
-    if(G.main===3)return dialog([{n:N,t:`欠片は ${G.shards.reduce((a,b)=>a+b,0)} / 5。守護者はそれぞれ強さが違う。湖畔の祠から挑むのが良いだろう。`}]);
+    if(G.main===3)return dialog([{n:N,t:`欠片は ${cnt1()} / 5。守護者はそれぞれ強さが違う。湖畔の祠から挑むのが良いだろう。`}]);
     return dialog([{n:N,t:G.dragonDead?'君たちこそ真の誓約の騎士だ。ルミナリアは永遠に君たちを忘れない。':'天空の祭壇……頼んだぞ、誓約の勇者たち。'}]);
   });
   npc('orphe','大賢者オルフェ','転移陣',...C(GATE.x*4+PERP.x*7,GATE.z*4+PERP.z*7),L({hair:0xf0f0f0,hs:'long',body:0x3a3a7a,skirt:[1,.6],skirtC:0x2a2a6a,beard:0xf0f0f0,weapon:'staff',gem:0xc0a0ff}),()=>{
-    const N='大賢者オルフェ';const n=G.shards.reduce((a,b)=>a+b,0);
+    const N='大賢者オルフェ';const n=cnt1();
     if(G.main<4)return dialog([{n:N,t:'この転移陣は天空の祭壇に通じておる。じゃが、誓約の欠片が五つ揃わねば光は灯らぬ。'},{n:N,t:`今、欠片の気配は ${n} つ……。`}]);
     if(G.main===4)return dialog([{n:N,t:'……五つの誓約の光。確かに受け取った。'},{n:N,t:'転移陣を起動しよう。天空の祭壇で蒼穹竜ヴェルザードが待っておる。'},{n:N,t:'準備が整ったら、陣の中央で「調べる（E）」のじゃ。武運を祈る。'}],()=>{setMain(5);sfx('shard');});
     if(G.main===5&&!G.dragonDead)return dialog([{n:N,t:'転移陣は起動しておる。竜は火を吐き、空から火球を降らせる。赤い円からは離れるのじゃぞ。'}]);
-    return dialog([{n:N,t:'空は澄み渡った。天空の祭壇へは、いつでも転移陣から行けるぞ。'}]);
+    if(G.main===6)return dialog([{n:N,t:'……よくぞ戻った。ヴェルザードは光に還ったか。'},{n:N,t:'じゃが竜の瞳に宿っていた影 ── あれは「蝕」じゃ。遥か東、黄昏の大陸ノクティスから流れ込んだ闇の力よ。'},{n:N,t:'転移陣に新たな道を刻んだ。ノクティスの砂上都市アル＝ミラージュへ渡り、太守ラシードを訪ねるのじゃ。'},{n:'アレン',t:'……行こう。誓いはまだ終わっていない。'}],()=>{setMain(7);sfx('shard');});
+    return dialog([{n:N,t:G.main>=13?'蝕は晴れた。二つの大陸は、君たちの誓いで結ばれたのじゃ。':'転移陣は天空の祭壇にも、黄昏の大陸にも通じておる。調べる（E）で行き先を選ぶのじゃ。'}]);
   });
   npc('bork','鍛冶屋ボルク','鍛冶屋',...C(PERP.x*14,PERP.z*14),L({hair:0x3a2a1a,body:0x6a4a3a,sleeve:0x8a5a3a,beard:0x5a3a2a,weapon:'axe',scale:1.05}),()=>dialog([{n:'鍛冶屋ボルク',t:'おう、鍛えに来たか。素材は金だ。いい腕の見せどころだぜ。'}],()=>openShop('bork')));
   npc('bran','衛兵ブラン','衛兵',...C(GATE.x*30+PERP.x*3,GATE.z*30+PERP.z*3),L({hair:0x4a3a2a,body:0x9aa4b4,legs:0x5a6374,helm:0x9aa4b4,weapon:'sword'}),()=>{
@@ -1266,11 +1595,49 @@ function buildNPCs(){
   });
   npc('innc','宿屋の主人ハンス','宿屋',...C(-PERP.x*14,-PERP.z*14),L({hair:0x2a2a2a,body:0x8a5a3a}),innTalk('宿屋の主人ハンス'));
   npc('citizen','吟遊詩人リュート','',...C(GATE.x*16-PERP.x*4,GATE.z*16-PERP.z*4),L({hair:0x9a5aa0,hs:'long',body:0x5a3a8a,cape:0x8a3a5a}),()=>dialog([{n:'吟遊詩人リュート',t:'♪ 王の尖塔から伸びる光は、誓約がまだ生きている証 ── 五つの欠片が揃う時、空への道は開かれん……'}]));
-  for(const n of npcs){n.baseRot=Math.atan2(player.pos.x-n.pos.x,player.pos.z-n.pos.z);}
-  for(const n of npcs){const inCap=Math.hypot(n.pos.x-CAP.x,n.pos.z-CAP.z)<CAP.r;const c=inCap?CAP:VIL;const a=Math.atan2(c.x-n.pos.x,c.z-n.pos.z);n.rotY=n.baseRot=Math.hypot(n.pos.x-c.x,n.pos.z-c.z)<2?0:a;}
+  // ---- chapter 2 : アル＝ミラージュ
+  const T=(dx,dz)=>[T2.x+dx,T2.z+dz];
+  npc('rashid','太守ラシード','太守',...T(0,14),L({hair:0x2a1a10,body:0xe8e0d0,sleeve:0xe8e0d0,skirt:[1,.6],skirtC:0xd8cfb8,helm:0xf4f0e6,beard:0x2a1a10,belt:0xc8a040}),()=>{
+    const N='太守ラシード';
+    if(G.main<7)return dialog([{n:N,t:'……光の大陸からの客人か。蝕に覆われたこの地で会えるとは珍しい。'}]);
+    if(G.main===7)return dialog([{n:N,t:'ようこそ、砂上都市アル＝ミラージュへ。わしは太守のラシード。'},{n:N,t:'誓約の勇者の噂は届いておる。だが今この大陸は「蝕」に覆われ、太陽は黄昏のまま沈まなくなってしまった。'},{n:N,t:'まずは町の南の砂漠で暴れるデススコーピオンを6体退治してくれぬか。隊商が次々と襲われておるのじゃ。'},{n:'リナ',t:'サソリかぁ……刺されたら痛そう。でも任せて！'}],()=>{G.scKills=0;setMain(8);});
+    if(G.main===8&&G.scKills<6)return dialog([{n:N,t:`南の砂漠のデススコーピオンを頼む。あと ${6-G.scKills} 体じゃ。ここの魔物は光の大陸とは比べものにならぬ。鍛冶屋ハキムで装備を整えるのじゃ。`}]);
+    if(G.main===8)return dialog([{n:N,t:'見事じゃ！　これで隊商も息を吹き返そう。これは礼じゃ。'},{n:N,t:'……実は、おぬしらに会わせたい者がおる。宮殿の前に立つ「月影の騎士シリウス」じゃ。'}],()=>{G.gold+=1500;G.hipot+=3;toast('1500G とハイポーション×3 を受け取った','gold');sfx('coin');setMain(9);});
+    if(G.main>=13)return dialog([{n:N,t:'見よ、太陽が沈み、また昇った。時が動き出したのじゃ。おぬしらはこの大陸の恩人じゃ。'}]);
+    return dialog([{n:N,t:'シリウスの話は聞いたか？　封印の守護者どもは恐ろしく強い。無理はするでないぞ。'}]);
+  });
+  npc('sirius','月影の騎士シリウス','月影の騎士',...T(-6,14),L({hair:0xd0d8f0,hs:'long',body:0x3a4a6a,sleeve:0x2a3a5a,legs:0x1a2238,cape:0x1a2a5a,capeL:1.4,weapon:'sword',pauldron:0xc0c8e0,eye:0x6a8aff}),()=>{
+    const N='月影の騎士シリウス';const n=cnt2();
+    if(G.main<9)return dialog([{n:N,t:'……わたしはシリウス。今はまだ語るべき時ではない。'}]);
+    if(G.main===9)return dialog([{n:N,t:'君たちが蒼穹竜を解き放った者か。礼を言う。'},{n:N,t:'ヴェルザードを狂わせたのは「蝕の魔王ゼルヴァーン」。黄昏の玉座に座し、二つの大陸の誓約の光を喰らおうとしている。'},{n:N,t:'玉座は闇の結界に守られている。結界を破るには、五体の守護者が守る「蝕の封印」を奪い返すしかない。'},{n:N,t:'砂の神殿、王家の墓所、炎の祭壇、翠晶の谷、黒鉄の砦。いずれも光の大陸の守護者とは比べものにならぬ強さだ。'},{n:'セレス',t:'……それでも、行きます。誓いを果たすために。'},{n:N,t:'地図（M）に場所を記した。ハキムの鍛冶場なら装備を+20まで鍛えられる。準備を怠るな。'}],()=>setMain(10));
+    if(G.main===10)return dialog([{n:N,t:`封印は ${n} / 5。推奨レベルを目安にするといい。苦しいときはメニューの「ヘルプ」も頼れ。`}]);
+    if(G.main===11)return dialog([{n:N,t:'五つの封印……確かに受け取った。'},{n:N,t:'月影の剣よ ── 闇の結界を断て！'},{n:N,t:'玉座への道は開いた。北の「黄昏の玉座」で、ゼルヴァーンが待っている。……共に誓いを果たそう。'}],()=>{setMain(12);sfx('shard');G.shake=.4;});
+    if(G.main===12)return dialog([{n:N,t:'ゼルヴァーンは三つの姿を持つ。月が昇れば流星を降らせ、最後には「蝕の月」で全てを呑み込もうとする。赤い円の外へ走れ。'}]);
+    return dialog([{n:N,t:'蝕は晴れた。月影の騎士として、君たちの誓いを永遠に語り継ごう。'}]);
+  });
+  npc('salma','商人サルマ','道具屋',...T(-15,-2),L({hair:0x3a1a10,hs:'long',body:0x8e44ad,skirt:[.85,.55],skirtC:0x6a2a8a,helm:0xf1c40f}),()=>dialog([{n:'商人サルマ',t:'いらっしゃいませ。砂漠を越えるなら、ハイポーションと蘇生の羽根は必需品ですよ。'}],()=>openShop('salma')));
+  npc('hakim','鍛冶屋ハキム','鍛冶屋',...T(15,-2),L({hair:0x1a1a1a,body:0x6a3a2a,sleeve:0x8a4a2a,beard:0x1a1a1a,weapon:'axe',scale:1.08,helm:0xc0392b}),()=>dialog([{n:'鍛冶屋ハキム',t:'溶岩で鍛えた鋼は、星鋼を越える。+20まで鍛えてやろう。金さえあればな。'}],()=>openShop('hakim')));
+  npc('marika','宿屋のマリカ','宿屋',...T(16,10),L({hair:0x6a2a1a,hs:'bob',body:0x16a085,skirt:[.85,.5],skirtC:0x0e6a5a}),innTalk('宿屋のマリカ',80));
+  npc('yuri','探検家ユーリ','探検家',...T(-16,10),L({hair:0xc08a4a,body:0x8a6a3a,legs:0x5a4a2a,helm:0xc8b890,weapon:'bow'}),()=>{
+    const N='探検家ユーリ',s=G.side;
+    if(s.scorp===0)return dialog([{n:N,t:'砂の神殿を調べたいんだが、サソリが多すぎて近づけない。'},{n:N,t:'8匹ほど退治してくれないか？　とっておきの品を渡すよ。',c:[{t:'引き受ける',f:()=>{s.scorp=1;s.scorpKills=0;toast('サブクエスト受注：サソリ掃討','gold');}},{t:'また今度',f:null}]}]);
+    if(s.scorp===1)return dialog([{n:N,t:`あと ${8-s.scorpKills} 匹だ。砂漠のどこにでもいる。`}]);
+    if(s.scorp===2)return dialog([{n:N,t:'助かった！　約束の品だ。'}],()=>{s.scorp=3;G.gold+=1500;G.hipot+=3;gainExp(1500);toast('1500G・ハイポーション×3・EXP 1500','gold');sfx('coin');saveGame(true);});
+    return dialog([{n:N,t:'神殿のピラミッドの中には、古代の星図が眠っているらしい。いつか一緒に見に行こう。'}]);
+  });
+  npc('oz','墓守オズ','墓守',...T(8,-22),L({hair:0x8a8a8a,body:0x3a3a4a,skirt:[1,.6],skirtC:0x2a2a3a,beard:0xaaaaaa,weapon:'staff',gem:0x9fffcf}),()=>{
+    const N='墓守オズ',s=G.side;
+    if(s.skel===0)return dialog([{n:N,t:'王家の墓所から、眠っていた兵たちが蘇ってしまった……。'},{n:N,t:'スケルトン兵を10体、眠りに戻してやってくれんか。',c:[{t:'引き受ける',f:()=>{s.skel=1;s.skelKills=0;toast('サブクエスト受注：眠れぬ兵たち','gold');}},{t:'また今度',f:null}]}]);
+    if(s.skel===1)return dialog([{n:N,t:`あと ${10-s.skelKills} 体……頼みましたぞ。`}]);
+    if(s.skel===2)return dialog([{n:N,t:'兵たちも安らかに眠れましょう。これは墓所に伝わる羽根です。'}],()=>{s.skel=3;G.gold+=2000;G.feathers+=2;gainExp(2000);toast('2000G・蘇生の羽根×2・EXP 2000','gold');sfx('coin');saveGame(true);});
+    return dialog([{n:N,t:'墓所の静けさが戻りました。感謝いたします。'}]);
+  });
+  npc('amir','町の子ども アミル','',...T(-6,-8),L({hair:0x2a1a10,body:0xe0a040,scale:.7}),()=>dialog([{n:'アミル',t:'オアシスの水面には、蜃気楼の都が映るんだって！'},{n:'コハク',t:'へえ……オイラ、ちょっと見てみたいな。'}]));
+  npc('leila','踊り子レイラ','',...T(7,7),L({hair:0x1a0a1a,hs:'long',body:0xc0392b,skirt:[.9,.6],skirtC:0xf1c40f}),()=>dialog([{n:'踊り子レイラ',t:'この町の夕陽はずっと沈まないの。蝕のせいで、時が止まっているみたい。'}]));
+  for(const n of npcs){let c=VIL,bd=1e9;for(const t of[VIL,CAP,T2]){const d=Math.hypot(n.pos.x-t.x,n.pos.z-t.z);if(d<bd){bd=d;c=t;}}const a=Math.atan2(c.x-n.pos.x,c.z-n.pos.z);n.rotY=n.baseRot=bd<2?0:a;}
 }
-function innTalk(N){return()=>dialog([{n:N,t:'旅の疲れを癒していかない？　一晩 20G。仲間も元気になるし、冒険の記録もつけておくよ。',c:[{t:'泊まる（20G）',f:()=>{if(G.gold<20){dialog([{n:N,t:'あら、お金が足りないみたい。'}]);return;}G.gold-=20;restAll();}},{t:'やめておく',f:null}]}]);}
-function restAll(){fade(true,()=>{for(const m of party){m.alive=true;m.hp=m.maxHp;m.mp=m.maxMp;m.downT=0;}G.time=.28;saveGame(false);setTimeout(()=>fade(false),400);toast('ぐっすり眠った。HP・MPが全回復した','cyan');});}
+function innTalk(N,pr=20){return()=>dialog([{n:N,t:`旅の疲れを癒していかない？　一晩 ${pr}G。仲間も元気になるし、冒険の記録もつけておくよ。`,c:[{t:`泊まる（${pr}G）`,f:()=>{if(G.gold<pr){dialog([{n:N,t:'あら、お金が足りないみたい。'}]);return;}G.gold-=pr;restAll();}},{t:'やめておく',f:null}]}]);}
+function restAll(){fade(true,()=>{for(const m of party){m.alive=true;m.hp=m.maxHp;m.mp=m.maxMp;m.downT=0;m.model.g.rotation.x=0;}G.time=.28;saveGame(false);setTimeout(()=>fade(false),400);toast('ぐっすり眠った。HP・MPが全回復した','cyan');});}
 
 // ---- shop / panel
 const panel=$('#panel');let panelMode=null,panelTab=0;
@@ -1294,25 +1661,49 @@ function refreshShop(){
     shopRow(body,`誓約の鎧 +${G.armorLv} → +${G.armorLv+1}`,'最大HPと防御力が上がる（パーティ全員）',G.armorLv>=10?null:ac,G.armorLv>=10?'最大':'鍛える',()=>{G.gold-=ac;G.armorLv++;recalc(false);toast(`誓約の鎧 +${G.armorLv}`,'gold');},G.armorLv>=10);
     shopRow(body,'ポーション','パーティ全員のHPを45%回復',45,'買う',()=>{G.gold-=45;G.potions++;});
     shopRow(body,'エーテル','パーティ全員のMPを60%回復',75,'買う',()=>{G.gold-=75;G.ethers++;});});
+  if(shopId==='salma')openPanel('サルマの交易所',null,body=>{const h=document.createElement('p');h.className='muted';h.textContent=`所持金 ${G.gold} G ／ ハイポーション ${G.hipot} ／ 蘇生の羽根 ${G.feathers}`;body.appendChild(h);
+    shopRow(body,'ハイポーション','パーティ全員のHPを85%回復（G キー）',300,'買う',()=>{G.gold-=300;G.hipot++;});
+    shopRow(body,'蘇生の羽根','戦闘不能の仲間を全員 HP50% で復活（B キー）',800,'買う',()=>{G.gold-=800;G.feathers++;});
+    shopRow(body,'ポーション ×10','パーティ全員のHPを45%回復',400,'買う',()=>{G.gold-=400;G.potions+=10;});
+    shopRow(body,'エーテル ×5','パーティ全員のMPを60%回復',350,'買う',()=>{G.gold-=350;G.ethers+=5;});});
+  if(shopId==='hakim')openPanel('ハキムの溶鉄工房',null,body=>{const h=document.createElement('p');h.className='muted';h.textContent=`所持金 ${G.gold} G　─　+11 から +20 まで鍛えられる`;body.appendChild(h);
+    const wc=Math.round(140*Math.pow(G.weaponLv+1,1.55)),ac=Math.round(120*Math.pow(G.armorLv+1,1.55)),wm=G.weaponLv>=20,am=G.armorLv>=20;
+    shopRow(body,`${G.weaponLv>=10?'蝕滅の聖剣':'星鋼の剣'} +${G.weaponLv} → +${G.weaponLv+1}`,'攻撃力・魔力が上がる（仲間にも効果）',wm?null:wc,wm?'最大':'鍛える',()=>{G.gold-=wc;G.weaponLv++;recalc(false);toast(`武器 +${G.weaponLv}`,'gold');},wm);
+    shopRow(body,`${G.armorLv>=10?'月光の聖鎧':'誓約の鎧'} +${G.armorLv} → +${G.armorLv+1}`,'最大HPと防御力が上がる（パーティ全員）',am?null:ac,am?'最大':'鍛える',()=>{G.gold-=ac;G.armorLv++;recalc(false);toast(`防具 +${G.armorLv}`,'gold');},am);});
 }
-function openMenu(){shopId=null;openPanel('メニュー',['ステータス','アイテム','クエスト','操作方法'],body=>{
+function openMenu(){shopId=null;openPanel('メニュー',['ステータス','アイテム','クエスト','操作方法','ヘルプ'],body=>{
   if(panelTab===0){const g=document.createElement('div');g.className='grid2';
-    for(const m of party){const c=document.createElement('div');c.className='card';c.innerHTML=`<h3><span></span><small></small></h3>`;c.querySelector('span').textContent=m.name;c.querySelector('small').textContent=`${m.role}　Lv ${G.lvl}`;
+    for(const m of party){const c=document.createElement('div');c.className='card';c.innerHTML=`<h3><span></span><small></small></h3>`;c.querySelector('span').textContent=m.name;c.querySelector('small').textContent=`${m.role}　Lv ${G.lvl}${m===player?'　操作中':''}`;c.style.cursor='pointer';c.onclick=()=>{switchTo(party.indexOf(m));openMenu();};
       for(const [k,v] of[['HP',`${Math.ceil(m.hp)} / ${m.maxHp}`],['MP',`${Math.floor(m.mp)} / ${m.maxMp}`],['攻撃',m.atk],['魔力',m.mag],['防御',m.def]]){const s=document.createElement('div');s.className='stat';s.innerHTML='<span></span><b></b>';s.firstChild.textContent=k;s.lastChild.textContent=v;c.appendChild(s);}
       g.appendChild(c);}body.appendChild(g);
-    const p=document.createElement('p');p.className='muted';p.textContent=`EXP ${G.exp} / ${needExp(G.lvl)}　・　所持金 ${G.gold} G　・　星鋼の剣 +${G.weaponLv}　・　誓約の鎧 +${G.armorLv}　・　欠片 ${G.shards.reduce((a,b)=>a+b,0)} / 5`;body.appendChild(p);
+    const p=document.createElement('p');p.className='muted';p.textContent=`EXP ${G.exp} / ${needExp(G.lvl)}　・　所持金 ${G.gold} G　・　星鋼の剣 +${G.weaponLv}　・　誓約の鎧 +${G.armorLv}　・　欠片 ${cnt1()} / 5`;body.appendChild(p);
     const sv=document.createElement('button');sv.type='button';sv.className='btn';sv.textContent='セーブする';sv.onclick=()=>{saveGame(false);};body.appendChild(sv);}
   if(panelTab===1){shopRow(body,`ポーション ×${G.potions}`,'パーティ全員のHPを45%回復（F）',null,'使う',()=>{closePanel();usePotion();},G.potions<=0);
     shopRow(body,`エーテル ×${G.ethers}`,'パーティ全員のMPを60%回復（V）',null,'使う',()=>{closePanel();useEther();},G.ethers<=0);
-    shopRow(body,`誓約の欠片 ×${G.shards.reduce((a,b)=>a+b,0)}`,'散った光の誓約のかけら。五つ揃えば天空への道が開く。',null,'─',()=>{},true);}
+    shopRow(body,`ハイポーション ×${G.hipot}`,'パーティ全員のHPを85%回復（G）',null,'使う',()=>{closePanel();useHipot();},G.hipot<=0);
+    shopRow(body,`蘇生の羽根 ×${G.feathers}`,'戦闘不能の仲間を全員復活（B）',null,'使う',()=>{closePanel();useFeather();},G.feathers<=0);
+    shopRow(body,`誓約の欠片 ×${cnt1()}`,'散った光の誓約のかけら。五つ揃えば天空への道が開く。',null,'─',()=>{},true);
+    if(G.main>=7)shopRow(body,`蝕の封印 ×${cnt2()}`,'黄昏の玉座を覆う結界の要。五つ揃えば結界を断てる。',null,'─',()=>{},true);}
   if(panelTab===2){const q=questInfo();const add=(t,d,tag,cls)=>{const e=document.createElement('div');e.className='qitem';e.innerHTML='<b></b><span class="tag"></span><p></p>';e.querySelector('b').textContent=t;e.querySelector('.tag').textContent=tag;e.querySelector('.tag').className='tag '+cls;e.querySelector('p').textContent=d;body.appendChild(e);};
     add(q[0],q[1],'メイン','m');
-    SHARDS.forEach((s,i)=>add(`欠片：${s.name}`,G.shards[i]?'入手済み':G.bossDead[i]?'守護者を撃破。欠片を拾おう':`守護者 ${BOSS[s.boss].name}（推奨 Lv ${BOSS[s.boss].lv+2}）`,G.shards[i]?'完了':'未入手',G.shards[i]?'d':''));
+    SHARDS.forEach((s,i)=>{if(i>=5&&G.main<7)return;add(`${i<5?'欠片':'封印'}：${s.name}`,G.shards[i]?'入手済み':G.bossDead[i]?'守護者を撃破。欠片を拾おう':`守護者 ${BOSS[s.boss].name}（推奨 Lv ${BOSS[s.boss].lv+2}）`,G.shards[i]?'完了':'未入手',G.shards[i]?'d':'');});
     const s=G.side;add('オオカミ狩り（狩人ガルド）',['エルムの村の狩人ガルドに話しかける',`オオカミを倒す ${s.wolfKills}/6`,'ガルドに報告する','完了'][s.wolf],'サブ',s.wolf===3?'d':'');
-    add('ゴブリン討伐（衛兵ブラン）',['王都の衛兵ブランに話しかける',`ゴブリンを倒す ${s.gobKills}/8`,'ブランに報告する','完了'][s.gob],'サブ',s.gob===3?'d':'');}
+    add('ゴブリン討伐（衛兵ブラン）',['王都の衛兵ブランに話しかける',`ゴブリンを倒す ${s.gobKills}/8`,'ブランに報告する','完了'][s.gob],'サブ',s.gob===3?'d':'');
+    if(G.main>=7){add('サソリ掃討（探検家ユーリ）',['アル＝ミラージュの探検家ユーリに話しかける',`デススコーピオンを倒す ${s.scorpKills}/8`,'ユーリに報告する','完了'][s.scorp],'サブ',s.scorp===3?'d':'');
+      add('眠れぬ兵たち（墓守オズ）',['アル＝ミラージュの墓守オズに話しかける',`スケルトン兵を倒す ${s.skelKills}/10`,'オズに報告する','完了'][s.skel],'サブ',s.skel===3?'d':'');}}
   if(panelTab===3){const k=document.createElement('div');k.className='keys';
-    for(const [a,b] of[['W A S D','移動（Shift でダッシュ）'],['マウスドラッグ','視点回転（ホイールでズーム）'],['クリック / J','剣で攻撃（連打で3段コンボ）'],['右クリック / 2','光弾（魔法攻撃）'],['1','蒼閃斬（周囲をなぎ払う）'],['3','誓約の癒し（パーティ回復）'],['R','奥義ルミナス・オース（ゲージ満タン時）'],['Space','ジャンプ'],['E','話す・調べる・拾う'],['F / V','ポーション / エーテル'],['Tab / M','メニュー / 地図'],['L','マウス視点ロック（Esc で解除）']]){const x=document.createElement('span');x.className='kbd';x.style.justifySelf='start';x.textContent=a;const y=document.createElement('span');y.textContent=b;k.append(x,y);}
-    body.appendChild(k);const p=document.createElement('p');p.className='muted';p.textContent='仲間（セレス・リナ・コハク）は自動で戦います。セレスは傷ついた仲間を癒し、リナは火球、コハクは弓で援護します。倒れた仲間は時間が経つと起き上がります。';body.appendChild(p);}
+    for(const [a,b] of[['W A S D','移動（Shift でダッシュ）'],['マウスドラッグ','視点回転（ホイールでズーム）'],['クリック / J','通常攻撃（押し続けで連続攻撃）'],['1 / 2 / 3','操作中のキャラのスキル（右クリックでも2）'],['Q / 仲間の枠をクリック','操作キャラを交代'],['G / B','ハイポーション / 蘇生の羽根'],['R','奥義ルミナス・オース（ゲージ満タン時）'],['Space','ジャンプ'],['E','話す・調べる・拾う'],['F / V','ポーション / エーテル'],['Tab / M','メニュー / 地図'],['L','マウス視点ロック（Esc で解除）']]){const x=document.createElement('span');x.className='kbd';x.style.justifySelf='start';x.textContent=a;const y=document.createElement('span');y.textContent=b;k.append(x,y);}
+    body.appendChild(k);const p=document.createElement('p');p.className='muted';p.textContent='操作していない仲間は自動で戦います。アレン＝剣技、セレス＝回復と聖なる光、リナ＝炎の範囲魔法、コハク＝連射と支援。操作中のキャラが倒れると、生きている仲間に自動で交代します。';body.appendChild(p);}
+  if(panelTab===4){const p=document.createElement('p');p.className='muted';p.textContent='ヘルプモード：難しいと感じたら、ここで自由にパーティを強化できます。設定はセーブにも記録されます。';body.appendChild(p);
+    const sec=(title,items)=>{const h=document.createElement('div');h.className='hsec';h.textContent=title;const w=document.createElement('div');w.className='hgrid';
+      for(const [label,fn,on] of items){const b=document.createElement('button');b.type='button';b.className='btn'+(on?' on':'');b.textContent=label;b.onclick=()=>{fn();sfx('ui');updateHUD();if(G.state==='panel')openMenu();};w.appendChild(b);}body.append(h,w);};
+    const lvUp=n=>{for(let k=0;k<n;k++)gainExp(Math.max(1,needExp(G.lvl)-G.exp));};
+    sec(`成長（Lv ${G.lvl}　武器 +${G.weaponLv}　防具 +${G.armorLv}　${G.gold}G）`,[['レベル +1',()=>lvUp(1)],['レベル +5',()=>lvUp(5)],['レベル +10',()=>lvUp(10)],['ゴールド +5000',()=>{G.gold+=5000;}],
+      ['武器 +1',()=>{if(G.weaponLv<20){G.weaponLv++;recalc(false);}}],['防具 +1',()=>{if(G.armorLv<20){G.armorLv++;recalc(false);}}],['武具を最大 +20',()=>{G.weaponLv=G.armorLv=20;recalc(false);}]]);
+    sec('アイテム・回復',[['ポーション +10',()=>{G.potions+=10;}],['エーテル +10',()=>{G.ethers+=10;}],['ハイポーション +5',()=>{G.hipot+=5;}],['蘇生の羽根 +3',()=>{G.feathers+=3;}],
+      ['全員を全回復',()=>{for(const m of party){m.alive=true;m.downT=0;m.hp=m.maxHp;m.mp=m.maxMp;m.model.g.rotation.x=0;}}],['奥義ゲージ MAX',()=>{G.ult=100;}]]);
+    sec('戦闘補正',[[`無敵 ${G.help.god?'ON':'OFF'}`,()=>{G.help.god=!G.help.god;},G.help.god],...[1,2,5,10].map(v=>[`与ダメージ ×${v}`,()=>{G.help.dmg=v;},G.help.dmg===v]),...[1,.5,.25].map(v=>[`被ダメージ ×${v}`,()=>{G.help.taken=v;},G.help.taken===v])]);
+    sec('ワープ',[['エルムの村',()=>helpWarp('village')],['王都ルミナリア',()=>helpWarp('capital')],['アル＝ミラージュ',()=>helpWarp('mirage')]]);}
 });}
 
 // ================================================================ map
@@ -1322,12 +1713,18 @@ const terrImg=document.createElement('canvas');terrImg.width=terrImg.height=TW;
   for(let j=0;j<TW;j++)for(let i=0;i<TW;i++){const k=j*TW+i,h=HG[k];let r=col[k*3],gg=col[k*3+1],b=col[k*3+2];if(h<0){const t=clamp(-h/8,0,1);r=lerp(.45,.12,t);gg=lerp(.7,.36,t);b=lerp(.85,.7,t);}
     const sh=clamp(1+(HG[k]-(HG[k-TW-1]||HG[k]))*.06,.75,1.25);img.data[k*4]=r*255*sh;img.data[k*4+1]=gg*255*sh;img.data[k*4+2]=b*255*sh;img.data[k*4+3]=255;}
   g.putImageData(img,0,0);}
+const PLACES2=[{n:'アル＝ミラージュ',x:T2.x,z:T2.z},{n:'黄昏の玉座',x:THRONE.x,z:THRONE.z+16},{n:'蜃気楼のオアシス',x:W2.cx-55,z:W2.cz+55},{n:'灼熱火山ヴォルカ',x:VOLC.x,z:VOLC.z+20},{n:'翠晶の谷',x:W2.cx-150,z:W2.cz-40},{n:'黄昏砂漠',x:W2.cx+60,z:W2.cz+120}];
 const PLACES=[{n:'エルムの村',x:VIL.x,z:VIL.z},{n:'王都ルミナリア',x:CAP.x,z:CAP.z},{n:'蒼鏡の湖',x:LAKE.x,z:LAKE.z},{n:'黒霧の森',x:-235,z:-10},{n:'霊峰スノウクラウン',x:-40,z:-290},{n:'古代遺跡',x:SHARDS[4].x,z:SHARDS[4].z+12}];
+const terrImg2=document.createElement('canvas');terrImg2.width=terrImg2.height=TW2;
+{const g=terrImg2.getContext('2d'),img=g.createImageData(TW2,TW2);const col=t2Geo.attributes.color.array;
+  for(let j=0;j<TW2;j++)for(let i=0;i<TW2;i++){const k=j*TW2+i,h=HG2[k];let r=col[k*3],gg=col[k*3+1],b=col[k*3+2];if(h<0){const t=clamp(-h/8,0,1);r=lerp(.45,.12,t);gg=lerp(.7,.36,t);b=lerp(.85,.7,t);}
+    const sh=clamp(1+(HG2[k]-(HG2[k-TW2-1]||HG2[k]))*.06,.75,1.25);img.data[k*4]=r*255*sh;img.data[k*4+1]=gg*255*sh;img.data[k*4+2]=b*255*sh;img.data[k*4+3]=255;}
+  g.putImageData(img,0,0);}
 function drawMarkers(ctx,s,full,k){
   const q=questTarget();k=k||1;
   ctx.fillStyle='#ff6060';for(const e of enemies){if(e.dead||e.world!=='ground')continue;const r=(e.boss?4:2.2)*k;ctx.fillRect(e.pos.x*s-r/2,e.pos.z*s-r/2,r,r);}
   for(const n of npcs){ctx.fillStyle='#ffe9a8';ctx.beginPath();ctx.arc(n.pos.x*s,n.pos.z*s,2.2*k,0,TAU);ctx.fill();}
-  SHARDS.forEach((sh,i)=>{if(G.shards[i])return;if(G.main<3&&!full)return;ctx.strokeStyle='#9fe3ff';ctx.lineWidth=1.5;ctx.beginPath();ctx.arc(sh.x*s,sh.z*s,5*k,0,TAU);ctx.stroke();ctx.fillStyle='#9fe3ff';ctx.beginPath();ctx.moveTo(sh.x*s,sh.z*s-4*k);ctx.lineTo(sh.x*s+2.5*k,sh.z*s);ctx.lineTo(sh.x*s,sh.z*s+4*k);ctx.lineTo(sh.x*s-2.5*k,sh.z*s);ctx.fill();});
+  SHARDS.forEach((sh,i)=>{if(G.shards[i])return;if(!full&&(i<5?G.main<3:G.main<10))return;ctx.strokeStyle=i<5?'#9fe3ff':'#d0a0ff';ctx.lineWidth=1.5;ctx.beginPath();ctx.arc(sh.x*s,sh.z*s,5*k,0,TAU);ctx.stroke();ctx.fillStyle=i<5?'#9fe3ff':'#d0a0ff';ctx.beginPath();ctx.moveTo(sh.x*s,sh.z*s-4*k);ctx.lineTo(sh.x*s+2.5*k,sh.z*s);ctx.lineTo(sh.x*s,sh.z*s+4*k);ctx.lineTo(sh.x*s-2.5*k,sh.z*s);ctx.fill();});
   for(const c of comps){if(!c.alive)continue;ctx.fillStyle='#7ff0b0';ctx.beginPath();ctx.arc(c.pos.x*s,c.pos.z*s,2*k,0,TAU);ctx.fill();}
   return q;
 }
@@ -1336,6 +1733,7 @@ function drawMinimap(){
   const W=mmC.width,sc=2.1;mm.setTransform(1,0,0,1,0,0);mm.fillStyle='#0b1f45';mm.fillRect(0,0,W,W);
   mm.save();mm.translate(W/2,W/2);mm.rotate(cam.yaw);
   if(G.inSky){mm.fillStyle='#6f9ad8';mm.fillRect(-W,-W,W*2,W*2);mm.fillStyle='#6aa84a';mm.beginPath();mm.arc((SKY.x-player.pos.x)*sc,(SKY.z-player.pos.z)*sc,SKY.r*sc,0,TAU);mm.fill();}
+  else if(player.pos.x>1000){mm.drawImage(terrImg2,(W2.cx-TS2/2-player.pos.x)*sc,(W2.cz-TS2/2-player.pos.z)*sc,TS2*sc,TS2*sc);}
   else{mm.imageSmoothingEnabled=true;mm.drawImage(terrImg,(-TS/2-player.pos.x)*sc,(-TS/2-player.pos.z)*sc,TS*sc,TS*sc);}
   mm.save();mm.translate(-player.pos.x*sc,-player.pos.z*sc);
   const q=G.inSky?null:drawMarkers(mm,sc,false,2);
@@ -1350,14 +1748,15 @@ function drawMinimap(){
 function drawBigMap(){
   const c=$('#bigmap'),s=Math.min(innerWidth-64,innerHeight-120,900);c.width=s*(devicePixelRatio||1);c.height=s*(devicePixelRatio||1);c.style.width=s+'px';c.style.height=s+'px';
   const g=c.getContext('2d'),k=c.width/640;g.setTransform(k,0,0,k,0,0);g.fillStyle='#0b1f45';g.fillRect(0,0,640,640);
-  g.drawImage(terrImg,-40,-40,720,720);
-  g.translate(320,320);
+  const w2=player.pos.x>1000&&!G.inSky;$('#mapview .mh b').textContent=w2?'NOCTIS':'ASTRALIA';
+  if(w2){g.drawImage(terrImg2,20,20,600,600);g.translate(320-W2.cx,320-W2.cz);}else{g.drawImage(terrImg,-40,-40,720,720);g.translate(320,320);}
   g.fillStyle='rgba(255,255,255,.9)';g.font='700 13px "Shippori Mincho B1",serif';g.textAlign='center';
-  for(const p of PLACES){g.strokeStyle='rgba(0,0,0,.7)';g.lineWidth=3;g.strokeText(p.n,p.x,p.z-10);g.fillText(p.n,p.x,p.z-10);}
+  for(const p of(w2?PLACES2:PLACES)){g.strokeStyle='rgba(0,0,0,.7)';g.lineWidth=3;g.strokeText(p.n,p.x,p.z-10);g.fillText(p.n,p.x,p.z-10);}
   drawMarkers(g,1,true);
   g.fillStyle='rgba(159,227,255,.9)';g.font='600 10px "Zen Kaku Gothic New",sans-serif';
-  SHARDS.forEach((s,i)=>{if(!G.shards[i]){g.strokeText(BOSS[s.boss].name.replace(/^.+の/,''),s.x,s.z+16);g.fillText(BOSS[s.boss].name.replace(/^.+の/,''),s.x,s.z+16);}});
-  g.strokeStyle='rgba(159,227,255,.6)';g.setLineDash([4,4]);g.beginPath();g.arc(SKY.x,SKY.z,SKY.r,0,TAU);g.stroke();g.setLineDash([]);g.fillStyle='#cfeaff';g.strokeText('天空の祭壇（上空）',SKY.x,SKY.z+4);g.fillText('天空の祭壇（上空）',SKY.x,SKY.z+4);
+  SHARDS.forEach((s,i)=>{if((i>=5)!==w2)return;if(!G.shards[i]){g.strokeText(BOSS[s.boss].name.replace(/^.+の/,''),s.x,s.z+16);g.fillText(BOSS[s.boss].name.replace(/^.+の/,''),s.x,s.z+16);}});
+  if(!w2){g.strokeStyle='rgba(159,227,255,.6)';g.setLineDash([4,4]);g.beginPath();g.arc(SKY.x,SKY.z,SKY.r,0,TAU);g.stroke();g.setLineDash([]);g.fillStyle='#cfeaff';g.strokeText('天空の祭壇（上空）',SKY.x,SKY.z+4);g.fillText('天空の祭壇（上空）',SKY.x,SKY.z+4);}
+  else if(G.main<12){g.strokeStyle='rgba(190,120,255,.8)';g.setLineDash([4,4]);g.beginPath();g.arc(THRONE.x,THRONE.z,THRONE.r+3,0,TAU);g.stroke();g.setLineDash([]);}
   const q=questTarget();if(q){g.fillStyle='#ffd66a';g.strokeStyle='#3a2a00';g.lineWidth=2;star(g,q.x,q.z,10);g.stroke();}
   const px=G.inSky?SKY.x:player.pos.x,pz=G.inSky?SKY.z:player.pos.z;g.save();g.translate(px,pz);g.rotate(-player.rotY);g.fillStyle='#fff';g.strokeStyle='#0b1f45';g.lineWidth=2;g.beginPath();g.moveTo(0,12);g.lineTo(8,-8);g.lineTo(0,-3);g.lineTo(-8,-8);g.closePath();g.stroke();g.fill();g.restore();
 }
@@ -1370,16 +1769,30 @@ const skillsEl=$('#skills');
 const ICON={spin:'<svg viewBox="0 0 24 24" fill="none" stroke="#9fe3ff" stroke-width="1.8"><path d="M12 3a9 9 0 1 1-8.5 6"/><path d="M3 4v5h5"/><path d="M12 8l1.5 4L12 16l-1.5-4z" fill="#9fe3ff"/></svg>',
   orb:'<svg viewBox="0 0 24 24" fill="none" stroke="#9fe3ff" stroke-width="1.8"><circle cx="14" cy="10" r="5" fill="rgba(159,227,255,.35)"/><path d="M3 21l7-7M5 15l3 1M9 19l-1-3"/></svg>',
   heal:'<svg viewBox="0 0 24 24" fill="none" stroke="#8dffb0" stroke-width="1.8"><path d="M12 21s-8-5-8-11a4.5 4.5 0 0 1 8-2.8A4.5 4.5 0 0 1 20 10c0 6-8 11-8 11z"/><path d="M12 9v6M9 12h6"/></svg>',
+  holy:'<svg viewBox="0 0 24 24" fill="none" stroke="#fff3c0" stroke-width="1.8"><circle cx="12" cy="12" r="8"/><path d="M12 5v14M5 12h14"/></svg>',
+  lance:'<svg viewBox="0 0 24 24" fill="none" stroke="#fff3c0" stroke-width="1.8"><path d="M4 20L18 6M18 6l-5 1M18 6l-1 5"/><circle cx="18" cy="6" r="2" fill="rgba(255,243,192,.5)"/></svg>',
+  flare:'<svg viewBox="0 0 24 24" fill="none" stroke="#ffb070" stroke-width="1.8"><path d="M12 3c2 4 6 6 6 11a6 6 0 0 1-12 0c0-3 2-4 2-7 2 2 3 2 4 4 1-3 0-5 0-8z" fill="rgba(255,120,60,.3)"/></svg>',
+  meteor:'<svg viewBox="0 0 24 24" fill="none" stroke="#ffb070" stroke-width="1.8"><circle cx="15" cy="15" r="5" fill="rgba(255,120,60,.35)"/><path d="M3 3l8 8M7 3l6 6M3 7l6 6"/></svg>',
+  buff:'<svg viewBox="0 0 24 24" fill="none" stroke="#ffd080" stroke-width="1.8"><path d="M12 3l7 4v5c0 5-3 8-7 9-4-1-7-4-7-9V7z"/><path d="M12 8v8M9 11l3-3 3 3"/></svg>',
+  arrows:'<svg viewBox="0 0 24 24" fill="none" stroke="#fff0c0" stroke-width="1.8"><path d="M3 12h16M15 8l4 4-4 4M3 6h12M12 3l3 3-3 3M3 18h12M12 15l3 3-3 3"/></svg>',
+  rain:'<svg viewBox="0 0 24 24" fill="none" stroke="#fff0c0" stroke-width="1.8"><path d="M6 3v10M12 3v14M18 3v10M4 11l2 3 2-3M10 15l2 3 2-3M16 11l2 3 2-3"/></svg>',
+  wind:'<svg viewBox="0 0 24 24" fill="none" stroke="#9fffd0" stroke-width="1.8"><path d="M3 8h11a3 3 0 1 0-3-3M3 12h15a3 3 0 1 1-3 3M3 16h8"/></svg>',
   atk:'<svg viewBox="0 0 24 24" fill="none" stroke="#eef3fb" stroke-width="1.8"><path d="M20 4L9 15M20 4h-4M20 4v4M6 14l4 4M5 19l2-2"/></svg>',
   ult:'<svg viewBox="-12 -12 24 24"><path d="M0-11L2-2 0 0-2-2ZM0 11L2 2 0 0-2 2ZM-11 0L-2-2 0 0-2 2ZM11 0L2-2 0 0 2 2Z" fill="#ffe7a6"/><circle r="6" fill="none" stroke="#ffe7a6" stroke-width="1"/></svg>'};
-skillsEl.innerHTML=`<div class="sk" data-s="atk"><span class="k">J</span>${ICON.atk}<span class="sklbl">攻撃</span></div>`+SK.map((s,i)=>`<div class="sk" data-s="${i}"><span class="k">${i+1}</span>${ICON[s.icon]}<span class="c num">${s.mp}</span><div class="cd"></div><span class="sklbl">${s.name}</span></div>`).join('')+`<div class="sk ult" data-s="ult"><div class="fill"></div><span class="k">R</span>${ICON.ult}<span class="sklbl">奥義</span></div>`;
-const skEls=[...skillsEl.querySelectorAll('.sk')];
+let skEls=[];
 const partyEl=$('#party');
-partyEl.innerHTML=party.map((m,i)=>`<div class="pm pane ${i===0?'lead':''}" data-i="${i}"><div class="face" style="background:${FACE[m.key]}">${m.ch}</div><div class="nm"><b>${m.name}</b><span class="lv num"></span></div><div class="bars"><div class="bar"><i></i></div>${i===0?'<div class="bar mp"><i></i></div><div class="bar xp"><i></i></div>':'<div class="bar mp"><i></i></div>'}<div class="hpnum num"></div></div></div>`).join('');
+partyEl.innerHTML=party.map((m,i)=>`<div class="pm pane ${i===0?'lead':''}" title="クリックで操作キャラ交代" data-i="${i}"><div class="face" style="background:${FACE[m.key]}">${m.ch}</div><div class="nm"><b>${m.name}</b><span class="lv num"></span></div><div class="bars"><div class="bar"><i></i></div>${i===0?'<div class="bar mp"><i></i></div><div class="bar xp"><i></i></div>':'<div class="bar mp"><i></i></div>'}<div class="hpnum num"></div></div></div>`).join('');
+partyEl.addEventListener('click',ev=>{const pm=ev.target.closest('.pm');if(pm&&G.state==='play')switchTo(+pm.dataset.i);});
+function buildSkillBar(){const S=curSkills();
+  skillsEl.innerHTML=`<div class="sk" data-s="atk"><span class="k">J</span>${ICON.atk}<span class="sklbl">${player.key==='allen'?'攻撃':'通常攻撃'}</span></div>`+S.map((s,i)=>`<div class="sk" data-s="${i}"><span class="k">${i+1}</span>${ICON[s.icon]}<span class="c num">${s.mp}</span><div class="cd"></div><span class="sklbl">${s.name}</span></div>`).join('')+`<div class="sk ult" data-s="ult"><div class="fill"></div><span class="k">R</span>${ICON.ult}<span class="sklbl">奥義</span></div>`;
+  skEls=[...skillsEl.querySelectorAll('.sk')];S.forEach((s,i)=>{const b=document.querySelector(`.tbn[data-t="s${i+1}"]`);if(b)b.textContent=s.short;});}
+buildSkillBar();
 const pmEls=[...partyEl.children].map(e=>({e,hp:e.querySelector('.bar i'),mp:e.querySelector('.bar.mp i'),xp:e.querySelector('.bar.xp i'),lv:e.querySelector('.lv'),num:e.querySelector('.hpnum')}));
 let lastPlace='';
+function region2(x,z){if(Math.hypot(x-T2.x,z-T2.z)<T2.r+8)return'アル＝ミラージュ';if(Math.hypot(x-THRONE.x,z-THRONE.z)<50)return'黄昏の玉座';for(let i=5;i<10;i++){const s=SHARDS[i];if(Math.hypot(x-s.x,z-s.z)<30)return s.name;}
+  const lx=x-W2.cx,lz=z-W2.cz;if(Math.hypot(lx-170,lz+160)<110)return'灼熱火山ヴォルカ';if(lx+lz<-90)return'翠晶の谷';if(Math.hypot(lx+55,lz-55)<75)return'蜃気楼のオアシス';if(Math.hypot(lx,lz)>235)return'黄昏の岩壁';return'黄昏砂漠';}
 function regionAt(x,z){
-  if(G.inSky)return'天空の祭壇';
+  if(G.inSky)return'天空の祭壇';if(x>1000)return region2(x,z);
   if(Math.hypot(x-VIL.x,z-VIL.z)<VIL.r+10)return'エルムの村';
   if(Math.hypot(x-CAP.x,z-CAP.z)<CAP.r+6)return'王都ルミナリア';
   for(let i=0;i<5;i++){const s=SHARDS[i];if(Math.hypot(x-s.x,z-s.z)<30)return s.name;}
@@ -1389,17 +1802,18 @@ function regionAt(x,z){
   return'翠風の草原';
 }
 function updateHUD(){
-  party.forEach((m,i)=>{const p=pmEls[i];p.hp.style.transform=`scaleX(${m.hp/m.maxHp})`;p.mp.style.transform=`scaleX(${m.mp/m.maxMp})`;p.e.classList.toggle('down',!m.alive);
+  party.forEach((m,i)=>{const p=pmEls[i];p.hp.style.transform=`scaleX(${m.hp/m.maxHp})`;p.mp.style.transform=`scaleX(${m.mp/m.maxMp})`;p.e.classList.toggle('down',!m.alive);p.e.classList.toggle('ctrl',m===player);
     p.lv.textContent=i===0?`Lv ${G.lvl}`:m.role;p.num.textContent=`${Math.ceil(m.hp)}/${m.maxHp}`;if(p.xp)p.xp.style.transform=`scaleX(${G.exp/needExp(G.lvl)})`;});
-  $('#gold').innerHTML=`<span><b class="num">${G.gold}</b> <small>G</small></span><span><small>薬</small> ${G.potions}</span><span><small>エーテル</small> ${G.ethers}</span><span><small>欠片</small> ${G.shards.reduce((a,b)=>a+b,0)}/5</span>`;
-  SK.forEach((s,i)=>{const e=skEls[i+1];e.style.setProperty('--cd',player.skillCd[i]>0?player.skillCd[i]/s.cd:0);e.classList.toggle('nomp',player.mp<s.mp);});
+  $('#gold').innerHTML=`<span><b class="num">${G.gold}</b> <small>G</small></span><span><small>薬</small> ${G.potions}</span><span><small>エーテル</small> ${G.ethers}</span>${G.hipot?`<span><small>ハイ</small> ${G.hipot}</span>`:''}${G.feathers?`<span><small>羽根</small> ${G.feathers}</span>`:''}${G.main>=7?`<span><small>封印</small> ${cnt2()}/5</span>`:`<span><small>欠片</small> ${cnt1()}/5</span>`}`;
+  const bf=[];if(G.buff.atk>0)bf.push(`炎の加護 ${Math.ceil(G.buff.atk)}s`);if(G.buff.haste>0)bf.push(`疾風 ${Math.ceil(G.buff.haste)}s`);if(G.help.god)bf.push('無敵');if(G.help.dmg>1)bf.push(`与ダメ×${G.help.dmg}`);$('#buffs').innerHTML=bf.map(t=>`<span>${t}</span>`).join('');
+  curSkills().forEach((s,i)=>{const e=skEls[i+1];e.style.setProperty('--cd',player.skillCd[i]>0?player.skillCd[i]/s.cd:0);e.classList.toggle('nomp',player.mp<s.mp);});
   const u=skEls[4];u.style.setProperty('--u',G.ult/100);u.classList.toggle('ready',G.ult>=100);
   const q=questInfo();$('#quest .qt').textContent=q[0];$('#quest .qd').textContent=q[1];
-  const s=G.side,side=[];if(s.wolf===1)side.push(`オオカミ狩り ${s.wolfKills}/6`);if(s.wolf===2)side.push('オオカミ狩り：ガルドに報告');if(s.gob===1)side.push(`ゴブリン討伐 ${s.gobKills}/8`);if(s.gob===2)side.push('ゴブリン討伐：ブランに報告');
+  const s=G.side,side=[];if(s.wolf===1)side.push(`オオカミ狩り ${s.wolfKills}/6`);if(s.wolf===2)side.push('オオカミ狩り：ガルドに報告');if(s.gob===1)side.push(`ゴブリン討伐 ${s.gobKills}/8`);if(s.gob===2)side.push('ゴブリン討伐：ブランに報告');if(s.scorp===1)side.push(`サソリ掃討 ${s.scorpKills}/8`);if(s.scorp===2)side.push('サソリ掃討：ユーリに報告');if(s.skel===1)side.push(`眠れぬ兵たち ${s.skelKills}/10`);if(s.skel===2)side.push('眠れぬ兵たち：オズに報告');
   $('#quest .qs').textContent=side.join(' ／ ');$('#quest .qs').hidden=!side.length;
   const h=G.time*24,hh=Math.floor(h),mi=Math.floor((h-hh)*60);$('#clock').textContent=`${String(hh).padStart(2,'0')}:${String(mi).padStart(2,'0')}　${h>=5&&h<18?'昼':'夜'}`;
   const pl=regionAt(player.pos.x,player.pos.z);$('#place').textContent=pl;
-  if(pl!==lastPlace){if(lastPlace)banner(pl==='王都ルミナリア'?'ROYAL CAPITAL':pl==='エルムの村'?'VILLAGE':pl==='天空の祭壇'?'SKY SANCTUM':'AREA',pl);lastPlace=pl;if(pl==='エルムの村')G.lastTown='village';if(pl==='王都ルミナリア')G.lastTown='capital';}
+  if(pl!==lastPlace){if(lastPlace)banner(pl==='王都ルミナリア'?'ROYAL CAPITAL':pl==='エルムの村'?'VILLAGE':pl==='天空の祭壇'?'SKY SANCTUM':pl==='アル＝ミラージュ'?'DESERT CITY':pl==='黄昏の玉座'?'THRONE OF TWILIGHT':'AREA',pl);lastPlace=pl;if(pl==='アル＝ミラージュ')G.lastTown='mirage';if(pl==='エルムの村')G.lastTown='village';if(pl==='王都ルミナリア')G.lastTown='capital';}
   const bb=$('#bossbar');const be=G.bossE;if(be&&!be.dead&&G.bossActive){bb.hidden=false;bb.querySelector('.bn').textContent=be.name;bb.querySelector('i').style.transform=`scaleX(${be.hp/be.maxHp})`;}else bb.hidden=true;
 }
 
@@ -1408,8 +1822,9 @@ let interactTarget=null;
 function findInteract(){
   let best=null,bd=3.6;
   for(const n of npcs){if(G.inSky)break;const d=d2(n.pos,player.pos);if(d<bd){bd=d;best={k:'npc',o:n,label:`${n.name}と話す`};}}
-  for(const s of shardObjs){if(G.inSky)break;const d=d2(s.pos,player.pos);if(d<3.2){best={k:'shard',o:s,label:'誓約の欠片を拾う'};}}
-  if(!G.inSky&&Math.hypot(anim.portal.x-player.pos.x,anim.portal.z-player.pos.z)<4.2)best={k:'portal',label:G.main>=5?'天空の祭壇へ転移する':'転移陣を調べる'};
+  for(const s of shardObjs){if(G.inSky)break;const d=d2(s.pos,player.pos);if(d<3.2){best={k:'shard',o:s,label:s.i>=5?'蝕の封印を拾う':'誓約の欠片を拾う'};}}
+  if(!G.inSky&&Math.hypot(anim.portal.x-player.pos.x,anim.portal.z-player.pos.z)<4.2)best={k:'portal',label:G.main>=7?'転移陣を使う':G.main>=5?'天空の祭壇へ転移する':'転移陣を調べる'};
+  if(!G.inSky&&Math.hypot(anim.portal2.x-player.pos.x,anim.portal2.z-player.pos.z)<4.2)best={k:'portal2',label:'転移陣で王都へ戻る'};
   if(G.inSky&&Math.hypot(anim.skyPortal.x-player.pos.x,anim.skyPortal.z-player.pos.z)<3.6)best={k:'return',label:'王都へ戻る'};
   return best;
 }
@@ -1417,12 +1832,23 @@ function interact(){
   if(!canAct())return;const t=interactTarget;if(!t)return;
   if(t.k==='npc'){t.o.rotY=Math.atan2(player.pos.x-t.o.pos.x,player.pos.z-t.o.pos.z);player.rotY=Math.atan2(t.o.pos.x-player.pos.x,t.o.pos.z-player.pos.z);t.o.talk();}
   if(t.k==='shard')takeShard(t.o);
-  if(t.k==='portal'){if(G.main<5)dialog([{n:'',t:'古い魔法陣が刻まれている。今は光を失っているようだ……。'}]);else goSky(true);}
+  if(t.k==='portal'){if(G.main<5)dialog([{n:'',t:'古い魔法陣が刻まれている。今は光を失っているようだ……。'}]);
+    else if(G.main<7)goSky(true);
+    else dialog([{n:'',t:'転移陣が淡く輝いている。どこへ向かう？',c:[{t:'天空の祭壇',f:()=>goSky(true)},{t:'黄昏の大陸ノクティス',f:()=>goW2(true)},{t:'やめる',f:null}]}]);}
+  if(t.k==='portal2')goW2(false);
   if(t.k==='return')goSky(false);
 }
 function fade(on,cb){const f=$('#fade');f.classList.toggle('dark',false);f.style.opacity=on?1:0;if(cb)setTimeout(cb,650);}
 function placeParty(x,z,rot){const y=groundAt(x,z);player.pos.set(x,y,z);player.vel.set(0,0,0);player.vy=0;player.rotY=rot||0;
   comps.forEach((c,i)=>{const a=rot+Math.PI+(i-1)*.7;c.pos.set(x+Math.sin(a)*3,groundAt(x+Math.sin(a)*3,z+Math.cos(a)*3),z+Math.cos(a)*3);c.rotY=rot;});}
+function townSpawn(t){if(t==='capital')return[anim.portal.x+GATE.x*6,anim.portal.z+GATE.z*6,0];if(t==='mirage')return[anim.portal2.x,anim.portal2.z+6,0];return[VIL.x+4,VIL.z-8,0];}
+function goW2(to){
+  G.state='cut';sfx('shard');fade(true,()=>{G.inSky=false;for(const e of enemies.slice())if(e.world==='sky')removeEnemy(e);G.bossActive=false;G.bossE=null;
+    if(to){placeParty(anim.portal2.x,anim.portal2.z+5,0);cam.yaw=Math.PI;if(!G.w2Arrived){G.w2Arrived=1;setTimeout(()=>banner('CHAPTER II','黄昏の大陸ノクティス'),700);}}
+    else{placeParty(anim.portal.x+GATE.x*5,anim.portal.z+GATE.z*5,Math.atan2(GATE.x,GATE.z));cam.yaw=Math.atan2(-GATE.x,-GATE.z)+Math.PI;}
+    G.state='play';setTimeout(()=>fade(false),250);});
+}
+function helpWarp(t){closePanel();G.inSky=false;for(const e of enemies.slice())if(e.world==='sky'||e.big)removeEnemy(e);G.bossActive=false;G.bossE=null;const p=townSpawn(t);placeParty(p[0],p[1],p[2]);cam.tx=player.pos.x;cam.tz=player.pos.z;toast('ワープした','cyan');}
 function goSky(up){
   G.state='cut';sfx('shard');fade(true,()=>{
     G.inSky=up;
@@ -1435,7 +1861,7 @@ function goSky(up){
 // ================================================================ dragon
 function spawnDragon(){
   const mdl=buildDragon();scene.add(mdl.g);
-  const e={type:'dragon',name:'蒼穹竜ヴェルザード',lv:15,boss:'dragon',hp:12500,maxHp:12500,atk:64,def:25,exp:3000,gold:1500,spd:6,range:9,rad:5.2,aggro:80,model:mdl,
+  const e={type:'dragon',name:'蒼穹竜ヴェルザード',lv:15,boss:'dragon',big:true,hp:20000,maxHp:20000,atk:95,def:30,exp:5000,gold:1500,spd:6,range:9,rad:5.2,aggro:80,model:mdl,
     pos:new THREE.Vector3(SKY.x,SKY.y+30,SKY.z-12),home:new THREE.Vector3(SKY.x,SKY.y+1.5,SKY.z),rotY:0,kb:new THREE.Vector3(),target:null,atkCd:2,windT:0,dead:false,deathT:0,hitT:0,barT:0,animT:0,mv:0,world:'sky',
     st:'intro',stT:3,last:'',fly:0,sub:0,subT:0,scale:1};
   enemies.push(e);G.bossE=e;G.bossActive=true;sfx('roar');G.shake=.5;banner('SKY SANCTUM','蒼穹竜ヴェルザード');
@@ -1481,12 +1907,68 @@ function updDragon(e,dt){
   if(phase2&&R()<.3)emit(e.pos.x+(R()-.5)*6,e.pos.y+4+R()*3,e.pos.z+(R()-.5)*8,1,{c:0x9fe3ff,sp:1,life:.8,s:.6,up:1});
 }
 
+// ================================================================ zervan (final boss)
+function spawnZervan(){
+  const mdl=buildZervan();scene.add(mdl.g);
+  const e={type:'zervan',name:'蝕の魔王ゼルヴァーン',lv:30,boss:'zervan',big:true,hp:60000,maxHp:60000,atk:175,def:58,exp:15000,gold:8000,spd:6.5,range:4,rad:2.6,aggro:90,model:mdl,
+    pos:new THREE.Vector3(THRONE.x,THRONE.h,THRONE.z-18),home:new THREE.Vector3(THRONE.x,THRONE.h,THRONE.z),rotY:0,kb:new THREE.Vector3(),target:null,atkCd:2,windT:0,dead:false,deathT:0,hitT:0,barT:0,animT:0,mv:0,world:'ground',
+    st:'intro',stT:3,last:'',fly:0,sub:0,subT:0,scale:1,sumCd:18,ph:1,lift:6};
+  mdl.g.position.copy(e.pos);enemies.push(e);G.bossE=e;G.bossActive=true;sfx('roar');G.shake=.6;banner('THRONE OF TWILIGHT','蝕の魔王ゼルヴァーン');
+}
+function updZervan(e,dt){
+  const P=e.model.P;e.animT+=dt;e.stT-=dt;e.atkCd-=dt;e.sumCd-=dt;
+  const r=e.hp/e.maxHp,ph=r<.3?3:r<.6?2:1;
+  if(ph>e.ph){e.ph=ph;banner(ph===2?'PHASE II':'PHASE III',ph===2?'蝕の月が昇る':'終焉の黄昏');sfx('roar');G.shake=.6;e.st='stalk';e.stT=1;e.windT=0;}
+  const K=ph===3?1.35:ph===2?1.15:1,col=0xb070ff;
+  let tgt=(e.target&&e.target.alive)?e.target:(player.alive?player:party.find(m=>m.alive));if(!tgt)tgt=player;
+  const dx=tgt.pos.x-e.pos.x,dz=tgt.pos.z-e.pos.z,dist=Math.hypot(dx,dz)||1,want=Math.atan2(dx,dz);
+  const sub=(n,t)=>{e.st=n;e.stT=t;e.sub=0;e.subT=0;};
+  const o={};let mv=0,lift=0;
+  const hand=()=>new THREE.Vector3(e.pos.x+Math.sin(e.rotY)*2,e.pos.y+7+e.lift,e.pos.z+Math.cos(e.rotY)*2);
+  const al=()=>{const a=party.filter(m=>m.alive);return a.length?pick(a):player;};
+  if(e.st==='intro'){lift=Math.max(0,e.stT)*2;o.armR=-2.8;o.armL=-2.8;e.rotY=turn(e.rotY,want,dt);if(e.stT<=0)sub('stalk',3);}
+  else if(e.st==='stalk'){e.rotY=turn(e.rotY,want,dt*3*K);
+    if(e.windT>0){e.windT-=dt;const w=clamp(e.windT/(.7/K),0,1);o.armR=lerp(-.2,-2.9,w);o.twist=lerp(-.7,.5,w);
+      if(e.windT<=0){sfx('swing');G.shake=Math.max(G.shake,.2);const fx=Math.sin(e.rotY),fz=Math.cos(e.rotY);
+        for(const m of party){if(!m.alive)continue;const mx=m.pos.x-e.pos.x,mz=m.pos.z-e.pos.z,md=Math.hypot(mx,mz);if(md<11&&(mx*fx+mz*fz)/Math.max(md,.1)>.1)hurt(m,e.atk);}
+        for(let i=0;i<24;i++){const a=e.rotY+(i/23-.5)*2.6;emit(e.pos.x+Math.sin(a)*7,e.pos.y+2,e.pos.z+Math.cos(a)*7,1,{c:col,sp:1,life:.4,s:1});}}}
+    else if(dist<9&&e.atkCd<=0){e.windT=.7/K;e.atkCd=ph===3?1.1:1.6;}
+    else if(dist>6){e.pos.x+=Math.sin(e.rotY)*e.spd*K*dt;e.pos.z+=Math.cos(e.rotY)*e.spd*K*dt;mv=1;}
+    if(e.stT<=0&&e.windT<=0){let opts=['wave','orbs'];if(ph>=2)opts.push('meteor','blink');if(ph>=2&&e.sumCd<=0)opts.push('summon');if(ph>=3)opts.push('eclipse','eclipse');
+      opts=opts.filter(x=>x!==e.last);const n=pick(opts);e.last=n;sub(n,{wave:1.8,orbs:4.8,meteor:3.2,blink:1,summon:1.6,eclipse:3.6}[n]);}}
+  else if(e.st==='wave'){o.armR=-3;o.armL=-3;
+    if(e.sub===0){e.sub=1;const ex=e.pos.x,ez=e.pos.z,ey=e.pos.y;telegraph(ex,ez,14,1.4,()=>{if(e.dead)return;sfx('boom');G.shake=.5;for(let i=0;i<60;i++){const a=i/60*TAU;emit(ex+Math.cos(a)*3,ey+.6,ez+Math.sin(a)*3,1,{c:col,dir:[Math.cos(a),0,Math.sin(a)],spread:.05,sp:18,life:.7,s:1.1});}for(const m of party)if(m.alive&&Math.hypot(m.pos.x-ex,m.pos.z-ez)<14)hurt(m,e.atk*1.3);});}
+    if(e.stT<=0)sub('stalk',ph===3?2.2:3.5);}
+  else if(e.st==='orbs'){e.subT+=dt;lift=Math.min(1,e.subT)*5;o.armR=-2.6;o.armL=-2.6;const n=ph>=2?10:7;
+    if(e.subT>.8&&e.sub<n&&e.subT>.8+e.sub*.3){e.sub++;const m=al();eVolley(hand(),m.pos.x+(R()-.5)*3,m.pos.z+(R()-.5)*3,e.atk*.85,col,3.4);sfx('magic');}
+    if(e.stT<=0)sub('stalk',3.5);}
+  else if(e.st==='meteor'){o.armR=-3;
+    if(e.sub===0){e.sub=1;const n=ph===3?16:11;banner('METEOR','黄昏の流星');for(let i=0;i<n;i++)later(i*.14,()=>{if(e.dead)return;let tx,tz;if(i<3){const m=al();tx=m.pos.x;tz=m.pos.z;}else{const a=R()*TAU,rr=Math.sqrt(R())*30;tx=THRONE.x+Math.cos(a)*rr;tz=THRONE.z+Math.sin(a)*rr;}
+      eVolley(new THREE.Vector3(tx+8,THRONE.h+45,tz-6),tx,tz,e.atk*1.1,0xff5a3a,3.8);});}
+    if(e.stT<=0)sub('stalk',3);}
+  else if(e.st==='blink'){if(e.sub===0){e.sub=1;emit(e.pos.x,e.pos.y+4,e.pos.z,60,{c:col,sp:6,life:.6,s:1});const bx=tgt.pos.x-Math.sin(tgt.rotY)*5,bz=tgt.pos.z-Math.cos(tgt.rotY)*5;e.pos.x=bx;e.pos.z=bz;e.rotY=Math.atan2(tgt.pos.x-bx,tgt.pos.z-bz);emit(bx,e.pos.y+4,bz,60,{c:col,sp:6,life:.6,s:1});sfx('magic');}
+    if(e.stT<=0){sub('stalk',2.5);e.windT=.55;e.atkCd=1.4;}}
+  else if(e.st==='summon'){o.armL=-2.8;if(e.sub===0){e.sub=1;e.sumCd=28;for(let i=0;i<3;i++){const a=i/3*TAU,x=e.pos.x+Math.cos(a)*7,z=e.pos.z+Math.sin(a)*7;const m=spawnEnemy(ph===3?'darkknight':'skeleton',x,z,24);m.home.set(THRONE.x,THRONE.h,THRONE.z);m.summoner=e;m.target=tgt;emit(x,groundH(x,z)+1,z,40,{c:col,sp:5,life:.8,s:.8,up:2});}sfx('roar');toast('ゼルヴァーンが配下を呼び出した！','red');}
+    if(e.stT<=0)sub('stalk',3);}
+  else if(e.st==='eclipse'){e.subT+=dt;lift=Math.min(1,e.subT)*6;o.armR=-3.1;o.armL=-3.1;
+    if(e.sub===0){e.sub=1;const ex=e.pos.x,ez=e.pos.z,ey=e.pos.y;banner('ECLIPSE','蝕の月 ── 範囲から離れろ');telegraph(ex,ez,18,2.8,()=>{if(e.dead)return;sfx('boom');sfx('roar');G.shake=.9;emit(ex,ey+2,ez,200,{c:pick([col,0xff3a6a]),sp:22,life:1,s:1.4,flat:true});for(const m of party)if(m.alive&&Math.hypot(m.pos.x-ex,m.pos.z-ez)<18)hurt(m,e.atk*2.6);});}
+    if(R()<.8)emit(e.pos.x+(R()-.5)*4,e.pos.y+8+e.lift,e.pos.z+(R()-.5)*4,2,{c:col,sp:2,life:.8,s:1});
+    if(e.stT<=0)sub('stalk',2.5);}
+  const d0=Math.hypot(e.pos.x-THRONE.x,e.pos.z-THRONE.z),lim=THRONE.r-3;if(d0>lim){e.pos.x=THRONE.x+(e.pos.x-THRONE.x)/d0*lim;e.pos.z=THRONE.z+(e.pos.z-THRONE.z)/d0*lim;}
+  e.pos.y=groundH(e.pos.x,e.pos.z);e.lift=lerp(e.lift,lift,clamp(dt*4,0,1));e.mv=lerp(e.mv,mv,dt*6);
+  const g=e.model.g;g.position.set(e.pos.x,e.pos.y+e.lift,e.pos.z);g.rotation.y=e.rotY;g.scale.setScalar(e.hitT>0?1.04:1);
+  animHumanoid(e.model,e.animT,e.mv,o);
+  P.wings.forEach((w,i)=>w.rotation.z=(i?1:-1)*(.2+Math.sin(e.animT*2)*.25));
+  P.orbs.forEach((b,i)=>{const a=e.animT*1.5+i*TAU/P.orbs.length;b.position.set(Math.cos(a)*4.5,6+Math.sin(e.animT*2+i)*.8,Math.sin(a)*4.5);});
+  if(ph>=2&&R()<.5)emit(e.pos.x+(R()-.5)*5,e.pos.y+R()*8,e.pos.z+(R()-.5)*5,1,{c:ph===3?0xff3a6a:col,sp:1,life:1,s:.7,up:2});
+}
+
 // ================================================================ updates
 const _mv=new THREE.Vector3();
 function tryMove(o,dx,dz,rad,isPlayer){
   const nx=o.pos.x+dx,nz=o.pos.z+dz;
   if(G.inSky&&o.world!=='ground'){o.pos.x=nx;o.pos.z=nz;const d=Math.hypot(o.pos.x-SKY.x,o.pos.z-SKY.z),lim=SKY.r-2;if(d>lim){o.pos.x=SKY.x+(o.pos.x-SKY.x)/d*lim;o.pos.z=SKY.z+(o.pos.z-SKY.z)/d*lim;}return;}
-  const ok=(x,z)=>{const h=groundH(x,z),h0=groundH(o.pos.x,o.pos.z),l=Math.hypot(x-o.pos.x,z-o.pos.z)||1e-4;if(h<-1.35)return false;if(Math.hypot(x,z)>305)return false;if(h>h0&&(h-h0)/l>1.45&&(!isPlayer||o.pos.y<h-.3))return false;return true;};
+  const ok=(x,z)=>{const h=groundH(x,z),h0=groundH(o.pos.x,o.pos.z),l=Math.hypot(x-o.pos.x,z-o.pos.z)||1e-4;if(h<-1.35)return false;if(outOfBounds(x,z))return false;if(h>h0&&(h-h0)/l>1.45&&(!isPlayer||o.pos.y<h-.3))return false;return true;};
   if(ok(nx,nz)){o.pos.x=nx;o.pos.z=nz;}else if(ok(nx,o.pos.z))o.pos.x=nx;else if(ok(o.pos.x,nz))o.pos.z=nz;
   if(rad)pushOut(o.pos,rad);
 }
@@ -1494,12 +1976,13 @@ function updPlayer(dt){
   const p=player;p.invuln-=dt;p.animT+=dt;
   for(let i=0;i<3;i++)p.skillCd[i]=Math.max(0,p.skillCd[i]-dt);
   let ix=0,iz=0;
+  if(G.state==='play'&&p.alive&&(keys.j||hold.atk))playerAttack();
   if(G.state==='play'&&p.alive){if(keys.w||keys.arrowup)iz+=1;if(keys.s||keys.arrowdown)iz-=1;if(keys.a||keys.arrowleft)ix-=1;if(keys.d||keys.arrowright)ix+=1;ix+=joy.x;iz+=-joy.y;}
   const il=Math.hypot(ix,iz);if(il>1){ix/=il;iz/=il;}
   const fx=-Math.sin(cam.yaw),fz=-Math.cos(cam.yaw),rx=Math.cos(cam.yaw),rz=-Math.sin(cam.yaw);
   let mx=fx*iz+rx*ix,mz=fz*iz+rz*ix;const mag=Math.hypot(mx,mz);
-  const sprint=keys.shift||joy.run;const busy=p.atkT>0||p.spinT>0;
-  const spd=(sprint?14:8.5)*(busy?.25:1);
+  const sprint=keys.shift||joy.run;const busy=(p.key==='allen'&&p.atkT>0)||p.spinT>0;
+  const spd=(sprint?14:8.5)*(busy?.25:1)*(G.buff.haste>0?1.35:1);
   if(mag>.05){p.rotY=turn(p.rotY,Math.atan2(mx,mz),dt*(busy?4:14));}
   tryMove(p,mx*spd*dt+p.vel.x*dt,mz*spd*dt+p.vel.z*dt,p.radius,true);
   p.vel.multiplyScalar(Math.pow(.02,dt));
@@ -1513,28 +1996,29 @@ function updPlayer(dt){
   if(p.spinT>0)p.spinT-=dt;if(p.castT>0)p.castT-=dt;
   // regen
   p.mp=Math.min(p.maxMp,p.mp+dt*(2.2+G.lvl*.1));
-  const calm=G.t-p.lastHit>6;for(const m of party){if(m.alive&&calm&&!G.bossActive)m.hp=Math.min(m.maxHp,m.hp+m.maxHp*.012*dt);if(!m.isPlayer)m.mp=Math.min(m.maxMp,m.mp+dt*3);}
+  const calm=G.t-p.lastHit>6;for(const m of party){if(m.alive&&calm&&!G.bossActive)m.hp=Math.min(m.maxHp,m.hp+m.maxHp*.012*dt);if(m!==player)m.mp=Math.min(m.maxMp,m.mp+dt*3);}
   // model
   const o={};
-  if(p.atkT>0){const pr=1-p.atkT/p.atkDur,c=p.combo;
+  if(p.atkT>0&&p.key==='allen'){const pr=1-p.atkT/p.atkDur,c=p.combo;
     if(c===0){o.armR=lerp(-2.7,-.3,easeOut(pr));o.twist=lerp(.4,-.3,pr);}
     else if(c===1){o.armR=-1.5;o.armRz=lerp(1.4,-1.2,easeOut(pr));o.twist=lerp(-.9,.8,easeOut(pr));}
     else{o.armR=pr<.35?lerp(-.3,-3.1,pr/.35):lerp(-3.1,-.1,easeOut((pr-.35)/.65));o.lean=pr>.35?.35:-.1;}}
   if(p.castT>0){o.armR=-1.6;}
   animHumanoid(p.model,p.animT,Math.min(1,p.mv),o);
+  if(p.model.P.weapon&&p.model.P.weapon.userData.gem)p.model.P.weapon.userData.gem.rotation.y+=dt*2;
   p.model.g.position.copy(p.pos);
   p.model.g.rotation.y=p.spinT>0?p.rotY+(1-p.spinT/.5)*TAU:p.rotY;
   if(p.mv>.3&&p.onGround&&R()<p.mv*dt*6)emit(p.pos.x,p.pos.y+.1,p.pos.z,1,{c:G.inSky?0xdddddd:0xc8b890,sp:1,life:.5,s:.35,up:.6});
 }
 const easeOut=t=>1-Math.pow(1-clamp(t,0,1),3);
 function updComp(c,i,dt){
-  c.animT+=dt;c.cd-=dt;c.cd2-=dt;c.invuln-=dt;
+  c.animT+=dt;c.cd-=dt*(G.buff.haste>0?1.4:1);c.cd2-=dt;c.invuln-=dt;for(let k=0;k<3;k++)c.skillCd[k]=Math.max(0,c.skillCd[k]-dt);
   if(!c.alive){c.downT-=dt;c.model.g.rotation.x=-Math.PI/2*.95;c.model.g.position.set(c.pos.x,c.pos.y+.25,c.pos.z);if(c.downT<=0){c.alive=true;c.hp=Math.round(c.maxHp*.35);c.model.g.rotation.x=0;toast(`${c.name}が起き上がった`,'cyan');}return;}
   c.model.g.rotation.x=0;
   const foe=(G.focus&&!G.focus.dead&&G.focus.world===curWorld()&&d2(G.focus.pos,player.pos)<30)?G.focus:nearestEnemy(player.pos,24);
   let tx,tz;const slotA=player.rotY+Math.PI+(i-1)*.75;
   const fmx=player.pos.x+Math.sin(slotA)*3.2,fmz=player.pos.z+Math.cos(slotA)*3.2;
-  const pref=c.key==='kohaku'?13:c.key==='rina'?10:8;
+  const pref=c.key==='kohaku'?13:c.key==='rina'?10:c.key==='allen'?1.6:8;
   if(foe){const dx=c.pos.x-foe.pos.x,dz=c.pos.z-foe.pos.z,l=Math.hypot(dx,dz)||1;const r=pref+foe.rad;tx=foe.pos.x+dx/l*r;tz=foe.pos.z+dz/l*r;
     if(Math.hypot(tx-player.pos.x,tz-player.pos.z)>18){tx=lerp(tx,fmx,.5);tz=lerp(tz,fmz,.5);}}
   else{tx=fmx;tz=fmz;}
@@ -1548,7 +2032,8 @@ function updComp(c,i,dt){
   // actions
   if(c.key==='celes'&&c.cd2<=0){let low=null,lr=.62;for(const m of party){if(!m.alive)continue;const r=m.hp/m.maxHp;if(r<lr){lr=r;low=m;}}
     if(low&&c.mp>=12){c.mp-=12;c.cd2=5.5;c.castT=.6;heal(low,low.maxHp*.32+c.mag*1.5);sfx('heal');emit(low.pos.x,low.pos.y+.1,low.pos.z,30,{c:0xbfffe0,sp:3,life:1,s:.5,flat:true,up:2});}}
-  if(foe&&c.cd<=0&&d2(c.pos,foe.pos)<pref+foe.rad+5&&c.castT<=0){
+  if(c.key==='allen'){if(foe&&c.cd<=0&&c.castT<=0&&d2(c.pos,foe.pos)<3.3+foe.rad){c.rotY=Math.atan2(foe.pos.x-c.pos.x,foe.pos.z-c.pos.z);c.castT=.35;c.cd=.95;dmgEnemy(foe,c.atk*1.2,c,3);sfx('swing');}}
+  else if(foe&&c.cd<=0&&d2(c.pos,foe.pos)<pref+foe.rad+5&&c.castT<=0){
     c.rotY=Math.atan2(foe.pos.x-c.pos.x,foe.pos.z-c.pos.z);c.castT=.45;
     const from=new THREE.Vector3(c.pos.x+Math.sin(c.rotY)*.6,c.pos.y+1.4,c.pos.z+Math.cos(c.rotY)*.6);
     if(c.key==='rina'){c.cd=2.3;shoot({from,team:'party',target:foe,dmg:c.mag*1.7,aoe:2.8,color:0xff7a3a,speed:20,homing:4,src:c,size:1.2,trail:.8});sfx('fire');}
@@ -1556,18 +2041,19 @@ function updComp(c,i,dt){
     if(c.key==='celes'){c.cd=2.8;shoot({from,team:'party',target:foe,dmg:c.mag*1.15,color:0xe0f6ff,speed:22,homing:5,src:c,size:.9,trail:.5});sfx('magic');}
   }
   if(c.castT>0)c.castT-=dt;
-  animHumanoid(c.model,c.animT,c.mv,{armR:c.castT>0?-1.5:undefined,bob:true});
+  animHumanoid(c.model,c.animT,c.mv,{armR:c.castT>0?(c.key==='allen'?lerp(-.3,-2.6,c.castT/.35):-1.5):undefined,bob:true});
   if(c.model.P.weapon&&c.model.P.weapon.userData.gem)c.model.P.weapon.userData.gem.rotation.y+=dt*2;
   c.model.g.position.copy(c.pos);c.model.g.rotation.y=c.rotY;
 }
 function updEnemy(e,dt){
   const g=e.model.g;
-  if(e.dead){e.deathT-=dt;const s=Math.max(.01,e.deathT/(e.boss==='dragon'?3:.7));g.scale.setScalar(e.scale*s);if(e.boss==='dragon'){g.position.y-=dt*2;emit(e.pos.x+(R()-.5)*8,e.pos.y+R()*8,e.pos.z+(R()-.5)*10,4,{c:0x9fe3ff,sp:4,life:1.2,s:1,up:3});}if(e.deathT<=0)removeEnemy(e);return;}
+  if(e.dead){e.deathT-=dt;const s=Math.max(.01,e.deathT/(e.big?3:.7));g.scale.setScalar(e.scale*s);if(e.big){g.position.y-=dt*2;emit(e.pos.x+(R()-.5)*8,e.pos.y+R()*8,e.pos.z+(R()-.5)*10,4,{c:0x9fe3ff,sp:4,life:1.2,s:1,up:3});}if(e.deathT<=0)removeEnemy(e);return;}
   if(e.world!==curWorld()){g.visible=e.world==='sky';return;}
   g.visible=true;
   if(e.boss==='dragon'){updDragon(e,dt);e.hitT-=dt;return;}
+  if(e.boss==='zervan'){updZervan(e,dt);e.hitT-=dt;return;}
   const dp=d2(e.pos,player.pos);if(dp>170&&!e.boss){g.visible=dp<260;return;}
-  e.animT+=dt;e.atkCd-=dt;e.hitT-=dt;e.barT-=dt;e.slamCd-=dt;
+  e.animT+=dt;e.atkCd-=dt;e.hitT-=dt;e.barT-=dt;e.slamCd-=dt;e.volCd-=dt;e.sumCd-=dt;e.chCd-=dt;
   // target selection
   if(e.target&&(!e.target.alive||d2(e.target.pos,e.pos)>e.aggro*2.2))e.target=null;
   if(!e.target){let best=null,bd=e.aggro;for(const m of party){if(!m.alive)continue;const d=d2(m.pos,e.pos);if(d<bd){bd=d;best=m;}}e.target=best;}
@@ -1581,9 +2067,10 @@ function updEnemy(e,dt){
     e.rotY=turn(e.rotY,Math.atan2(dx,dz),dt*(e.windT>0?2:7));
     const reach=e.range+(t.radius||.5);
     if(e.windT>0){e.windT-=dt;if(e.windT<=0&&e.slamW){e.slamW=false;e.atkCd=1.2;}else if(e.windT<=0){
-        if(e.ranged){const from=new THREE.Vector3(e.pos.x,e.pos.y+e.fly+.3,e.pos.z);shoot({from,team:'enemy',point:new THREE.Vector3(t.pos.x,t.pos.y+1,t.pos.z),dmg:e.atk,color:0x7fd0ff,speed:19,size:1,trail:.6,life:2.5});sfx('magic');}
+        if(e.ranged){const from=new THREE.Vector3(e.pos.x,e.pos.y+e.fly+.3,e.pos.z);shoot({from,team:'enemy',point:new THREE.Vector3(t.pos.x,t.pos.y+1,t.pos.z),dmg:e.atk,color:e.pc,speed:19,size:1,trail:.6,life:2.5});sfx('magic');}
         else if(d<reach*1.35){hurt(t,e.atk);if(e.boss)G.shake=Math.max(G.shake,.2);emit(t.pos.x,t.pos.y+1,t.pos.z,6,{c:0xff8080,sp:4,life:.3,s:.4});}
         e.atkCd=e.cdBase*(e.boss?.8:1)*(.8+R()*.4);}}
+    else if(e.boss&&bossAbility(e,t,dx,dz,d)){}
     else if(e.boss&&e.slamCd<=0&&d<14){e.slamCd=5+R()*2;e.slamW=true;const r=e.type==='slime'?7:e.type==='golem'?8:6.5;e.windT=1.35;const ex=e.pos.x,ez=e.pos.z,ee=e;
       if(e.type==='wolf'){e.lunge={x:dx/d,z:dz/d,t:1.35};}
       telegraph(ex+(e.type==='wolf'?dx/d*6:0),ez+(e.type==='wolf'?dz/d*6:0),r,1.3,(tt)=>{if(ee.dead)return;sfx('boom');G.shake=Math.max(G.shake,.35);emit(tt.x,groundH(tt.x,tt.z)+.4,tt.z,70,{c:e.type==='golem'&&e.boss==='frostgolem'?0x9fe3ff:0xffd8a0,sp:10,life:.7,s:.8,flat:true});for(const m of party)if(m.alive&&Math.hypot(m.pos.x-tt.x,m.pos.z-tt.z)<r)hurt(m,ee.atk*1.35);});
@@ -1602,7 +2089,7 @@ function updEnemy(e,dt){
   const sp=e.spd*moving*(e.windT>0&&!e.lunge?0:1);
   const ox=e.pos.x,oz=e.pos.z;
   tryMove(e,(mvx*sp+e.kb.x)*dt,(mvz*sp+e.kb.z)*dt,0,false);
-  if(e.lunge){e.lunge.t-=dt;if(e.lunge.t<.25&&e.lunge.t>0){tryMove(e,e.lunge.x*30*dt,e.lunge.z*30*dt,0,false);}if(e.lunge.t<=0)e.lunge=null;}
+  if(e.lunge){e.lunge.t-=dt;if(e.lunge.t<.25&&e.lunge.t>0){tryMove(e,e.lunge.x*(e.lunge.sp||30)*dt,e.lunge.z*(e.lunge.sp||30)*dt,0,false);}if(e.lunge.t<=0)e.lunge=null;}
   if(inTown(e.pos.x,e.pos.z,8)){e.pos.x=ox;e.pos.z=oz;e.returning=true;e.target=null;}
   e.kb.multiplyScalar(Math.pow(.01,dt));
   e.mv=lerp(e.mv,moving?1:0,dt*8);
@@ -1612,9 +2099,13 @@ function updEnemy(e,dt){
   const P=e.model.P,hs=e.hitT>0?1.12:1,base=e.scale;
   if(e.type==='slime'){const hop=Math.max(0,Math.sin(e.hopT*Math.PI));g.position.y+=hop*1.1*base*(e.mv>.1?1:.2);const sq=e.windT>0?1-.25*(1-e.windT/e.wind):1;P.body.scale.set(1/sq*hs,.78*sq*hs*(1+hop*.15),1/sq*hs);g.scale.setScalar(base);}
   else if(e.type==='wolf'){P.legs.forEach((l,i)=>l.rotation.x=Math.sin(e.animT*12+(i%2?Math.PI:0)+(i>1?1:0))*.7*e.mv);P.tail.rotation.y=Math.sin(e.animT*6)*.4;P.head.rotation.x=e.windT>0?.4:0;g.scale.setScalar(base*hs);}
-  else if(e.type==='goblin'){animHumanoid(e.model,e.animT,e.mv,{armR:e.windT>0?lerp(-.3,-2.6,e.windT/e.wind):undefined});g.scale.setScalar(base*hs);}
+  else if(e.model.hum){animHumanoid(e.model,e.animT,e.mv,{armR:e.windT>0?lerp(-.3,-2.6,e.windT/e.wind):undefined});g.scale.setScalar(base*hs);}
   else if(e.type==='golem'){P.legs.forEach((l,i)=>l.rotation.x=Math.sin(e.animT*4+i*Math.PI)*.45*e.mv);P.arms.forEach((a,i)=>a.rotation.x=e.windT>0?-2.4*(e.windT/e.wind):Math.sin(e.animT*4+i*Math.PI)*.3*e.mv);g.scale.setScalar(base*hs);}
   else if(e.type==='wisp'){P.orbs.forEach((o,i)=>{const a=e.animT*3+i*2.1;o.position.set(Math.cos(a)*.8,Math.sin(a*1.3)*.3,Math.sin(a)*.8);});g.scale.setScalar(base*hs);if(R()<.3)emit(g.position.x,g.position.y,g.position.z,1,{c:0x9fe3ff,sp:.5,life:.6,s:.35});}
+  else if(e.type==='imp'){P.orbs.forEach((o,i)=>{const a=e.animT*4+i*2.1;o.position.set(Math.cos(a)*.8,Math.sin(a*1.3)*.3,Math.sin(a)*.8);});g.scale.setScalar(base*hs);if(R()<.4)emit(g.position.x,g.position.y,g.position.z,1,{c:0xff7a2a,sp:.6,life:.5,s:.4,up:1});}
+  else if(e.type==='scorpion'){P.legs.forEach((l,i)=>l.rotation.y=Math.sin(e.animT*14+i)*.35*e.mv);P.tail.rotation.x=e.windT>0?-.6*(1-e.windT/e.wind):Math.sin(e.animT*2)*.1;P.claws.forEach((c,i)=>c.rotation.x=e.windT>0?-.5:Math.sin(e.animT*3+i)*.1);g.scale.setScalar(base*hs);}
+  else if(e.type==='wyvern'){const wa=Math.sin(e.animT*(e.mv>.3?7:3))*.45;P.wings[0].rotation.z=-wa;P.wings[1].rotation.z=wa;P.legs.forEach((l,i)=>l.rotation.x=Math.sin(e.animT*8+i*Math.PI)*.5*e.mv);P.neck.rotation.x=e.windT>0?.35:0;g.scale.setScalar(base*hs);}
+  if(e.boss&&e.hp<e.maxHp*.5&&R()<.35)emit(e.pos.x+(R()-.5)*e.rad*2,e.pos.y+R()*e.rad*2,e.pos.z+(R()-.5)*e.rad*2,1,{c:e.pc||0xff6a6a,sp:1,life:.8,s:.6,up:2});
 }
 // ---- bosses at shard sites
 function updBossSpawns(){
@@ -1622,7 +2113,10 @@ function updBossSpawns(){
   SHARDS.forEach((s,i)=>{if(G.bossDead[i]||G.shards[i])return;const d=Math.hypot(player.pos.x-s.x,player.pos.z-s.z);const ex=enemies.find(e=>e.boss===s.boss&&!e.dead);
     if(!ex&&d<55){const e=spawnEnemy(null,s.x,s.z,1,{boss:s.boss});e.home.set(s.x,e.pos.y,s.z);banner('GUARDIAN',BOSS[s.boss].name);sfx('roar');}
     if(ex&&d>130){removeEnemy(ex);if(G.bossE===ex){G.bossE=null;G.bossActive=false;}}});
-  if(G.bossActive&&(!G.bossE||G.bossE.dead||d2(G.bossE.pos,player.pos)>70)&&!(G.bossE&&G.bossE.boss==='dragon'&&!G.bossE.dead)){G.bossActive=false;}
+  {const dz=Math.hypot(player.pos.x-THRONE.x,player.pos.z-THRONE.z),ze=enemies.find(e=>e.boss==='zervan'&&!e.dead);
+    if(G.main>=12&&!G.zervanDead&&!ze&&dz<24)spawnZervan();
+    if(ze&&dz>90){for(const x of enemies.slice())if(x.summoner===ze)removeEnemy(x);removeEnemy(ze);if(G.bossE===ze){G.bossE=null;G.bossActive=false;}}}
+  if(G.bossActive&&(!G.bossE||G.bossE.dead||d2(G.bossE.pos,player.pos)>70)&&!(G.bossE&&G.bossE.big&&!G.bossE.dead)){G.bossActive=false;}
 }
 let spawnT=0,wispT=0;
 function updSpawns(dt){
@@ -1636,6 +2130,7 @@ const isNight=()=>G.time<.22||G.time>.8;
 
 // ================================================================ environment update
 const cSkyTop=new THREE.Color(),cHor=new THREE.Color(),tmpC=new THREE.Color();
+const TWI={top:new THREE.Color(0x3a2a6a),hor:new THREE.Color(0xf0a070),fog:new THREE.Color(0xd49a86),sun:new THREE.Color(0xffa060)};
 const PAL={day:{top:0x2a62c9,hor:0xcfe3f7,fog:0xbcd6f2,sun:0xfff1dc},dusk:{top:0x3a3f86,hor:0xf2a36a,fog:0xd9a88a,sun:0xffb070},night:{top:0x040b24,hor:0x1a2a55,fog:0x14203f,sun:0x8aa8ff}};
 function updEnv(dt){
   if(G.state==='play'||G.state==='title')G.time=(G.time+dt/G.dayLen)%1;
@@ -1647,6 +2142,15 @@ function updEnv(dt){
   scene.fog.color.copy(mix('fog'));skyU.sunDir.value.copy(sd);skyU.sunCol.value.copy(mix('sun')).multiplyScalar(day);
   const lightDir=el>0?sd:new THREE.Vector3(-sd.x,-sd.y*0+.6,-sd.z).normalize();
   sun.intensity=.18+day*.9;sun.color.copy(mix('sun'));hemi.intensity=.28+day*.4;amb.intensity=.14+(1-day)*.14;
+  const inW2=player.pos.x>1000&&G.state!=='title';
+  if(inW2!==G.inW2){G.inW2=inW2;for(const o of W1_OBJS)o.visible=!inW2;w2G.visible=inW2;cloudG.position.x=inW2?W2.cx:0;}
+  if(inW2&&!G.inSky){const k=.55;skyU.top.value.lerp(TWI.top,k);skyU.hor.value.lerp(TWI.hor,k);skyU.bot.value.lerp(TWI.hor,k*.8);scene.fog.color.lerp(TWI.fog,k);sun.color.lerp(TWI.sun,.5);
+    if(R()<.6)emit(anim.lava.x+(R()-.5)*20,anim.lava.y+.5,anim.lava.z+(R()-.5)*20,1,{c:pick([0xff5a1a,0xffa040]),dir:[0,1,0],spread:.3,sp:8,life:1.5,s:1.2});
+    if(anim.fire2&&R()<.5)emit(anim.fire2.x+(R()-.5),anim.fire2.y+.5,anim.fire2.z+(R()-.5),1,{c:pick([0xff7a2a,0xffb040]),dir:[0,1,0],spread:.2,sp:3,life:.8,s:.9});
+    if(R()<.4)emit(T2.x+(R()-.5)*.6,T2.h+2.8,T2.z+(R()-.5)*.6,1,{c:0xbfe8ff,dir:[0,1,0],spread:.35,sp:4,life:.8,s:.35,g:9});
+    if(R()<.3)emit(anim.forge.x,anim.forge.y,anim.forge.z,1,{c:0xff8a3a,dir:[0,1,0],spread:.2,sp:2,life:.6,s:.5});
+    anim.portal2.rune.rotation.z+=dt*.4;}
+  if(anim.barrier){anim.barrier.visible=G.main<12;anim.barrier.material.opacity=.18+Math.sin(G.t*2)*.05;}
   applyModeTint();
   const c=G.inSky?new THREE.Vector3(SKY.x,SKY.y,SKY.z):player.pos;
   sun.position.set(c.x+lightDir.x*220,c.y+lightDir.y*220,c.z+lightDir.z*220);sun.target.position.copy(c);
@@ -1674,20 +2178,20 @@ function updEnv(dt){
 
 
 // ================================================================ combat modes
-const MODE_TAG={field:'',battle:'ENCOUNTER',boss:'BOSS BATTLE',final:'FINAL BATTLE'};
-const MODE_TINT={field:[0x000000,0],battle:[0x7a1e2a,.13],boss:[0x5a0820,.4],final:[0x2c0a58,.58]};
-const MODE_FOV={field:58,battle:61,boss:63,final:65};
+const MODE_TAG={field:'',field2:'',battle:'ENCOUNTER',boss:'BOSS BATTLE',final:'FINAL BATTLE'};
+const MODE_TINT={field:[0x000000,0],field2:[0x000000,0],battle:[0x7a1e2a,.13],boss:[0x5a0820,.4],final:[0x2c0a58,.58]};
+const MODE_FOV={field:58,field2:58,battle:61,boss:63,final:65};
 let modeT=0,flashV=0,tintK=0;const tintC=new THREE.Color();
 function computeMode(){
   if(G.state==='title'||G.state==='boot'||G.state==='intro'||G.state==='ending')return'field';
-  const b=G.bossE;if(b&&!b.dead&&G.bossActive)return b.boss==='dragon'?'final':'boss';
+  const b=G.bossE;if(b&&!b.dead&&G.bossActive)return b.boss==='zervan'?'final':'boss';
   for(const e of enemies){if(e.dead||e.world!==curWorld()||!e.target||!e.target.alive)continue;if(d2(e.pos,player.pos)<34){G.battleHold=4;break;}}
-  return G.battleHold>0?'battle':'field';
+  return G.battleHold>0?'battle':(G.inW2?'field2':'field');
 }
 function updMode(dt){
   G.battleHold=Math.max(0,(G.battleHold||0)-dt);modeT-=dt;
   if(modeT<=0){modeT=.25;const m=computeMode();if(m!==G.mode){const old=G.mode;G.mode=m;
-      document.body.classList.remove('mode-field','mode-battle','mode-boss','mode-final');document.body.classList.add('mode-'+m);
+      document.body.classList.remove('mode-field','mode-field2','mode-battle','mode-boss','mode-final');document.body.classList.add('mode-'+m);
       $('#modetag').textContent=MODE_TAG[m];if(AU.setTrack)AU.setTrack(m);
       if(m==='battle'&&old==='field')G.shake=Math.max(G.shake,.08);
       if(m==='boss'||m==='final')G.shake=Math.max(G.shake,.3);}}
@@ -1710,7 +2214,7 @@ let shakeV=new THREE.Vector3();
 function updCamera(dt){
   if(G.state==='title'){const t=G.t*.035;const cx=40,cz=-20;camera.position.set(cx+Math.cos(t)*150,72+Math.sin(t*.7)*10,cz+Math.sin(t)*150);camera.lookAt(CAP.x*.4,30,CAP.z*.4);return;}
   const p=player.pos;cam.tx=lerp(cam.tx,p.x,clamp(dt*12,0,1));cam.ty=lerp(cam.ty,p.y+1.7,clamp(dt*8,0,1));cam.tz=lerp(cam.tz,p.z,clamp(dt*12,0,1));
-  const dist=cam.dist*(G.bossE&&G.bossE.boss==='dragon'&&!G.bossE.dead?1.5:1);
+  const dist=cam.dist*(G.bossE&&G.bossE.big&&!G.bossE.dead?(G.bossE.boss==='dragon'?1.5:1.3):1);
   let cx=cam.tx+Math.sin(cam.yaw)*Math.cos(cam.pitch)*dist,cy=cam.ty+Math.sin(cam.pitch)*dist,cz=cam.tz+Math.cos(cam.yaw)*Math.cos(cam.pitch)*dist;
   const gy=groundAt(cx,cz)+1;if(cy<gy)cy=gy;
   G.shake=Math.max(0,G.shake-dt*1.5);const sh=G.shake*G.shake*1.6;
@@ -1718,7 +2222,7 @@ function updCamera(dt){
 }
 
 // ================================================================ input
-const keys={};const joy={x:0,y:0,run:false};
+const keys={};const joy={x:0,y:0,run:false};const hold={atk:false};
 function exitPointerLock(){try{if(document.pointerLockElement)document.exitPointerLock();}catch(e){}}
 addEventListener('keydown',e=>{
   const k=(e.code&&/^Digit[0-9]$/.test(e.code))?e.code.slice(5):e.key.toLowerCase();if(['tab',' ','arrowup','arrowdown','arrowleft','arrowright'].includes(k))e.preventDefault();
@@ -1730,7 +2234,7 @@ addEventListener('keydown',e=>{
   if(G.state==='map'){if(['escape','m','tab'].includes(k))closeMap();return;}
   if(G.state!=='play')return;
   switch(k){case'j':playerAttack();break;case'1':useSkill(0);break;case'2':case'k':useSkill(1);break;case'3':useSkill(2);break;case'r':useUlt();break;
-    case'f':usePotion();break;case'v':useEther();break;case'e':interact();break;case' ':jump();break;case'tab':case'i':panelTab=0;openMenu();break;case'm':openMap();break;
+    case'f':usePotion();break;case'g':useHipot();break;case'b':useFeather();break;case'q':switchNext();break;case'v':useEther();break;case'e':interact();break;case' ':jump();break;case'tab':case'i':panelTab=0;openMenu();break;case'm':openMap();break;
     case'l':try{const r=canvas.requestPointerLock&&canvas.requestPointerLock();if(r&&r.catch)r.catch(()=>{});}catch(err){}break;}
 });
 addEventListener('keyup',e=>{keys[e.key.toLowerCase()]=false;});
@@ -1738,12 +2242,12 @@ addEventListener('blur',()=>{for(const k in keys)keys[k]=false;});
 function jump(){if(!canAct())return;if(player.onGround){player.vy=10;player.onGround=false;}}
 let drag=null;
 canvas.addEventListener('mousedown',e=>{auInit();canvas.focus();if(G.state==='dialog'){advance();return;}if(G.state!=='play')return;
-  if(document.pointerLockElement===canvas){if(e.button===0)playerAttack();else if(e.button===2)useSkill(1);return;}
+  if(document.pointerLockElement===canvas){if(e.button===0){playerAttack();hold.atk=true;}else if(e.button===2)useSkill(1);return;}
   drag={x:e.clientX,y:e.clientY,moved:0,btn:e.button};});
 addEventListener('mousemove',e=>{
   if(document.pointerLockElement===canvas){cam.yaw-=e.movementX*.0026;cam.pitch=clamp(cam.pitch+e.movementY*.002,-.15,1.25);return;}
   if(drag){const dx=e.clientX-drag.x,dy=e.clientY-drag.y;drag.x=e.clientX;drag.y=e.clientY;drag.moved+=Math.abs(dx)+Math.abs(dy);if(drag.moved>5){cam.yaw-=dx*.006;cam.pitch=clamp(cam.pitch+dy*.004,-.15,1.25);}}});
-addEventListener('mouseup',e=>{if(drag){if(drag.moved<=5&&G.state==='play'){if(drag.btn===0)playerAttack();else if(drag.btn===2)useSkill(1);}drag=null;}});
+addEventListener('mouseup',e=>{hold.atk=false;if(drag){if(drag.moved<=5&&G.state==='play'){if(drag.btn===0)playerAttack();else if(drag.btn===2)useSkill(1);}drag=null;}});
 canvas.addEventListener('contextmenu',e=>e.preventDefault());
 canvas.addEventListener('wheel',e=>{e.preventDefault();cam.dist=clamp(cam.dist+e.deltaY*.01,5,24);},{passive:false});
 $('#dialog').addEventListener('click',()=>advance());
@@ -1766,18 +2270,21 @@ function endTouch(e){if(e.pointerId===touchIds.joy){touchIds.joy=null;joy.x=joy.
 addEventListener('pointerup',endTouch);addEventListener('pointercancel',endTouch);
 document.querySelectorAll('.tbn').forEach(b=>b.addEventListener('pointerdown',e=>{e.preventDefault();e.stopPropagation();auInit();
   if(G.state==='dialog'){advance();return;}
-  const t=b.dataset.t;({atk:playerAttack,s1:()=>useSkill(0),s2:()=>useSkill(1),s3:()=>useSkill(2),ult:useUlt,jump,use:interact,pot:usePotion})[t]();}));
+  const t=b.dataset.t;if(t==='atk')hold.atk=true;({atk:playerAttack,s1:()=>useSkill(0),s2:()=>useSkill(1),s3:()=>useSkill(2),ult:useUlt,jump,use:interact,pot:usePotion,swap:switchNext})[t]();}));
+document.querySelectorAll('.tbn[data-t="atk"]').forEach(b=>['pointerup','pointercancel','pointerleave'].forEach(ev=>b.addEventListener(ev,()=>{hold.atk=false;})));
+$('#mmwrap').addEventListener('click',ev=>{ev.stopPropagation();auInit();if(G.state==='play')openMap();});
 
 // ================================================================ save/load
-function snapshot(){return{v:1,lvl:G.lvl,exp:G.exp,gold:G.gold,potions:G.potions,ethers:G.ethers,weaponLv:G.weaponLv,armorLv:G.armorLv,main:G.main,slimeKills:G.slimeKills,shards:G.shards,bossDead:G.bossDead,side:G.side,dragonDead:G.dragonDead,time:G.time,lastTown:G.lastTown,ult:G.ult,
+function snapshot(){return{v:1,lvl:G.lvl,exp:G.exp,gold:G.gold,potions:G.potions,ethers:G.ethers,weaponLv:G.weaponLv,armorLv:G.armorLv,main:G.main,slimeKills:G.slimeKills,shards:G.shards,bossDead:G.bossDead,side:G.side,dragonDead:G.dragonDead,zervanDead:G.zervanDead,scKills:G.scKills,hipot:G.hipot,feathers:G.feathers,help:G.help,ctrl:player.key,seenEnding2:G.seenEnding2,w2Arrived:G.w2Arrived,time:G.time,lastTown:G.lastTown,ult:G.ult,
   pos:G.inSky?[anim.portal.x+GATE.x*5,anim.portal.z+GATE.z*5]:[player.pos.x,player.pos.z],hp:party.map(m=>m.alive?Math.max(1,Math.round(m.hp)):1),mp:Math.round(player.mp),seenEnding:G.seenEnding};}
 function saveGame(silent){if(G.state==='title'||G.state==='boot')return;const ok=lsSet(SAVE_KEY,JSON.stringify(snapshot()));if(!silent)toast(ok?'冒険の記録をつけた（セーブ完了）':'この環境ではセーブできませんでした',ok?'cyan':'red');}
 function applySave(s){
-  for(const k of['lvl','exp','gold','potions','ethers','weaponLv','armorLv','main','slimeKills','dragonDead','time','lastTown','ult','seenEnding'])if(s[k]!==undefined)G[k]=s[k];
-  if(Array.isArray(s.shards))G.shards=s.shards.slice(0,5);if(Array.isArray(s.bossDead))G.bossDead=s.bossDead.slice(0,5);if(s.side)G.side=Object.assign({wolf:0,wolfKills:0,gob:0,gobKills:0},s.side);
+  for(const k of['lvl','exp','gold','potions','ethers','weaponLv','armorLv','main','slimeKills','dragonDead','zervanDead','scKills','hipot','feathers','seenEnding2','w2Arrived','time','lastTown','ult','seenEnding'])if(s[k]!==undefined)G[k]=s[k];
+  const pad=a=>{const r=Array(10).fill(0);(Array.isArray(a)?a:[]).slice(0,10).forEach((v,i)=>r[i]=v?1:0);return r;};G.shards=pad(s.shards);G.bossDead=pad(s.bossDead);G.side=Object.assign({wolf:0,wolfKills:0,gob:0,gobKills:0,scorp:0,scorpKills:0,skel:0,skelKills:0},s.side||{});G.help=Object.assign({god:false,dmg:1,taken:1},s.help||{});
   recalc(true);if(Array.isArray(s.hp))party.forEach((m,i)=>{if(s.hp[i])m.hp=Math.min(m.maxHp,s.hp[i]);});if(s.mp!==undefined)player.mp=Math.min(player.maxMp,s.mp);
   const p=Array.isArray(s.pos)?s.pos:[VIL.x+6,VIL.z-14];placeParty(p[0],p[1],0);
   G.bossDead.forEach((d,i)=>{if(d&&!G.shards[i])spawnShard(i);});
+  const ci=party.findIndex(m=>m.key===s.ctrl);if(ci>0)switchTo(ci,true);
 }
 
 // ================================================================ screens
@@ -1801,11 +2308,19 @@ $('#bNew').onclick=()=>{auInit();sfx('ui');if(lsGet(SAVE_KEY)&&!$('#bNew').datas
 $('#bCont').onclick=()=>{auInit();sfx('ui');try{applySave(JSON.parse(lsGet(SAVE_KEY)));}catch(e){resetGame();}beginPlay(false);toast('冒険の記録を読み込んだ','cyan');};
 $('#bRevive').onclick=()=>{$('#dead').hidden=true;G.gold=Math.floor(G.gold*.9);for(const e of enemies.slice())if(e.world==='sky'||e.boss)removeEnemy(e);G.inSky=false;G.bossActive=false;G.bossE=null;
   for(const m of party){m.alive=true;m.hp=m.maxHp;m.mp=m.maxMp;m.downT=0;m.model.g.rotation.x=0;}
-  if(G.lastTown==='capital')placeParty(anim.portal.x+GATE.x*6,anim.portal.z+GATE.z*6,0);else placeParty(VIL.x+4,VIL.z-8,0);G.state='play';};
-function showEnding(){if(G.seenEnding){toast('蒼穹竜ヴェルザードを再び討ち果たした','gold');return;}G.seenEnding=1;saveGame(true);G.state='ending';$('#ending').hidden=false;exitPointerLock();}
-$('#bEnd').onclick=()=>{$('#ending').hidden=true;G.state='play';};
-function resetGame(){Object.assign(G,{time:.3,inSky:false,gold:150,potions:3,ethers:1,weaponLv:0,armorLv:0,lvl:1,exp:0,main:0,slimeKills:0,shards:[0,0,0,0,0],bossDead:[0,0,0,0,0],side:{wolf:0,wolfKills:0,gob:0,gobKills:0},dragonDead:0,lastTown:'village',ult:0,seenEnding:0});
-  for(const s of shardObjs.slice()){scene.remove(s.g);}shardObjs.length=0;recalc(true);for(const m of party){m.alive=true;}}
+  const sp=townSpawn(G.lastTown);placeParty(sp[0],sp[1],sp[2]);G.state='play';};
+let endCb=null;
+function chapterEnd(n){
+  if(n===1){if(G.seenEnding){toast('蒼穹竜ヴェルザードを再び討ち果たした','gold');return;}G.seenEnding=1;
+    $('#endSub').textContent='第一章 完 ── 蒼穹の誓い';$('#endTitle').textContent='CHAPTER I CLEAR';$('#endText').textContent='蒼穹竜ヴェルザードは光に還った。だが、竜の瞳に宿っていた「蝕」の影は、遥か東 ── 黄昏の大陸へと続いていた。';$('#bEnd').textContent='第二章へ';
+    endCb=()=>{toast('王都の大賢者オルフェに報告しよう','gold');banner('CHAPTER II','黄昏の大陸へ');};}
+  else{if(G.seenEnding2){toast('蝕の魔王ゼルヴァーンを再び打ち倒した','gold');return;}G.seenEnding2=1;
+    $('#endSub').textContent='蝕の魔王ゼルヴァーン、光に還る';$('#endTitle').textContent='LUMINOUS OATH';$('#endText').textContent='蝕は晴れ、止まっていた太陽が再び沈み、昇った。二つの大陸に誓いの光が満ちる。アレン、セレス、リナ、コハク ── 四人の紡いだ物語は、これからも続いていく。';$('#bEnd').textContent='冒険を続ける';endCb=null;}
+  saveGame(true);G.state='ending';$('#ending').hidden=false;exitPointerLock();
+}
+$('#bEnd').onclick=()=>{$('#ending').hidden=true;G.state='play';const f=endCb;endCb=null;if(f)f();};
+function resetGame(){Object.assign(G,{time:.3,inSky:false,gold:150,potions:3,ethers:1,weaponLv:0,armorLv:0,lvl:1,exp:0,main:0,slimeKills:0,shards:Array(10).fill(0),bossDead:Array(10).fill(0),side:{wolf:0,wolfKills:0,gob:0,gobKills:0,scorp:0,scorpKills:0,skel:0,skelKills:0},dragonDead:0,zervanDead:0,scKills:0,hipot:0,feathers:0,seenEnding2:0,w2Arrived:0,ctrl:'allen',help:{god:false,dmg:1,taken:1},buff:{atk:0,haste:0},lastTown:'village',ult:0,seenEnding:0});
+  for(const s of shardObjs.slice()){scene.remove(s.g);}shardObjs.length=0;recalc(true);for(const m of party){m.alive=true;m.model.g.rotation.x=0;}if(player!==party[0])switchTo(0,true);}
 
 // ================================================================ loop
 const clock=new THREE.Clock();let hudT=0,autoT=0,labelT=0;
@@ -1816,6 +2331,7 @@ function frame(){
   const dt=Math.min(clock.getDelta(),.05);G.t+=dt;
   const active=G.state==='play';
   if(active||G.state==='cut'){
+    updLaters(dt);G.buff.atk=Math.max(0,G.buff.atk-dt);G.buff.haste=Math.max(0,G.buff.haste-dt);
     updPlayer(dt);comps.forEach((c,i)=>updComp(c,i,dt));
     for(let i=enemies.length-1;i>=0;i--)if(enemies[i])updEnemy(enemies[i],dt);
     updProjs(dt);updTeles(dt);updSpawns(dt);updBossSpawns();
