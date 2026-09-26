@@ -340,6 +340,100 @@ body.landscape #toasts{top:calc(var(--sat) + 62px)}
 body.landscape #fps{left:auto;right:calc(var(--sar) + 66px);top:calc(var(--sat) + 64px)}
 body.landscape.panel-open #fps{right:calc(var(--panel-w) + var(--sar) + 8px)}
 
+/* ── コンパクト表示(圧迫感を減らす) ── */
+:root{--panel:rgba(17,22,28,.66);--panel-2:rgba(20,26,33,.9);--tb-h:50px;--rail-w:50px;--panel-w:min(34vw,380px)}
+body{font-size:13px}
+button{min-width:34px;min-height:34px}
+svg.i{width:20px;height:20px}
+#topbar{gap:4px;padding-top:calc(var(--sat) + 4px)}
+#status{height:34px;gap:10px;padding:0 8px 0 10px;border-radius:10px}
+.st i{font-size:12px}
+.st b{font-size:13px}
+#status .chev{width:16px;height:16px}
+#speed{height:34px;border-radius:10px}
+#speed button{min-width:36px;height:34px;min-height:34px;font-size:12px}
+#speed button span{min-width:28px;height:22px;border-radius:6px}
+#speed button svg{width:13px;height:13px}
+#mode{height:34px;min-height:34px;padding:0 10px;border-radius:10px;font-size:13px}
+#mode .sub{font-size:11px}
+#mode .x{width:18px;height:18px}
+#statusDetail{top:calc(var(--sat) + 44px);padding:10px 12px;gap:6px 14px}
+#statusDetail i{font-size:11px}
+#statusDetail b{font-size:14px}
+#tools button{flex:0 0 56px;gap:2px}
+#tools button .lb{font-size:11px}
+#ph{height:42px;padding-left:14px}
+#ph::before{top:5px;width:34px;height:4px;margin-left:-17px}
+#ph h2{font-size:15px}
+#pb{padding:2px 14px calc(16px + var(--sab));gap:14px}
+#camBtns{gap:8px}
+#camBtns button{width:38px;height:38px}
+#camBtns svg.i{width:18px;height:18px}
+#log{min-height:30px;padding:0 10px;border-radius:9px}
+#log .ln{font-size:12px}
+#log .ln .t{font-size:11px}
+#selCard{padding:8px 4px 6px 12px;border-radius:10px;bottom:calc(var(--tb-h) + var(--sab) + var(--sheet-h) + 46px)}
+#selCard h3{font-size:14px}
+#selCard .kind{font-size:12px}
+#selCard dl{font-size:12px}
+.btn{min-height:34px;padding:0 12px;border-radius:9px;font-size:13px}
+.btn.sm{min-height:30px;min-width:30px;padding:0 10px;font-size:12px}
+#toasts{top:calc(var(--sat) + 86px)}
+.toast{padding:7px 12px;font-size:13px;border-radius:9px}
+#fps{top:calc(var(--sat) + 86px);font-size:12px}
+#minimap{top:calc(var(--sat) + 86px);width:22vw;height:22vw;border-radius:10px}
+#minimap.big{width:56vw;height:56vw}
+.ebar{padding:6px calc(var(--sar) + 10px) 2px calc(var(--sal) + 10px);gap:4px}
+.chip{min-height:32px;padding:0 10px;font-size:12px;border-radius:8px}
+.tools5 .chip{min-height:40px}
+.sl{min-height:34px;gap:8px;font-size:12px}
+.sl output{font-size:12px}
+input[type=range]{height:32px}
+input[type=range]::-webkit-slider-thumb{width:20px;height:20px;margin-top:-8px;border-width:2px}
+input[type=range]::-moz-range-thumb{width:16px;height:16px}
+.pl-hd b{font-size:13px}
+.pl-hd .num{font-size:12px}
+.pl-st{font-size:12px}
+.seg button{min-height:32px;font-size:13px}
+.sw{width:44px;height:34px;min-width:44px}
+.sw::before{width:38px;height:22px}
+.sw::after{width:16px;height:16px;transform:translateX(-8px)}
+.sw[aria-checked="true"]::after{transform:translateX(8px)}
+.card{padding:8px 10px}
+.card i{font-size:12px}
+.card b{font-size:15px}
+.sec h4{font-size:12px}
+.hint,.meta{font-size:12px}
+.sb{width:34px;height:34px;font-size:16px}
+.fl-hd span,.fl-hd output{font-size:12px}
+.txt{min-height:36px;font-size:14px}
+.swc{width:34px;height:34px}
+.plc{padding:8px 10px}
+.plc b{font-size:13px}
+.plc .num,.plc .d,.plc .lk{font-size:12px}
+.mcard{padding:8px 10px}
+.mcard .dot{width:22px;height:22px}
+.ecard,.qcard,.rcard{padding:8px 10px}
+.qcard .chain,.chipst,.badge,.keys dt,.keys dd,.chart figcaption{font-size:12px}
+.popbar{height:20px}
+.popbar span{font-size:12px;line-height:20px}
+.chart canvas{height:120px}
+#dialog .box{padding:14px;gap:10px}
+.ovbox{padding:18px;gap:10px}
+.ov-title{font-size:22px}
+.ov-lead{font-size:13px}
+body.landscape #tools button{flex:0 0 42px;height:42px}
+body.landscape #topbar{padding-left:6px;gap:6px}
+body.landscape #camBtns{top:calc(var(--sat) + 48px)}
+body.landscape #selCard{top:calc(var(--sat) + 46px);width:min(290px,36vw)}
+body.landscape #toasts{top:calc(var(--sat) + 48px)}
+body.landscape #fps{top:calc(var(--sat) + 48px);right:calc(var(--sar) + 54px)}
+body.landscape #panel{top:calc(var(--sat) + 44px)}
+body.landscape #minimap{width:min(26vh,150px);height:min(26vh,150px)}
+body.landscape #minimap.big{width:min(66vh,340px);height:min(66vh,340px)}
+body.landscape #log{width:min(320px,34vw)}
+body.landscape .ebar{padding:4px 10px 0}
+
 @media (max-width:370px){ body.portrait .st i.opt{display:none} #status{gap:10px} }
 @media (prefers-reduced-motion:reduce){ *{transition:none!important;animation:none!important} }
 </style>
@@ -373,6 +467,7 @@ body.landscape.panel-open #fps{right:calc(var(--panel-w) + var(--sar) + 8px)}
   <div id="camBtns">
     <button id="btnHome" class="glass" aria-label="初期視点へ戻る"><svg class="i" viewBox="0 0 24 24"><path d="M3 11l9-7 9 7"/><path d="M6 9.5V20h12V9.5"/><path d="M10 20v-5h4v5"/></svg></button>
     <button id="btnUnfollow" class="glass dim" aria-label="追従解除"><svg class="i" viewBox="0 0 24 24"><circle cx="12" cy="12" r="7"/><circle cx="12" cy="12" r="2.2"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/><path d="M4 4l16 16"/></svg></button>
+    <button id="btnSound" class="glass" aria-label="音を消す"></button>
     <button id="btnFull" class="glass" aria-label="全画面" hidden><svg class="i" viewBox="0 0 24 24"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/></svg></button>
   </div>
 
@@ -461,7 +556,8 @@ function autoQuality() {
   return (cores <= 4 || mem <= 4 || (devicePixelRatio || 1) > 2.5) ? 'mid' : 'high';
 }
 const SPEEDS = [0, 1, 4, 16];
-const TICK_SEC = 1.0; // 1倍速:実時間1秒 = ゲーム内1時間(1ティック)
+const TICK_SEC = 3.0; // 1倍速:実時間3秒 = ゲーム内1時間(1ティック)、1日 = 72秒
+const SIM_SCALE = .6; // 加入者・モンスターの動きの速さ(1倍速で実時間の0.6倍)
 
 // 画面設定(セーブ対象外)
 const S = { quality: autoQuality(), showFps: false };
@@ -487,7 +583,7 @@ function newGame(seed) {
   g.objects.push({ id: g.nextId++, type: 'town', name: 'はじまりの町', x: TOWN0.x, z: TOWN0.z, rot: 0 });
   const board = { id: g.nextId++, type: 'board', name: 'はじまりの掲示板', x: TOWN0.x + 17, z: TOWN0.z - 3, rot: -Math.PI / 2 };
   g.objects.push(board);
-  g.objects.push({ id: g.nextId++, type: 'spawn', x: TOWN0.x + 12, z: TOWN0.z + 40, rot: 0, mt: g.monsterTypes[0].id, max: 10, respawn: 4, radius: 14, timer: 0 });
+  g.objects.push({ id: g.nextId++, type: 'spawn', x: TOWN0.x + 12, z: TOWN0.z + 40, rot: 0, mt: g.monsterTypes[0].id, max: 12, respawn: 4, radius: 14, timer: 0 });
   const slime = g.monsterTypes[0].id, Q = (o, i) => Object.assign({ id: g.nextId++, board: board.id, order: i, kind: 'kill', mt: slime, count: 5, item: '', tx: null, tz: null, lv: 1, exp: 80, gold: 30, prev: i > 0, cleared: 0 }, o);
   [{ name: 'スライム退治', count: 5, lv: 1, exp: 80, gold: 30 },
    { name: '草原の見回り', kind: 'goto', tx: TOWN0.x + 30, tz: TOWN0.z + 48, lv: 2, exp: 120, gold: 40 },
@@ -1334,17 +1430,17 @@ const Place = {
     const def = PLACE_DEFS[this.type];
     if (!(def.line ? this.p1 : this.pv)) return;
     this.validate();
-    if (!this.valid) { toast(this.reason, 'warn'); return; }
+    if (!this.valid) { Sound.play('error'); toast(this.reason); return; }
     if (this.moveId) {
       const o = G.objects.find(q => q.id === this.moveId);
-      o.x = this.pos.x; o.z = this.pos.z; o.rot = this.rot;
+      o.x = this.pos.x; o.z = this.pos.z; o.rot = this.rot; Sound.play('place');
       this.moveId = null; this.clearPreview();
       Objects.refresh(o); Scenery.rebuild();
       log(`${Objects.label(o)}を移動しました`);
       setMode('view'); select({ kind: 'object', obj: o });
       return;
     }
-    Econ.spend(this.cost, 'build');
+    Econ.spend(this.cost, 'build'); Sound.play('place');
     let o;
     if (def.line) {
       const { p0, p1 } = this;
@@ -1475,7 +1571,7 @@ const AreaEdit = {
     if (!this.p1 || !this.ok()) { toast('範囲が小さすぎます', 'warn'); return; }
     const r = this.rect();
     const a = { id: G.nextId++, name: this.name.trim() || `エリア${G.areas.length + 1}`, ...r, lvMin: this.lvMin, lvMax: this.lvMax, color: AREA_COLORS[G.areas.length % AREA_COLORS.length] };
-    G.areas.push(a); Areas.build(a);
+    G.areas.push(a); Areas.build(a); Sound.play('place');
     log(`エリア「${a.name}」(Lv${a.lvMin}〜${a.lvMax})を作成しました`);
     toast(`エリア「${a.name}」を作成しました`, 'good');
     setMode('view');
@@ -1948,6 +2044,7 @@ const Players = {
     p.exp += a; p.expToday += a;
     while (p.lv < 50 && p.exp >= expNeed(p.lv)) {
       p.exp -= expNeed(p.lv); p.lv++;
+      if (p.vis && nearCam(p.x, p.z)) Sound.play('levelup', 500);
       p.sat = Math.min(100, p.sat + 2); p.hp = this.stats(p).hp;
     }
     if (p.lv >= 50) p.exp = Math.min(p.exp, expNeed(50));
@@ -1957,7 +2054,7 @@ const Players = {
     const c = this.cls(p); c.kills++; c.killTime += this.simT - (p.fightT ?? this.simT);
     this.gainExp(p, t.exp * (p.cheat ? 8 : 1) * Econ.expMult(p));
     p.gold += t.gold; p.kills++; p.totalKills++;
-    if (t.boss) { p.sat = Math.min(100, p.sat + 5); log(`${p.name}(${c.name})が${t.name}を討伐しました!`, 'good'); }
+    if (t.boss) { p.sat = Math.min(100, p.sat + 5); log(`${p.name}(${c.name})が${t.name}を討伐しました!`, 'good'); Sound.play('boss', 2000); }
     if (this.questKill(p, t)) return;
     if (p.kills >= p.goal || p.hp < this.stats(p).hp * .35) this.goTown(p);
     else { p.st = 'hunt'; p.scan = .2; p.mt = 0; }
@@ -2060,6 +2157,7 @@ const Players = {
             if (used >= 0) p.sk[used] = c.skills[used].cd;
             p.ry = Math.atan2(m.x - p.x, m.z - p.z);
             m.hp -= calcDmg(s.atk * mult, t.def); p.atkCd = 1; p.swing = .35;
+            if (nearCam(p.x, p.z, 35)) Sound.play('hit', 90);
             if (!m.tg) m.tg = p.id;
             if (m.hp <= 0) this.kill(p, m, t);
           }
@@ -2084,11 +2182,11 @@ const Players = {
   },
   // 描画対象外の加入者は1時間ごとに数値だけで狩りの結果を計算する
   abstractHour(p) {
-    const s = this.stats(p);
+    const s = this.stats(p), H = TICK_SEC * SIM_SCALE; // 1時間あたりのシミュレーション時間
     switch (p.st) {
-      case 'idle': p.hp = s.hp; p.wait -= 1; if (p.wait <= 0) this.decide(p); break;
-      case 'gather': p.gT -= 1; if (p.gT <= 0) { if (p.quest) { p.quest.done = true; this.goBoard(p, Quests.byId(p.quest.id)); } else this.teleportTown(p); } break;
-      case 'dungeon': p.dT -= 1; if (p.dT <= 0) this.leaveDungeon(p); break;
+      case 'idle': p.hp = s.hp; p.wait -= H; if (p.wait <= 0) this.decide(p); break;
+      case 'gather': p.gT -= H; if (p.gT <= 0) { if (p.quest) { p.quest.done = true; this.goBoard(p, Quests.byId(p.quest.id)); } else this.teleportTown(p); } break;
+      case 'dungeon': p.dT -= H; if (p.dT <= 0) this.leaveDungeon(p); break;
       case 'waitpath': case 'travel': case 'hunt': case 'fight': {
         if (p.purpose === 'town') { this.teleportTown(p); break; }
         if ((p.st === 'travel' || p.st === 'waitpath') && p.purpose !== 'hunt' && p.dest) {
@@ -2101,8 +2199,8 @@ const Players = {
         if (p.st !== 'hunt') { const a = Math.random() * 6.28, r = Math.random() * sp.radius; p.x = sp.x + Math.cos(a) * r; p.z = sp.z + Math.sin(a) * r; p.st = 'hunt'; break; }
         const c = this.cls(p), sk = 1 + c.skills.reduce((a, k) => a + (k.mult - 1) / Math.max(1, k.cd), 0);
         const dmg = Math.max(1, s.atk * sk - t.def), ttk = Math.ceil(t.hp / dmg) + 1.5;
-        p.acc = (p.acc || 0) + 1 / ttk * (Monsters.count(sp.id) ? 1 : .3);
-        p.hp -= Math.max(1, t.atk - s.def) / 1.2 * .8 * (ttk - 1.5) / ttk;
+        p.acc = (p.acc || 0) + H / ttk * (Monsters.count(sp.id) ? 1 : .3);
+        p.hp -= Math.max(1, t.atk - s.def) / 1.2 * .8 * (ttk - 1.5) / ttk * H;
         if (p.hp <= 0) { this.die(p); break; }
         while (p.acc >= 1) {
           p.acc -= 1; c.kills++; c.killTime += ttk;
@@ -2115,7 +2213,7 @@ const Players = {
         break;
       }
       case 'return': this.teleportTown(p); break;
-      case 'lost': p.retry -= 1; if (p.retry <= 0) { p.retry = 8; if (p.purpose === 'town') this.goTown(p); else this.decide(p); } break;
+      case 'lost': p.retry -= H; if (p.retry <= 0) { p.retry = 8; if (p.purpose === 'town') this.goTown(p); else this.decide(p); } break;
     }
   },
   hourly() {
@@ -2479,6 +2577,7 @@ const Brush = {
     if (!p) return;
     this.pushUndo();
     this.active = true; this.pt = p; this.flatH = heightAt(p.x, p.z); this.t0 = performance.now(); this.dirty = null;
+    Sound.brush(true, this.tool);
   },
   moveTo(x, y) { const p = pickGround(x, y); if (p) this.pt = p; },
   hover(x, y) {
@@ -2488,7 +2587,7 @@ const Brush = {
   },
   end() {
     if (!this.active) return;
-    this.active = false;
+    this.active = false; Sound.brush(false);
     if (this.dirty) { const d = this.dirty; Terrain.normals(d[0], d[1], d[2], d[3]); }
     this.dirty = null;
     afterTerrainChange();
@@ -2496,7 +2595,7 @@ const Brush = {
   // 2本指操作の開始直後など、意図しないストロークを取り消す
   cancel() {
     if (!this.active) return;
-    this.active = false; this.dirty = null;
+    this.active = false; this.dirty = null; Sound.brush(false);
     const s = this.undo.pop(); if (s) this.restore(s);
   },
   pushUndo() {
@@ -2860,7 +2959,7 @@ $('#selCard').addEventListener('click', e => {
     const refund = Math.floor((def.line ? Math.ceil(Math.hypot(o.x1 - o.x0, o.z1 - o.z0) * def.cost) : def.cost) / 2);
     ask(`${Objects.label(o)}を削除しますか?(費用の半額 ${fmt(refund)}G を払い戻します)`, '削除する').then(ok => {
       if (!ok) return;
-      Objects.remove(o); G.money += refund; select(null);
+      Objects.remove(o); G.money += refund; select(null); Sound.play('remove');
       log(`${Objects.label(o)}を削除しました(+${fmt(refund)}G)`);
     });
   }
@@ -2892,8 +2991,8 @@ function tick() {
   Players.hourly();
   Econ.hourly();
   if (G.hour >= 24) { G.hour = 0; G.day++; daily(); }
-  if (G.hour === 6) log('夜が明けました');
-  if (G.hour === 19) log('日が沈み、町に灯りがともりました');
+  if (G.hour === 6) { log('夜が明けました'); Sound.play('dawn', 3000); }
+  if (G.hour === 19) { log('日が沈み、町に灯りがともりました'); Sound.play('dusk', 3000); }
 }
 function daily() {
   log(`${G.day}日目が始まりました`);
@@ -2901,6 +3000,8 @@ function daily() {
   Admin.daily();
   Econ.daily();
   if (G.over) return;
+  const y = G.hist[G.hist.length - 1];
+  if (y && y.rev > y.cost) Sound.play('coin', 1000);
   Events.daily();
   if (['biz', 'admin', 'research', 'class', 'quest'].includes(UI.tab) && !pb.contains(document.activeElement)) renderPanel();
 }
@@ -2953,6 +3054,7 @@ tools.addEventListener('click', e => {
 const panel = $('#panel'), pb = $('#pb');
 function openTab(id) {
   if (UI.tab === id) { closePanel(); return; }
+  Sound.play('open');
   UI.tab = id;
   tools.querySelectorAll('button').forEach(b => b.classList.toggle('on', b.dataset.tab === id));
   $('#panelTitle').textContent = TABS.find(t => t[0] === id)[1];
@@ -2963,6 +3065,7 @@ function openTab(id) {
   applyPanelLayout();
 }
 function closePanel() {
+  if (UI.tab) Sound.play('close');
   UI.tab = null; UI.sheet = 'closed';
   tools.querySelectorAll('button').forEach(b => b.classList.remove('on'));
   panel.classList.remove('open');
@@ -2973,7 +3076,7 @@ $('#panelClose').addEventListener('click', closePanel);
 function sheetHeights() {
   const tb = tools.getBoundingClientRect().height;
   const full = innerHeight - tb - ($('#topbar').getBoundingClientRect().top) - 4;
-  return { half: Math.max(220, Math.min(full, Math.round(innerHeight * .6) - tb)), full };
+  return { half: Math.max(220, Math.min(full, Math.round(innerHeight * .5) - tb)), full };
 }
 function applyPanelLayout() {
   const open = !!UI.tab, bs = document.body.style;
@@ -3092,6 +3195,10 @@ const PANELS = {
         <div class="card"><i>NPC描画上限</i><b>${q.npc}体</b></div>
       </div>
       <p class="hint">目標フレームレート:${TARGET_FPS}fps(${IS_MOBILE ? 'スマホ' : 'PC'})。重くなり続けると画質を下げるか確認します。</p></div>
+      <div class="sec"><h4>サウンド</h4>
+        <div class="row"><span class="grow">音を出す<br><span class="hint">BGMと効果音はその場で合成しています。iPhoneはマナーモードだと鳴りません</span></span><button class="sw" role="switch" aria-checked="${Sound.on}" data-act="snd" aria-label="音を出す"></button></div>
+        ${stepper('snd.bgm', 'BGMの音量', Math.round(Sound.bgmVol * 100), 0, 100, 5, v => v + '%', v => { Sound.bgmVol = v / 100; Sound.applyVol(); })}
+        ${stepper('snd.se', '効果音の音量', Math.round(Sound.seVol * 100), 0, 100, 5, v => v + '%', v => { Sound.seVol = v / 100; Sound.applyVol(); Sound.play('tap', 150); })}</div>
       <div class="sec"><h4>表示</h4>
         <div class="row"><span class="grow">FPSを表示</span><button class="sw" role="switch" aria-checked="${S.showFps}" data-act="fps" aria-label="FPSを表示"></button></div>
         ${fsOk ? `<div class="row"><span class="grow">全画面表示</span><button class="btn sm" data-act="full">${isFullscreen() ? '解除' : '全画面にする'}</button></div>` : ''}
@@ -3106,7 +3213,7 @@ const PANELS = {
       <div class="sec"><h4>マウス・キーボード</h4><dl class="keys">
         <dt>左/中ドラッグ</dt><dd>移動</dd><dt>右ドラッグ</dt><dd>回転・角度</dd><dt>ホイール</dt><dd>ズーム</dd>
         <dt>WASD・矢印</dt><dd>移動</dd><dt>Q / E</dt><dd>回転</dd><dt>R / F</dt><dd>角度</dd>
-        <dt>Space・1〜4</dt><dd>一時停止・速度</dd><dt>Esc</dt><dd>追従解除・閲覧モードに戻る</dd><dt>H</dt><dd>初期視点</dd>
+        <dt>Space・1〜4</dt><dd>一時停止・速度(1倍速で1時間=3秒、1日=72秒)</dd><dt>Esc</dt><dd>追従解除・閲覧モードに戻る</dd><dt>H</dt><dd>初期視点</dd>
         <dt>T</dt><dd>地形編集の開始・終了</dd><dt>[ / ]</dt><dd>ブラシ半径</dd><dt>Ctrl+Z</dt><dd>地形を元に戻す</dd></dl></div>
       ${savePanel()}`;
   },
@@ -3124,6 +3231,7 @@ pb.addEventListener('click', e => {
   if (a === 'paint') { Brush.paint = +b.dataset.v; Brush.tool = 'paint'; renderBrushBar(); renderPanel(); return; }
   if (a === 'undo') { Brush.undoLast(); return; }
   if (a === 'quality') { applyQuality(b.dataset.v); toast(`画質を「${QUALITY[S.quality].label}」にしました`); renderPanel(); }
+  else if (a === 'snd') { Sound.setOn(!Sound.on); renderPanel(); }
   else if (a === 'fps') { S.showFps = !S.showFps; $('#fps').hidden = !S.showFps; renderPanel(); }
   else if (a === 'full') toggleFullscreen();
 });
@@ -3396,6 +3504,7 @@ const Quests = {
     return av[Math.floor(Math.random() * Math.min(2, av.length))];
   },
   complete(p, q) {
+    if (p.vis && nearCam(p.x, p.z)) Sound.play('quest', 600);
     Players.gainExp(p, q.exp); p.gold += q.gold;
     p.sat = Math.min(100, p.sat + 3);
     p.done.push(q.id); p.quest = null;
@@ -3724,7 +3833,7 @@ const Charts = {
     cv.width = Math.round(W * dpr); cv.height = Math.round(H * dpr);
     const c = cv.getContext('2d'); c.setTransform(dpr, 0, 0, dpr, 0, 0);
     c.clearRect(0, 0, W, H);
-    const ink = '#a6a192', grid = 'rgba(228,220,198,.12)', acc = '#e2a64b', ff = '14px ' + getComputedStyle(document.body).fontFamily;
+    const ink = '#a6a192', grid = 'rgba(228,220,198,.12)', acc = '#e2a64b', ff = '12px ' + getComputedStyle(document.body).fontFamily;
     c.font = ff; c.textBaseline = 'middle';
     if (rows.length < 2) { c.fillStyle = ink; c.textAlign = 'center'; c.fillText('2日目以降にグラフが表示されます', W / 2, H / 2); return; }
     const vals = rows.map(r => r[key]);
@@ -4049,7 +4158,7 @@ function startScreen(first) {
   };
 }
 function gameOver() {
-  setSpeed(0); G.over = true;
+  setSpeed(0); G.over = true; Sound.play('over');
   const peak = Math.max(0, ...G.hist.map(h => h.subs));
   showOverlay(`<p class="ov-eyebrow bad">サービス終了</p><h1 class="ov-title">資金が30日間マイナスでした</h1>
     <p class="ov-lead">運営${G.day}日目、「Arcana Online」はサービスを終了しました。</p>
@@ -4063,6 +4172,7 @@ function gameOver() {
   };
 }
 function goalReached() {
+  Sound.play('fanfare');
   toast('加入者1000人を達成しました!', 'good');
   log(`加入者1000人を達成しました(運営${G.day}日目)`, 'good');
   const wasSpeed = speedIdx; setSpeed(0);
@@ -4238,6 +4348,7 @@ $('#log').addEventListener('click', () => { $('#log').classList.toggle('expanded
 
 /* トースト */
 function toast(text, kind = '') {
+  if (kind) Sound.play(kind, 300);
   const t = document.createElement('div');
   t.className = 'toast ' + kind; t.textContent = text;
   const box = $('#toasts'); box.appendChild(t);
@@ -4272,6 +4383,7 @@ $('#btnFull').hidden = !fullscreenSupported();
 $('#btnFull').addEventListener('click', toggleFullscreen);
 document.addEventListener('fullscreenchange', () => { if (UI.tab === 'other') renderPanel(); });
 $('#btnHome').addEventListener('click', () => Cam.home());
+$('#btnSound').addEventListener('click', () => { Sound.setOn(!Sound.on); toast(Sound.on ? '音を出します' : '音を消しました'); if (UI.tab === 'other') renderPanel(); });
 $('#btnUnfollow').addEventListener('click', () => { if (Cam.follow) { setFollow(null); toast('追従を解除しました'); } else toast('追従中の対象はありません'); });
 
 /* ════════════════════════════════════════════
@@ -4313,6 +4425,7 @@ addEventListener('orientationchange', () => setTimeout(resize, 150));
 /* バックグラウンドで自動一時停止 */
 let pausedByHide = false;
 document.addEventListener('visibilitychange', () => {
+  Sound.suspend(document.hidden);
   if (document.hidden) { if (speedIdx) { setSpeed(0); pausedByHide = true; } Cam.keys.clear(); }
   else if (pausedByHide) { pausedByHide = false; toast('バックグラウンド中は一時停止していました'); log('自動一時停止しました(アプリ切替)'); }
   lastFrame = performance.now();
@@ -4501,6 +4614,152 @@ const Minimap = {
 };
 
 /* ════════════════════════════════════════════
+   サウンド(Web Audio で合成。外部ファイルなし)
+   ════════════════════════════════════════════ */
+const mtof = n => 440 * Math.pow(2, (n - 69) / 12);
+const Sound = {
+  ctx: null, master: null, bgm: null, se: null, warm: null, noiseBuf: null,
+  on: true, bgmVol: .45, seVol: .7, last: {}, next: 0, chordIdx: 0, timer: 0, brushSrc: null, brushGain: null,
+  // 最初の操作(タップ・クリック)で初期化する。ブラウザは操作前の再生を許さない
+  init() {
+    if (this.ctx) { if (this.ctx.state === 'suspended' && !document.hidden) this.ctx.resume().catch(() => {}); return; }
+    const AC = window.AudioContext || window.webkitAudioContext;
+    if (!AC) return;
+    try { this.ctx = new AC(); } catch (e) { return; }
+    const c = this.ctx;
+    this.master = c.createGain(); this.master.connect(c.destination);
+    this.bgm = c.createGain(); this.se = c.createGain();
+    this.warm = c.createBiquadFilter(); this.warm.type = 'lowpass'; this.warm.frequency.value = 1800; this.warm.Q.value = .3;
+    this.bgm.connect(this.warm); this.warm.connect(this.master); this.se.connect(this.master);
+    const len = c.sampleRate * 1.5, buf = c.createBuffer(1, len, c.sampleRate), d = buf.getChannelData(0);
+    for (let i = 0; i < len; i++) d[i] = Math.random() * 2 - 1;
+    this.noiseBuf = buf;
+    this.applyVol();
+    this.next = c.currentTime + .2;
+    this.timer = setInterval(() => this.schedule(), 250);
+  },
+  applyVol() {
+    if (!this.ctx) return;
+    const t = this.ctx.currentTime;
+    this.master.gain.setTargetAtTime(this.on ? 1 : 0, t, .05);
+    this.bgm.gain.setTargetAtTime(this.bgmVol * .5, t, .1);
+    this.se.gain.setTargetAtTime(this.seVol * .8, t, .05);
+  },
+  setOn(v) { this.on = v; if (v) this.init(); this.applyVol(); updateSoundBtn(); },
+  suspend(s) { if (!this.ctx) return; if (s) this.ctx.suspend().catch(() => {}); else this.ctx.resume().catch(() => {}); },
+  // 単音(音量エンベロープ付き)
+  tone(f, dur, o = {}) {
+    const c = this.ctx; if (!c || !this.on) return;
+    const t = c.currentTime + (o.at || 0), osc = c.createOscillator(), g = c.createGain();
+    osc.type = o.type || 'sine'; osc.frequency.setValueAtTime(f, t);
+    if (o.to) osc.frequency.exponentialRampToValueAtTime(o.to, t + dur);
+    if (o.detune) osc.detune.value = o.detune;
+    const v = o.vol ?? .2, a = o.attack ?? .005;
+    g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(v, t + a);
+    g.gain.exponentialRampToValueAtTime(.0001, t + dur);
+    osc.connect(g); g.connect(o.dest || this.se);
+    osc.start(t); osc.stop(t + dur + .05);
+  },
+  noise(dur, o = {}) {
+    const c = this.ctx; if (!c || !this.on) return;
+    const t = c.currentTime + (o.at || 0), src = c.createBufferSource(), f = c.createBiquadFilter(), g = c.createGain();
+    src.buffer = this.noiseBuf; f.type = o.filter || 'lowpass'; f.frequency.value = o.freq || 800; f.Q.value = o.q || .7;
+    g.gain.setValueAtTime(o.vol ?? .2, t); g.gain.exponentialRampToValueAtTime(.0001, t + dur);
+    src.connect(f); f.connect(g); g.connect(this.se);
+    src.start(t, Math.random() * .5); src.stop(t + dur + .05);
+  },
+  // 効果音。同じ音の連打は間引く
+  play(name, gap = 60) {
+    if (!this.ctx || !this.on) return;
+    const now = performance.now();
+    if (now - (this.last[name] || 0) < gap) return;
+    this.last[name] = now;
+    const T = (f, d, o) => this.tone(f, d, o);
+    switch (name) {
+      case 'click': T(1320, .05, { type: 'triangle', vol: .05 }); break;
+      case 'open': T(520, .09, { type: 'triangle', vol: .07, to: 780 }); break;
+      case 'close': T(700, .08, { type: 'triangle', vol: .06, to: 440 }); break;
+      case 'tap': T(900, .04, { type: 'sine', vol: .05 }); break;
+      case 'place': this.noise(.18, { freq: 260, vol: .35 }); T(120, .22, { type: 'sine', vol: .25, to: 70 }); T(660, .12, { type: 'triangle', vol: .06, at: .05 }); break;
+      case 'remove': this.noise(.25, { freq: 500, vol: .2 }); T(300, .2, { type: 'triangle', vol: .08, to: 120 }); break;
+      case 'error': T(196, .09, { type: 'square', vol: .045 }); T(165, .12, { type: 'square', vol: .045, at: .1 }); break;
+      case 'good': [784, 988, 1175].forEach((f, i) => T(f, .22, { type: 'triangle', vol: .08, at: i * .07 })); break;
+      case 'warn': T(660, .14, { type: 'triangle', vol: .08 }); T(550, .2, { type: 'triangle', vol: .08, at: .12 }); break;
+      case 'bad': T(220, .45, { type: 'sawtooth', vol: .06, to: 140 }); T(233, .45, { type: 'sawtooth', vol: .04, to: 147 }); break;
+      case 'levelup': [523, 659, 784, 1047].forEach((f, i) => T(f, .25, { type: 'triangle', vol: .07, at: i * .06 })); break;
+      case 'quest': T(1047, .3, { type: 'sine', vol: .09 }); T(1568, .4, { type: 'sine', vol: .06, at: .08 }); break;
+      case 'coin': T(1319, .08, { type: 'square', vol: .03 }); T(1760, .25, { type: 'square', vol: .03, at: .07 }); break;
+      case 'hit': this.noise(.06, { filter: 'bandpass', freq: 1400 + Math.random() * 600, q: 1.5, vol: .12 }); break;
+      case 'boss': [392, 494, 587, 784].forEach((f, i) => T(f, .5, { type: 'sawtooth', vol: .04, at: i * .12 })); break;
+      case 'dawn': [72, 76, 79, 84].forEach((n, i) => T(mtof(n), 1.2, { type: 'sine', vol: .05, at: i * .18, attack: .02 })); break;
+      case 'dusk': [67, 64, 60].forEach((n, i) => T(mtof(n), 1.6, { type: 'sine', vol: .05, at: i * .25, attack: .02 })); break;
+      case 'fanfare': [60, 64, 67, 72, 67, 72, 76].forEach((n, i) => T(mtof(n), .35, { type: 'triangle', vol: .09, at: i * .13 })); break;
+      case 'over': [67, 63, 60, 55].forEach((n, i) => T(mtof(n), .7, { type: 'triangle', vol: .08, at: i * .3 })); break;
+    }
+  },
+  // 地形ブラシ中は、削る音(フィルター付きノイズ)を鳴らし続ける
+  brush(active, tool) {
+    const c = this.ctx; if (!c) return;
+    if (active && this.on && !this.brushSrc) {
+      const src = c.createBufferSource(), f = c.createBiquadFilter(), g = c.createGain();
+      src.buffer = this.noiseBuf; src.loop = true;
+      f.type = 'bandpass'; f.frequency.value = tool === 'lower' ? 260 : tool === 'raise' ? 420 : tool === 'paint' ? 1800 : 700; f.Q.value = .8;
+      g.gain.value = 0; g.gain.setTargetAtTime(.09, c.currentTime, .08);
+      src.connect(f); f.connect(g); g.connect(this.se); src.start();
+      this.brushSrc = src; this.brushGain = g;
+    } else if (!active && this.brushSrc) {
+      const src = this.brushSrc, g = this.brushGain;
+      g.gain.setTargetAtTime(0, c.currentTime, .06); setTimeout(() => { try { src.stop(); } catch (e) {} }, 300);
+      this.brushSrc = null;
+    }
+  },
+  // BGM:昼は長調、夜は短調の和音をゆっくり鳴らし、音階からときどき単音をつま弾く
+  schedule() {
+    const c = this.ctx; if (!c || !this.on || c.state !== 'running' || !G) return;
+    const night = G.hour >= 19 || G.hour < 6;
+    while (this.next < c.currentTime + 1) {
+      const t = this.next, len = 8;
+      const DAY = [[48, 55, 64, 67], [45, 52, 60, 64], [41, 48, 57, 60], [43, 50, 59, 62]];
+      const NIGHT = [[45, 52, 60, 64], [40, 47, 55, 59], [41, 48, 57, 60], [38, 45, 53, 57]];
+      const ch = (night ? NIGHT : DAY)[this.chordIdx++ % 4];
+      for (const n of ch) for (const det of [-6, 6]) {
+        const o = c.createOscillator(), g = c.createGain();
+        o.type = 'triangle'; o.frequency.value = mtof(n); o.detune.value = det;
+        g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(.035, t + 2.5);
+        g.gain.setValueAtTime(.035, t + len - 2); g.gain.linearRampToValueAtTime(0, t + len + .5);
+        o.connect(g); g.connect(this.bgm); o.start(t); o.stop(t + len + .6);
+      }
+      const scale = night ? [57, 60, 62, 64, 67, 69, 72] : [60, 62, 64, 67, 69, 72, 74, 76];
+      const notes = night ? 3 : 5;
+      for (let k = 0; k < notes; k++) {
+        if (Math.random() < .3) continue;
+        const at = t + k * (len / notes) + Math.random() * .3, n = scale[Math.floor(Math.random() * scale.length)];
+        const o = c.createOscillator(), g = c.createGain();
+        o.type = 'sine'; o.frequency.value = mtof(n + (night ? 0 : 12));
+        g.gain.setValueAtTime(0, at); g.gain.linearRampToValueAtTime(.05, at + .02); g.gain.exponentialRampToValueAtTime(.0001, at + 2.2);
+        o.connect(g); g.connect(this.bgm); o.start(at); o.stop(at + 2.3);
+      }
+      this.next += len;
+    }
+  },
+};
+// カメラの近くで起きた出来事だけ音を鳴らす
+function nearCam(x, z, r = 60) { const cp = camera.position; return Math.hypot(x - cp.x, z - cp.z) < r + Cam.dist * .3 && Cam.dist < 160; }
+function updateSoundBtn() {
+  const b = document.getElementById('btnSound'); if (!b) return;
+  b.classList.toggle('dim', !Sound.on);
+  b.setAttribute('aria-label', Sound.on ? '音を消す' : '音を出す');
+  b.innerHTML = Sound.on ? '<svg class="i" viewBox="0 0 24 24"><path d="M4 9h4l5-4v14l-5-4H4z"/><path d="M16.5 8.5a5 5 0 010 7M19 6a8.5 8.5 0 010 12"/></svg>'
+    : '<svg class="i" viewBox="0 0 24 24"><path d="M4 9h4l5-4v14l-5-4H4z"/><path d="M17 9l5 6M22 9l-5 6"/></svg>';
+}
+document.addEventListener('pointerdown', () => { if (Sound.on) Sound.init(); }, { capture: true });
+document.addEventListener('click', e => {
+  const b = e.target.closest('button'); if (!b || b.disabled || !Sound.ctx) return;
+  if (b.closest('#tools') || b.id === 'panelClose' || b.dataset.pl === 'ok' || b.dataset.ar === 'ok') return;
+  Sound.play('click');
+}, { capture: true });
+
+/* ════════════════════════════════════════════
    メインループ
    ════════════════════════════════════════════ */
 let lastFrame = performance.now(), uiT = 0;
@@ -4514,7 +4773,7 @@ function frame(now) {
   Cam.update(dt);
   Sky.update((G.hour + (SPEEDS[speedIdx] ? clamp(tickAcc, 0, .999) : 0)) % 24);
   Brush.apply(dt);
-  simulateUnits(dt * SPEEDS[speedIdx], dt);
+  simulateUnits(dt * SPEEDS[speedIdx] * SIM_SCALE, dt);
   if (selection && (selection.kind === 'monster' || selection.kind === 'player')) placeSelRing();
   if (Brush.ring.visible) Brush.updateRing();
   if (selRing.visible) selRing.material.opacity = .7 + Math.sin(now / 250) * .25;
@@ -4553,6 +4812,7 @@ function boot() {
   uiUpdate();
   Cam.update(0);
   requestAnimationFrame(frame);
+  updateSoundBtn();
   startScreen(true);
 }
 // 新しい世界の初期加入者とモンスター
