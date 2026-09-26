@@ -444,6 +444,11 @@ body.landscape #minimap.big{width:min(66vh,340px);height:min(66vh,340px)}
 body.landscape #log{width:min(320px,34vw)}
 body.landscape .ebar{padding:4px 10px 0}
 
+/* iPhoneは16px未満の入力欄にフォーカスすると画面を拡大するため、入力欄は16pxにする */
+input,textarea,select,.txt,.txtarea,.msel{font-size:16px!important}
+.pvhost.tall{height:260px}
+.pvcv{touch-action:pan-y}
+
 @media (max-width:370px){ body.portrait .st i.opt{display:none} #status{gap:10px} }
 @media (prefers-reduced-motion:reduce){ *{transition:none!important;animation:none!important} }
 </style>
@@ -833,7 +838,7 @@ const PLACE_DEFS = {
   tree:    { name: '木', cost: 10, r: 1.4, slope: .9, minor: true, desc: '景観用。連続配置できます' },
   rock:    { name: '岩', cost: 10, r: 1.6, slope: 1.2, minor: true, desc: '景観用。連続配置できます' },
   spawn:   { name: 'モンスター出現地点', cost: 200, r: 3, slope: .8, desc: '選んだモンスターが周囲に出現して徘徊します' },
-  dungeon: { name: 'ダンジョン入口', cost: 1500, r: 5.6, slope: .6, named: true, desc: 'Lv8以上の加入者が攻略に挑み、大量の経験値を得る' },
+  dungeon: { name: 'ダンジョン入口', cost: 1500, r: 5.6, slope: .6, named: true, desc: '中の階層・モンスター・罠・ボスを設計できる。レベルの合う加入者が攻略に挑む' },
 };
 const PLACE_ORDER = ['town', 'village', 'inn', 'board', 'road', 'bridge', 'tree', 'rock', 'spawn', 'dungeon'];
 const PLACE_REQ = { road: 'road', bridge: 'bridge', village: 'village', inn: 'inn', dungeon: 'dungeon' };
@@ -1520,13 +1525,14 @@ const Place = {
       o = { id: G.nextId++, type: this.type, x: this.pos.x, z: this.pos.z, rot: this.rot };
       if (def.named) o.name = `${def.name}${G.objects.filter(q => q.type === this.type).length + 1}`;
       if (this.type === 'spawn') Object.assign(o, { mt: this.spawnMt, max: 5, respawn: 6, radius: 10, timer: 0 });
+      if (this.type === 'dungeon') o.dg = Dungeons.newDef(o);
     }
     Objects.add(o);
     if (o.type === 'spawn') Monsters.fill(o, 3);
     if (!def.minor) log(`${Objects.label(o)}を設置しました(−${fmt(this.cost)}G)`);
     this.clearPreview();
     if (def.minor || def.line || o.type === 'spawn') { renderPlaceBar(); toast(`${def.name}を設置しました(−${fmt(this.cost)}G)`); }
-    else { setMode('view'); select({ kind: 'object', obj: o }); toast(`${Objects.label(o)}を設置しました`); }
+    else { setMode('view'); select({ kind: 'object', obj: o }); toast(o.type === 'dungeon' ? `${Objects.label(o)}を設置しました。ダンジョンタブで中身を作れます` : `${Objects.label(o)}を設置しました`); }
   },
   cancel() {
     const has = PLACE_DEFS[this.type].line ? this.p0 : this.pv;
@@ -2190,13 +2196,13 @@ const Players = {
     if (p.troll && Math.random() < .5) { p.st = 'idle'; p.wait = 6 + Math.random() * 8; return; }
     // クエストを優先(受注中なら続き、なければレベルに合うものを掲示板で受注)
     if (p.quest) { this.questNext(p); return; }
+    // レベルに合うダンジョンがあれば、ときどき挑む
+    if (Math.random() < .35) {
+      const d = Dungeons.pickFor(p);
+      if (d) { const e = Dungeons.entrance(d); p.dgTarget = d.id; this.goTo(p, e.x, e.z, 'dungeon'); return; }
+    }
     const q = Math.random() < .8 ? Quests.pick(p) : null;
     if (q) { p.quest = { id: q.id, prog: 0, done: false, acc: false }; this.goBoard(p, q); return; }
-    // Lv8以上はときどきダンジョンに挑む
-    if (p.lv >= 8 && Math.random() < .25) {
-      const pc0 = PG.compAt(p.x, p.z), dg = G.objects.filter(o => o.type === 'dungeon' && PG.compAt(o.x, o.z) === pc0);
-      if (dg.length) { const d = pick(dg); this.goTo(p, d.x + Math.sin(d.rot || 0) * 4, d.z + Math.cos(d.rot || 0) * 4, 'dungeon'); return; }
-    }
     const L = p.lv, pc = PG.compAt(p.x, p.z), good = [];
     let weak = null, weakLv = -1, far = null;
     for (const sp of G.objects) {
@@ -2260,7 +2266,7 @@ const Players = {
         if (q.kind === 'goto') { p.quest.done = true; this.goBoard(p, q); }
         else { p.st = 'gather'; p.gT = 1.2 * q.count; }
         break;
-      case 'dungeon': p.st = 'dungeon'; p.dT = 6 + Math.random() * 4; break;
+      case 'dungeon': { const d = G.objects.find(o => o.id === p.dgTarget && o.type === 'dungeon'); if (d) Dungeons.enter(p, d); else this.arriveTown(p); break; }
       default: this.arriveTown(p);
     }
   },
@@ -2299,7 +2305,7 @@ const Players = {
     const tw = this.nearestTown(p.x, p.z);
     p.x = tw.x + (Math.random() - .5) * 6; p.z = tw.z + (Math.random() - .5) * 6;
     p.hp = this.stats(p).hp; p.st = 'idle'; p.wait = 3 + Math.random() * 3; p.path = null; p.mt = 0; p.kills = 0; p.wt = null;
-    p.dot = p.buff = p.shield = p.anim = null; p.stun = p.slow = 0;
+    p.dot = p.buff = p.shield = p.anim = p.dg = null; p.stun = p.slow = 0;
   },
   gainExp(p, a) {
     p.exp += a; p.expToday += a;
@@ -2447,7 +2453,7 @@ const Players = {
           if (p.gT <= 0) { if (p.quest) { p.quest.done = true; this.goBoard(p, Quests.byId(p.quest.id)); } else this.goTown(p); }
           break;
         }
-        case 'dungeon': p.dT -= sdt; if (p.dT <= 0) this.leaveDungeon(p); break;
+        case 'dungeon': if (p.dg) Dungeons.progress(p, sdt); else this.goTown(p); break;
         case 'lost': {
           p.sat = Math.max(0, p.sat - .002 * sdt);
           p.retry -= sdt;
@@ -2464,7 +2470,7 @@ const Players = {
     switch (p.st) {
       case 'idle': p.hp = s.hp; p.wait -= H; if (p.wait <= 0) this.decide(p); break;
       case 'gather': p.gT -= H; if (p.gT <= 0) { if (p.quest) { p.quest.done = true; this.goBoard(p, Quests.byId(p.quest.id)); } else this.teleportTown(p); } break;
-      case 'dungeon': p.dT -= H; if (p.dT <= 0) this.leaveDungeon(p); break;
+      case 'dungeon': if (p.dg) Dungeons.progress(p, H); else this.teleportTown(p); break;
       case 'waitpath': case 'travel': case 'hunt': case 'fight': {
         if (p.purpose === 'town') { this.teleportTown(p); break; }
         if ((p.st === 'travel' || p.st === 'waitpath') && p.purpose !== 'hunt' && p.dest) {
@@ -2582,6 +2588,10 @@ const Players = {
     if (p.st === 'travel' && p.purpose === 'board') return q && p.quest.done ? `「${q.name}」の報告に向かう` : '掲示板でクエストを受けに行く';
     if (p.st === 'travel' && p.purpose === 'qgo' && q) return `「${q.name}」の目的地へ移動中`;
     if (p.st === 'travel' && p.purpose === 'dungeon') return 'ダンジョンへ向かう';
+    if (p.st === 'dungeon' && p.dg) {
+      const o = G.objects.find(x => x.id === p.dg.id), D = o && Dungeons.def(o);
+      return D && p.dg.fl >= D.floors.length ? `「${o.name}」の最深部でボスと戦闘中` : `「${o ? o.name : 'ダンジョン'}」地下${p.dg.fl + 1}階を攻略中`;
+    }
     if (p.st === 'gather' && q) return `「${q.name}」で${q.item || '素材'}を収集中`;
     if (p.st === 'hunt' && q && p.quest.acc && !p.quest.done) return `「${q.name}」(${p.quest.prog}/${q.kind === 'boss' ? 1 : q.count})`;
     if (p.st === 'fight') { const m = Monsters.map.get(p.mt), t = m && Monsters.type(m.t); return t ? `${t.name}と戦闘中` : '戦闘中'; }
@@ -3182,6 +3192,7 @@ function renderSelCard() {
     if (ar) rows.push(['エリア', ar.name]);
     if (o.type === 'town' || o.type === 'village') rows.push(['役割', '復活地点・拠点']);
     if (o.type === 'board') { rows.push(['クエスト', `${Quests.boardQuests(o.id).length}件`]); acts.push('<button class="btn sm" data-sel="quests">クエスト</button>'); }
+    if (o.type === 'dungeon') { const D = Dungeons.def(o); rows.push(['階層', `${D.floors.length}階${Monsters.type(D.boss) ? '+ボス' : ''}(Lv${D.lvMin}〜${D.lvMax})`], ['中にいる人', `${Dungeons.inside(o)} / ${D.cap}人`]); acts.push('<button class="btn sm" data-sel="dgOpen">中身を作る</button>'); }
     if (o.type === 'spawn') {
       const t = Monsters.type(o.mt);
       rows.push(['モンスター', t ? t.name : 'なし'], ['出現数', `${Monsters.count(o.id)} / ${Monsters.effMax(o)}体`], ['再出現', `${o.respawn}時間${Monsters.habitatOk(o) ? '(地形適性で2倍速)' : ''}`]);
@@ -3239,6 +3250,7 @@ $('#selCard').addEventListener('click', e => {
   const b = e.target.closest('[data-sel]'); if (!b || !selection) return;
   const a = b.dataset.sel, s = selection;
   if (a === 'close') select(null);
+  else if (a === 'dgOpen') { UI.dgEdit = s.obj.id; select(null); UI.tab = null; openTab('dungeon'); }
   else if (a === 'quests') { select(null); UI.qEdit = null; UI.tab = null; openTab('quest'); }
   else if (a === 'fly') { const p = selectionPos(); if (p) Cam.flyTo(p.x, p.z, { dist: Math.min(Cam.dist, 110) }); }
   else if (a === 'more') { selection.detail = true; renderSelCard(); }
@@ -3315,12 +3327,13 @@ const ICONS = {
   admin: '<path d="M12 3l8 3v6c0 5-3.6 8-8 9-4.4-1-8-4-8-9V6z"/><path d="M9 12l2 2 4-4"/>',
   research: '<path d="M9.5 3h5M10.5 3v6.5L5 18.5A1.8 1.8 0 006.6 21h10.8a1.8 1.8 0 001.6-2.5L13.5 9.5V3"/><path d="M7.5 15h9"/>',
   biz: '<path d="M4 20V11M10 20V5M16 20v-6M3 20.5h18"/>',
+  dungeon: '<path d="M4 20V11a8 8 0 0116 0v9"/><path d="M9 20v-5a3 3 0 016 0v5"/><path d="M2 20h20"/>',
   skill: '<path d="M12 3l2.1 5.6L20 11l-5.9 2.4L12 19l-2.1-5.6L4 11l5.9-2.4z"/>',
   other: '<path d="M4 7h9M17 7h3M4 17h3M11 17h9"/><circle cx="15" cy="7" r="2"/><circle cx="9" cy="17" r="2"/>',
 };
 const TABS = [
   ['terrain', '地形'], ['place', '配置'], ['area', 'エリア'], ['monster', 'モンスター'], ['class', 'クラス'],
-  ['skill', 'スキル'], ['quest', 'クエスト'], ['admin', '管理'], ['research', '研究'], ['biz', '経営'], ['other', 'その他'],
+  ['skill', 'スキル'], ['quest', 'クエスト'], ['dungeon', 'ダンジョン'], ['admin', '管理'], ['research', '研究'], ['biz', '経営'], ['other', 'その他'],
 ];
 const UI = { tab: null, sheet: 'closed', layout: '' };
 const tools = $('#tools');
@@ -3481,6 +3494,7 @@ const PANELS = {
   biz() { return bizPanel(); },
   quest() { return questPanel(); },
   skill() { return skillPanel(); },
+  dungeon() { return dungeonPanel(); },
   research() { return researchPanel(); },
   admin() { return adminPanel(); },
   other() {
@@ -3520,7 +3534,7 @@ const PANELS = {
 pb.addEventListener('click', e => {
   const b = e.target.closest('[data-act]'); if (!b || b.disabled) return;
   const a = b.dataset.act;
-  if (panelAction(a, b) || lookSkillAction(a, b) || questAction(a, b) || adminAction(a, b) || saveAction(a)) return;
+  if (dungeonAction(a, b) || panelAction(a, b) || lookSkillAction(a, b) || questAction(a, b) || adminAction(a, b) || saveAction(a)) return;
   if (a === 'tool' || a === 'edit') {
     if (a === 'tool') Brush.tool = b.dataset.v;
     closePanel(); setMode('terrain');
@@ -3930,7 +3944,7 @@ const RESEARCH = [
   { id: 'swamp', name: '沼地の地形', cost: 50, desc: '地形ブラシで沼地を塗れる' },
   { id: 'snow', name: '雪原の地形', cost: 70, desc: '地形ブラシで雪原を塗れる' },
   { id: 'boss', name: 'ボスモンスター', cost: 180, desc: 'ボスの設定・ボスの出現・ボス討伐クエストが使える(討伐で満足度+5)' },
-  { id: 'dungeon', name: 'ダンジョン', cost: 250, req: 'village', desc: 'ダンジョン入口を配置できる。Lv8以上の加入者が攻略に挑む' },
+  { id: 'dungeon', name: 'ダンジョン', cost: 250, req: 'village', desc: 'ダンジョンを設計して配置できる。レベルの合う加入者が攻略に挑む' },
   { id: 'gm', name: 'GM制度', cost: 90, desc: 'GMを雇用できる。毎日、迷子の救助と不正者への警告を自動で行う' },
   { id: 'automod', name: '不正検知の強化', cost: 160, req: 'gm', desc: '通報リストに正規の加入者が載らなくなり、GMの警告件数が倍になる' },
   { id: 'shop_weapon', name: '課金アイテム:武器', cost: 70, desc: '攻撃力を上げる課金武器を販売できる' },
@@ -4046,7 +4060,7 @@ const Econ = {
     for (const p of G.players) {
       let d = 0;
       if (!Quests.available(p).length) { d -= 2; cnt.quest++; }
-      if (!G.areas.some(a => p.lv >= a.lvMin && p.lv <= a.lvMax)) { d -= 3; cnt.area++; }
+      if (!G.areas.some(a => p.lv >= a.lvMin && p.lv <= a.lvMax) && !Dungeons.list().some(o => { const D = Dungeons.def(o); return D.floors.length && p.lv >= D.lvMin && p.lv <= D.lvMax; })) { d -= 3; cnt.area++; }
       const a = Areas.at(p.x, p.z);
       if (a && crowded.has(a.id)) { d -= 1; cnt.crowd++; }
       if (p2w) d -= 2;
@@ -4805,6 +4819,7 @@ const FX = {
    ════════════════════════════════════════════ */
 const Preview = {
   r: null, sc: null, cam: null, cv: null, grp: null, wpn: null, spec: null, anim: null, loop: 0, next: 0, on: false, last: 0, baseRy: .5, w: 0, h: 0,
+  orbit: .6, userRy: 0, dragT: 0, dgT: 0, dgPl: null,
   ensure() {
     if (this.r) return true;
     try {
@@ -4815,12 +4830,20 @@ const Preview = {
       this.sc.add(new THREE.HemisphereLight(0xfff4e0, 0x3a4150, .95));
       const d = new THREE.DirectionalLight(0xffffff, .7); d.position.set(3, 6, 4); this.sc.add(d);
       const g = new THREE.Mesh(new THREE.CylinderGeometry(3, 3, .1, 40), new THREE.MeshLambertMaterial({ color: 0x4d6b3a })); g.position.y = -.05; this.sc.add(g);
-      this.cam = new THREE.PerspectiveCamera(35, 1.6, .1, 200);
+      this.ground = g;
+      this.cam = new THREE.PerspectiveCamera(35, 1.6, .1, 400);
+      // 左右ドラッグで回転
+      let dx0 = null;
+      this.cv.addEventListener('pointerdown', e => { dx0 = e.clientX; });
+      this.cv.addEventListener('pointermove', e => { if (dx0 == null) return; const d = e.clientX - dx0; dx0 = e.clientX; this.orbit -= d * .012; this.userRy -= d * .012; this.dragT = performance.now(); });
+      const up = () => { dx0 = null; };
+      this.cv.addEventListener('pointerup', up); this.cv.addEventListener('pointercancel', up); this.cv.addEventListener('pointerleave', up);
     } catch (e) { this.r = null; return false; }
     return true;
   },
   attach() {
     const host = document.getElementById('pvHost'); if (!host) return;
+    if (UI.tab === 'dungeon') { const o = G.objects.find(x => x.id === UI.dgEdit); if (o) this.show(host, { kind: 'dg', obj: o }, 0); return; }
     let owner = null, kind = 'p', loop = UI.pvSkill || 0;
     if (UI.tab === 'class') owner = Classes.byId(UI.clEdit);
     else if (UI.tab === 'monster') { owner = Monsters.type(UI.mtEdit); kind = 'm'; }
@@ -4844,7 +4867,9 @@ const Preview = {
   },
   build() {
     for (const o of [this.grp, this.wpn]) if (o) { this.sc.remove(o); o.traverse(q => { if (q.material) q.material.dispose(); }); }
-    this.wpn = null;
+    this.wpn = null; this.dgPl = null;
+    this.ground.visible = this.spec.kind !== 'dg';
+    if (this.spec.kind === 'dg') { this.buildDungeon(this.spec.obj); return; }
     const g = this.grp = new THREE.Group(), sp = this.spec, L = sp.look;
     const add = (geo, color, basic) => { if (!geo) return null; const m = new THREE.Mesh(geo, basic ? new THREE.MeshBasicMaterial({ color }) : new THREE.MeshLambertMaterial({ color })); g.add(m); return m; };
     if (sp.kind === 'p') {
@@ -4872,6 +4897,15 @@ const Preview = {
     if (!w || !h) return;
     if (w !== this.w || h !== this.h) { this.w = w; this.h = h; this.r.setSize(w, h, false); this.cam.aspect = w / h; this.cam.updateProjectionMatrix(); }
     const sp = this.spec, s = sp.kind === 'm' ? sp.size : 1;
+    if (sp.kind === 'dg') {
+      if (now - this.dragT > 2500) this.orbit += dt * .15;
+      const len = this.dgLen || 10, cz = -len / 2 + 2, d = 9 + len * .6;
+      this.cam.position.set(Math.sin(this.orbit) * d * .65, d * .6, cz + Math.cos(this.orbit) * d * .65); this.cam.lookAt(0, 0, cz);
+      if (now - this.dgT > 1000) { this.dgT = now; this.refreshDgPlayers(); }
+      for (const m of this.dgPl ? this.dgPl.children : []) m.position.y = Math.abs(Math.sin(now / 180 + m.position.x)) * .25;
+      this.r.render(this.sc, this.cam);
+      return;
+    }
     if (this.loop && !this.anim && now > this.next) {
       const sk = Skills.byId(this.loop);
       if (sk) {
@@ -4879,7 +4913,7 @@ const Preview = {
         FX.spawn(sk.fx, { x: 0, z: 0 }, { x: Math.sin(this.baseRy) * 2.6 * s, z: Math.cos(this.baseRy) * 2.6 * s }, sk.fxColor, Skills.hitTime(sk), this.sc, 0, 0, true);
       }
     }
-    if (!this.loop) this.baseRy += dt * .7; else this.baseRy = .5;
+    if (!this.loop) { if (now - this.dragT > 2500) this.baseRy += dt * .7; else this.baseRy = .5 + this.userRy; } else this.baseRy = .5 + this.userRy;
     const P = poseStep(this, dt, sp.kind);
     if (this.loop && !this.anim && this.next < now) this.next = now + 800;
     const g = this.grp, fx = Math.sin(this.baseRy), fz = Math.cos(this.baseRy), k = sp.kind === 'm' ? s * .5 : 1;
@@ -5056,6 +5090,254 @@ function skillChanged(s) { for (const c of G.classes) if (c.skills.includes(s.id
 pb.addEventListener('change', e => {
   const t = e.target;
   if (t.dataset.mot != null) { const s = Skills.byId(UI.skEdit); if (s && s.motion[+t.dataset.mot]) { s.motion[+t.dataset.mot].m = t.value; Preview.anim = null; } }
+});
+
+/* ════════════════════════════════════════════
+   ダンジョン(階層・モンスター・罠・宝箱・ボスを設計)
+   ════════════════════════════════════════════ */
+const DG_LAYOUTS = {
+  hall: { name: '大広間', floor: 0x6a6660, wall: 0x4a4640, desc: '見通しがよく戦いやすい' },
+  maze: { name: '迷路', floor: 0x4a5060, wall: 0x2e3440, desc: '迷いやすく時間がかかる(所要1.4倍)' },
+  cave: { name: '洞窟', floor: 0x6b5a44, wall: 0x4a3c2c, desc: '足場が悪く被ダメージ1.2倍' },
+  arena: { name: '闘技場', floor: 0x7a5a44, wall: 0x5a3c2c, desc: '敵が一度に襲ってくる(被ダメージ1.4倍・短時間)' },
+};
+const DG_MOD = { hall: { t: 1, d: 1 }, maze: { t: 1.4, d: .9 }, cave: { t: 1.1, d: 1.2 }, arena: { t: .75, d: 1.4 } };
+const Dungeons = {
+  list() { return G.objects.filter(o => o.type === 'dungeon'); },
+  newDef(o) {
+    const mt = (G.monsterTypes.find(t => !t.boss) || G.monsterTypes[0] || {}).id || 0;
+    return { lvMin: 5, lvMax: 15, floors: [{ layout: 'hall', mt, count: 4, trap: 0, chest: true }, { layout: 'maze', mt, count: 6, trap: 1, chest: false }],
+      boss: 0, bexp: 50, bgold: 100, cap: 10, stats: { tries: 0, clears: 0, wipes: 0, retreats: 0, time: 0 } };
+  },
+  def(o) { if (!o.dg) o.dg = this.newDef(o); return o.dg; },
+  inside(o) { let n = 0; for (const p of G.players) if (p.st === 'dungeon' && p.dg && p.dg.id === o.id) n++; return n; },
+  fits(D, lv) { return lv >= D.lvMin - 1 && lv <= D.lvMax + 3; },
+  // 加入者のレベルに合い、定員に空きがあり、歩いて行けるダンジョン
+  pickFor(p) {
+    const pc = PG.compAt(p.x, p.z);
+    const c = this.list().filter(o => { const D = this.def(o); return D.floors.length && this.fits(D, p.lv) && this.inside(o) < D.cap && PG.compAt(o.x, o.z) === pc; });
+    return c.length ? pick(c) : null;
+  },
+  entrance(o) { const r = o.rot || 0; return { x: o.x + Math.sin(r) * 4, z: o.z + Math.cos(r) * 4 }; },
+  enter(p, o) {
+    const D = this.def(o);
+    if (!D.floors.length || this.inside(o) >= D.cap) { this.goHome(p, o); return; }
+    p.st = 'dungeon'; p.dg = { id: o.id, fl: 0, t: 0, got: 0, gold: 0, start: G.day * 24 + G.hour };
+    D.stats.tries++;
+    this.enterFloor(p, D);
+  },
+  enterFloor(p, D) {
+    const f = D.floors[p.dg.fl];
+    if (f && f.trap) p.hp -= Players.stats(p).hp * .06 * f.trap;
+  },
+  // 1つの階層(またはボス)にかかる時間と、1秒あたりの被ダメージ
+  stage(p, D, fl, s) {
+    const boss = fl >= D.floors.length, f = boss ? null : D.floors[fl];
+    const t = Monsters.type(boss ? D.boss : f.mt);
+    if (!t) return { time: 2, dmg: 0, exp: 0, gold: 0 };
+    const c = Players.cls(p), dmg = Math.max(1, s.atk * (1 + Skills.factor(c.skills)) - t.def), ttk = Math.ceil(t.hp / dmg) + 1;
+    const n = boss ? 1 : f.count, mod = boss ? { t: 1, d: 1.3 } : DG_MOD[f.layout] || DG_MOD.hall;
+    return {
+      time: (n * ttk * .7 + 2) * mod.t,
+      dmg: Math.max(1, t.atk - s.def) / 1.2 * .45 * mod.d * (boss ? 1.6 : Math.min(2, .6 + n * .1)),
+      exp: t.exp * n, gold: t.gold * n + (f && f.chest ? 40 + p.lv * 6 : 0),
+    };
+  },
+  // 攻略を進める(dt はシミュレーション時間)
+  progress(p, dt) {
+    const o = G.objects.find(x => x.id === (p.dg && p.dg.id));
+    if (!o) { p.dg = null; Players.teleportTown(p); return; }
+    const D = this.def(o), s = Players.stats(p), run = p.dg;
+    const st = this.stage(p, D, run.fl, s);
+    run.t += dt;
+    p.hp -= st.dmg * dt;
+    if (p.hp <= 0) { D.stats.wipes++; p.dg = null; Players.die(p); return; }
+    if (p.hp < s.hp * .22) { D.stats.retreats++; this.finish(p, o, false); return; }
+    if (run.t < st.time) return;
+    // 階層を突破
+    const bonus = 1 + D.bexp / 100;
+    Players.gainExp(p, st.exp * bonus * (p.cheat ? 8 : 1) * Econ.expMult(p));
+    p.gold += st.gold; run.gold += st.gold; run.got++;
+    const q = p.quest && Quests.byId(p.quest.id), mt = run.fl < D.floors.length ? D.floors[run.fl].mt : D.boss;
+    if (q && !p.quest.done && p.quest.acc && q.mt === mt && (q.kind === 'kill' || q.kind === 'boss')) {
+      p.quest.prog += run.fl < D.floors.length ? D.floors[run.fl].count : 1;
+      if (p.quest.prog >= (q.kind === 'boss' ? 1 : q.count)) p.quest.done = true;
+    }
+    if (run.fl >= D.floors.length) { // ボス撃破
+      const bt = Monsters.type(D.boss);
+      p.sat = Math.min(100, p.sat + 5);
+      if (bt && !D.stats.bossDown) { D.stats.bossDown = true; log(`${p.name}が「${o.name}」の${bt.name}を初めて倒しました!`, 'good'); Sound.play('boss', 2000); }
+    }
+    run.fl++; run.t = 0;
+    p.hp = Math.min(s.hp, p.hp + s.hp * .1);
+    if (run.fl >= D.floors.length + (D.boss && Monsters.type(D.boss) ? 1 : 0)) { this.finish(p, o, true); return; }
+    this.enterFloor(p, D);
+  },
+  finish(p, o, cleared) {
+    const D = this.def(o);
+    if (cleared) {
+      D.stats.clears++;
+      D.stats.time = D.stats.time ? D.stats.time * .8 + (G.day * 24 + G.hour - p.dg.start) * .2 : G.day * 24 + G.hour - p.dg.start;
+      p.gold += D.bgold; p.sat = Math.min(100, p.sat + 3);
+      if (D.stats.clears === 1) log(`「${o.name}」が${p.name}によって初めて踏破されました`, 'good');
+    }
+    p.dg = null;
+    this.goHome(p, o);
+  },
+  goHome(p, o) {
+    const e = this.entrance(o);
+    p.x = e.x; p.z = e.z; p.st = 'idle';
+    if (p.quest && p.quest.done) Players.goBoard(p, Quests.byId(p.quest.id)); else Players.goTown(p);
+  },
+  // Lvの加入者(平均的なクラス)が挑んだときの目安
+  estimate(D, lv) {
+    const c = G.classes[0]; if (!c) return null;
+    const fake = { lv, cls: c.id, atkB: 0, defB: 0, hp: 0 }, s = Players.stats(fake);
+    let time = 0, dmg = 0, exp = 0;
+    const n = D.floors.length + (D.boss && Monsters.type(D.boss) ? 1 : 0);
+    for (let i = 0; i < n; i++) { const st = this.stage(fake, D, i, s); time += st.time; dmg += st.dmg * st.time + (D.floors[i] ? s.hp * .06 * D.floors[i].trap : 0); exp += st.exp; }
+    const r = dmg / (s.hp * (1 + n * .1));
+    return { time, r, exp: exp * (1 + D.bexp / 100), label: r < .4 ? 'やさしい' : r < .8 ? 'ふつう' : r < 1.2 ? 'むずかしい' : '危険(全滅しやすい)', cls: r < .4 ? 'good' : r < .8 ? '' : 'bad' };
+  },
+};
+
+function dungeonPanel() {
+  const list = Dungeons.list();
+  if (UI.dgEdit) { const o = list.find(x => x.id === UI.dgEdit); if (o) return dungeonEditor(o); UI.dgEdit = null; }
+  const lock = placeLock('dungeon');
+  return `<div class="sec"><h4>ダンジョン(${list.length})</h4>
+      ${list.map(o => { const D = Dungeons.def(o), bt = Monsters.type(D.boss), est = Dungeons.estimate(D, D.lvMin); return `<div class="ecard" style="border-left-color:#9b6ad6">
+        <div class="hd"><b>${esc(o.name)}</b><span class="meta">Lv${D.lvMin}〜${D.lvMax}</span></div>
+        <p class="meta">${D.floors.length}階層${bt ? `+ボス「${esc(bt.name)}」` : ''} · 中にいる人 ${Dungeons.inside(o)}/${D.cap}${est ? ` · 難しさ <span class="${est.cls}">${est.label}</span>` : ''}</p>
+        <p class="meta">挑戦 ${D.stats.tries} · 踏破 ${D.stats.clears} · 撤退 ${D.stats.retreats} · 全滅 ${D.stats.wipes}</p>
+        <div class="row"><button class="btn sm" data-act="dgFly" data-v="${o.id}">現地へ</button><span class="grow"></span><button class="btn sm pri" data-act="dgEdit" data-v="${o.id}">中身を作る</button></div></div>`; }).join('') || '<p class="hint">ダンジョンはまだありません。</p>'}
+      ${lock ? `<p class="hint">ダンジョン入口は研究「${Research.def(lock).name}」で配置できるようになります。</p><button class="btn sm" data-act="goResearch">研究タブを開く</button>`
+        : '<button class="btn pri" data-act="place" data-v="dungeon">ダンジョン入口を置く</button>'}
+      <p class="hint">入口を置いたら「中身を作る」で階層を組み立てます。レベルが合う加入者が攻略に挑み、1階ずつ進みます。HPが減ると撤退し、倒れると町で復活します(満足度−5)。踏破すると満足度+3、ボス撃破で+5。レベルに合うダンジョンがあれば「合うエリアがない」減点も受けません。</p></div>`;
+}
+function dungeonEditor(o) {
+  const D = Dungeons.def(o), bossLocked = !Research.has('boss');
+  const mons = G.monsterTypes.filter(t => !t.boss), bosses = G.monsterTypes.filter(t => t.boss);
+  const est = Dungeons.estimate(D, D.lvMin), est2 = Dungeons.estimate(D, D.lvMax);
+  const inside = G.players.filter(p => p.st === 'dungeon' && p.dg && p.dg.id === o.id);
+  return `<div class="row"><button class="btn sm" data-act="dgBack"><svg class="i" viewBox="0 0 24 24"><path d="M15 6l-6 6 6 6"/></svg>一覧へ</button><span class="grow"></span><button class="btn sm" data-act="dgFly" data-v="${o.id}">現地へ</button></div>
+    <div class="sec"><div class="pvhost tall" id="pvHost"></div>
+      <p class="hint">内部の模型です。左右にドラッグで回転。手前が入口、奥へ向かって階層が続きます。中の加入者も表示されます(いま${inside.length}人)。</p></div>
+    <div class="sec"><h4>名前</h4><input class="txt" data-name="obj:${o.id}" maxlength="16" value="${esc(o.name)}" aria-label="ダンジョン名"></div>
+    <div class="sec"><h4>対象と定員</h4>
+      ${stepper('dg.lvMin', '推奨レベル(下限)', D.lvMin, 1, 50, 1, v => 'Lv' + v, v => { D.lvMin = v; if (D.lvMax < v) { D.lvMax = v; syncField('dg.lvMax', v); } })}
+      ${stepper('dg.lvMax', '推奨レベル(上限)', D.lvMax, 1, 50, 1, v => 'Lv' + v, v => { D.lvMax = v; if (D.lvMin > v) { D.lvMin = v; syncField('dg.lvMin', v); } })}
+      ${stepper('dg.cap', '同時に入れる人数', D.cap, 1, 40, 1, intf('人'), v => { D.cap = v; })}</div>
+    <div class="sec"><h4>階層(入口から順に)</h4>
+      ${D.floors.map((f, i) => `<div class="ecard slim" style="border-left-color:#${DG_LAYOUTS[f.layout].floor.toString(16).padStart(6, '0')}">
+        <div class="hd"><b>地下${i + 1}階</b><span class="mv"><button class="sb" data-act="dgUp" data-v="${i}" ${i ? '' : 'disabled'} aria-label="上へ">↑</button><button class="sb" data-act="dgDn" data-v="${i}" ${i < D.floors.length - 1 ? '' : 'disabled'} aria-label="下へ">↓</button><button class="sb" data-act="dgDel" data-v="${i}" aria-label="削除">✕</button></span></div>
+        <div class="bb-row wrap">${Object.entries(DG_LAYOUTS).map(([k, L]) => `<button class="chip ${f.layout === k ? 'on' : ''}" data-act="dgLay" data-i="${i}" data-v="${k}">${L.name}</button>`).join('')}</div>
+        <p class="meta">${DG_LAYOUTS[f.layout].desc}</p>
+        <div class="bb-row wrap">${mons.map(t => `<button class="chip ${f.mt === t.id ? 'on' : ''}" data-act="dgMt" data-i="${i}" data-v="${t.id}"><span class="sw8" style="background:${t.color}"></span>${esc(t.name)}</button>`).join('')}</div>
+        ${stepper(`dg.f${i}.count`, 'モンスターの数', f.count, 1, 20, 1, intf('体'), v => { f.count = v; })}
+        ${stepper(`dg.f${i}.trap`, '罠', f.trap, 0, 3, 1, v => ['なし', '少し', 'ふつう', '多い'][v], v => { f.trap = v; })}
+        <div class="row"><span class="grow">宝箱を置く<span class="meta">(突破でゴールドを追加で得る)</span></span><button class="sw" role="switch" aria-checked="${!!f.chest}" data-act="dgChest" data-v="${i}" aria-label="宝箱"></button></div></div>`).join('')}
+      ${D.floors.length < 8 ? '<button class="btn" data-act="dgAdd">階層を追加</button>' : '<p class="hint">階層は8つまでです</p>'}</div>
+    <div class="sec"><h4>最深部のボス</h4>
+      ${bossLocked ? '<p class="hint">研究「ボスモンスター」で配置できます。</p>' : `<div class="bb-row wrap"><button class="chip ${!D.boss ? 'on' : ''}" data-act="dgBoss" data-v="0">なし</button>${bosses.map(t => `<button class="chip ${D.boss === t.id ? 'on' : ''}" data-act="dgBoss" data-v="${t.id}"><span class="sw8" style="background:${t.color}"></span>${esc(t.name)}</button>`).join('')}</div>
+        ${bosses.length ? '' : '<p class="hint">ボスのモンスターがいません。モンスタータブで「ボスにする」をオンにしてください。</p>'}`}</div>
+    <div class="sec"><h4>踏破報酬</h4>
+      ${stepper('dg.bexp', '経験値ボーナス', D.bexp, 0, 300, 10, v => '+' + v + '%', v => { D.bexp = v; })}
+      ${stepper('dg.bgold', '踏破ゴールド', D.bgold, 0, 3000, 50, intf('G'), v => { D.bgold = v; })}</div>
+    <div class="sec"><h4>見積もり</h4><div class="cards">
+      <div class="card"><i>Lv${D.lvMin}で挑むと</i><b class="${est ? est.cls : ''}">${est ? est.label : '—'}</b></div>
+      <div class="card"><i>Lv${D.lvMax}で挑むと</i><b class="${est2 ? est2.cls : ''}">${est2 ? est2.label : '—'}</b></div>
+      <div class="card"><i>所要(目安)</i><b>${est ? (est.time / (TICK_SEC * SIM_SCALE)).toFixed(0) + '時間' : '—'}</b></div>
+      <div class="card"><i>獲得経験値(目安)</i><b>${est ? fmt(est.exp) : '—'}</b></div></div>
+      <p class="meta">挑戦 ${D.stats.tries} · 踏破 ${D.stats.clears} · 撤退 ${D.stats.retreats} · 全滅 ${D.stats.wipes}${D.stats.clears ? ` · 平均 ${D.stats.time.toFixed(0)}時間` : ''}</p>
+      <p class="hint">見積もりは1人目のクラス(${esc(G.classes[0] ? G.classes[0].name : '')})での目安です。</p></div>`;
+}
+function dungeonAction(a, b) {
+  if (!a.startsWith('dg')) return false;
+  const o = G.objects.find(x => x.id === (a === 'dgEdit' || a === 'dgFly' ? +b.dataset.v : UI.dgEdit));
+  const D = o && Dungeons.def(o), i = +(b.dataset.i ?? b.dataset.v), v = b.dataset.v;
+  switch (a) {
+    case 'dgEdit': UI.dgEdit = +v; renderPanel(); pb.scrollTop = 0; return true;
+    case 'dgBack': UI.dgEdit = null; renderPanel(); return true;
+    case 'dgFly': if (o) { Cam.flyTo(o.x, o.z, { dist: Math.min(Cam.dist, 70) }); if (UI.layout === 'portrait') closePanel(); } return true;
+  }
+  if (!D) return true;
+  switch (a) {
+    case 'dgAdd': { const last = D.floors[D.floors.length - 1]; D.floors.push(last ? { ...last } : { layout: 'hall', mt: (G.monsterTypes.find(t => !t.boss) || {}).id || 0, count: 4, trap: 0, chest: false }); break; }
+    case 'dgDel': D.floors.splice(+v, 1); break;
+    case 'dgUp': case 'dgDn': { const j = a === 'dgUp' ? +v - 1 : +v + 1; if (j >= 0 && j < D.floors.length) [D.floors[+v], D.floors[j]] = [D.floors[j], D.floors[+v]]; break; }
+    case 'dgLay': D.floors[i].layout = v; break;
+    case 'dgMt': D.floors[i].mt = +v; break;
+    case 'dgChest': D.floors[+v].chest = !D.floors[+v].chest; break;
+    case 'dgBoss': D.boss = +v; break;
+  }
+  renderPanel(); return true;
+}
+
+// ダンジョン内部の模型(プレビュー用)
+Object.assign(Preview, {
+  buildDungeon(o) {
+    const D = Dungeons.def(o), g = this.grp = new THREE.Group();
+    const mat = c => new THREE.MeshLambertMaterial({ color: c });
+    const box = (w, h, d, x, y, z, c) => { const m = new THREE.Mesh(GEO.box, mat(c)); m.scale.set(w, h, d); m.position.set(x, y, z); g.add(m); return m; };
+    const fig = (geo, color, x, z, s, ry = Math.PI) => { if (!geo) return null; const m = new THREE.Mesh(geo, mat(color)); m.position.set(x, 0, z); m.scale.setScalar(s); m.rotation.y = ry; g.add(m); return m; };
+    const torch = (x, z) => { const m = new THREE.Mesh(GEO.box, new THREE.MeshBasicMaterial({ color: 0xffb35a })); m.scale.set(.25, .35, .25); m.position.set(x, 1.5, z); g.add(m); };
+    const bt = Monsters.type(D.boss), rooms = D.floors.length + (bt ? 1 : 0);
+    // 入口
+    box(.8, 3, .8, -1.6, 1.5, 5); box(.8, 3, .8, 1.6, 1.5, 5); box(4.2, .7, 1, 0, 3.2, 5, 0x8f8a80);
+    const portal = new THREE.Mesh(GEO.box, new THREE.MeshBasicMaterial({ color: 0x26163c })); portal.scale.set(2.4, 2.8, .2); portal.position.set(0, 1.4, 5); g.add(portal);
+    box(2.4, .3, 3, 0, -.15, 3.2, 0x5a5650);
+    let z = 0;
+    for (let i = 0; i < rooms; i++) {
+      const boss = i === D.floors.length, f = boss ? { layout: 'arena', count: 0, trap: 0 } : D.floors[i], L = DG_LAYOUTS[f.layout] || DG_LAYOUTS.hall;
+      const S = boss ? 10 : 7, cz = z - S / 2;
+      box(S, .3, S, 0, -.15, cz, L.floor);
+      box(.4, 1.3, S, -S / 2, .65, cz, L.wall); box(.4, 1.3, S, S / 2, .65, cz, L.wall);
+      box(S / 2 - 1, 1.3, .4, -(S / 4 + .5), .65, cz - S / 2, L.wall); box(S / 2 - 1, 1.3, .4, S / 4 + .5, .65, cz - S / 2, L.wall);
+      torch(-S / 2 + .4, cz - S / 2 + .4); torch(S / 2 - .4, cz - S / 2 + .4);
+      const rnd = k => hash2(o.id, i * 31 + k, 5) - .5;
+      if (f.layout === 'maze') for (let k = 0; k < 3; k++) box(rnd(k) > 0 ? 3 : .4, 1.1, rnd(k) > 0 ? .4 : 3, rnd(k + 9) * S * .6, .55, cz + rnd(k + 20) * S * .6, L.wall);
+      if (f.layout === 'cave') for (let k = 0; k < 5; k++) { const r = new THREE.Mesh(GEO.rock, mat(0x5a4a38)); r.position.set(rnd(k) * S * .8, .2, cz + rnd(k + 7) * S * .8); r.scale.set(.6, .5, .6); g.add(r); }
+      if (f.layout === 'arena') for (const [px, pz] of [[-1, -1], [1, -1], [-1, 1], [1, 1]]) { const c = new THREE.Mesh(GEO.cylB, mat(0x8f8a80)); c.position.set(px * S * .36, 0, cz + pz * S * .36); c.scale.set(.6, 2.4, .6); g.add(c); }
+      if (f.layout === 'hall') for (const px of [-1, 1]) for (const pz of [-1, 1]) { const c = new THREE.Mesh(GEO.cylB, mat(0x7a7670)); c.position.set(px * S * .3, 0, cz + pz * S * .25); c.scale.set(.45, 1.8, .45); g.add(c); }
+      for (let k = 0; k < (f.trap || 0) * 2; k++) { const s = new THREE.Mesh(GEO.coneB, mat(0xc83c32)); s.position.set(rnd(k + 40) * S * .7, 0, cz + rnd(k + 50) * S * .7); s.scale.set(.25, .45, .25); g.add(s); }
+      if (f.chest) { box(.8, .55, .55, S / 2 - 1, .28, cz + S / 2 - 1, 0xc9962c); box(.84, .12, .6, S / 2 - 1, .6, cz + S / 2 - 1, 0x8a6a44); }
+      const t = boss ? bt : Monsters.type(f.mt);
+      if (t) {
+        const Lk = t.looks[0], n = boss ? 1 : Math.min(6, f.count);
+        for (let k = 0; k < n; k++) {
+          const x = boss ? 0 : rnd(k + 60) * S * .6, zz = boss ? cz - 1 : cz + rnd(k + 70) * S * .6, sc = boss ? Math.min(3, t.size) * .75 : Math.min(1.6, t.size) * .7;
+          const m = fig(monGeo(Lk.shape), Lk.color, x, zz, sc, Math.PI + rnd(k + 80));
+          const A = MON_ANCHOR[Lk.shape] || MON_ANCHOR.slime;
+          for (const [fld, T, an] of [['head', M_HEAD, A.top], ['back', M_BACK, A.back], ['tail', M_TAIL, A.rear]]) {
+            const geo = partGeo(T, Lk[fld]); if (!geo || !m) continue;
+            const ad = new THREE.Mesh(geo, mat(Lk.color2)); ad.position.set(an[0], an[1], an[2]); ad.scale.setScalar(an[3]); m.add(ad);
+          }
+        }
+      }
+      z -= S;
+      if (i < rooms - 1) { box(2, .3, 3, 0, -.15, z - 1.5, 0x5a5650); z -= 3; }
+    }
+    this.dgRooms = []; // 各部屋の中心(中にいる加入者の表示用)
+    let zz = 0;
+    for (let i = 0; i < rooms; i++) { const S = i === D.floors.length ? 10 : 7; this.dgRooms.push(zz - S / 2); zz -= S + 3; }
+    this.dgLen = -z; this.dgObj = o;
+    this.dgPl = new THREE.Group(); g.add(this.dgPl);
+    this.sc.add(g);
+    this.refreshDgPlayers();
+  },
+  refreshDgPlayers() {
+    const gp = this.dgPl; if (!gp) return;
+    for (const m of [...gp.children]) { gp.remove(m); m.material.dispose(); }
+    const o = this.dgObj;
+    for (const p of G.players) {
+      if (p.st !== 'dungeon' || !p.dg || p.dg.id !== o.id) continue;
+      const c = Players.cls(p), L = lookOf(c, p), z = this.dgRooms[Math.min(p.dg.fl, this.dgRooms.length - 1)] ?? 0;
+      const m = new THREE.Mesh(partGeo(P_BODY, L.body), new THREE.MeshLambertMaterial({ color: L.color }));
+      m.position.set((hash2(p.id, 1, 3) - .5) * 4, 0, z + 1.5 + (hash2(p.id, 2, 3) - .5) * 2); m.scale.setScalar(.9);
+      gp.add(m);
+    }
+  },
 });
 
 /* ステータス詳細の展開 */
@@ -5576,6 +5858,6 @@ $('#pickBar').addEventListener('click', e => { if (e.target.closest('[data-pk]')
 boot();
 
 // デバッグ・後続段階用に参照を公開
-window.__arcana = { get G() { return G; }, Cam, Terrain, Brush, Minimap, Objects, Monsters, Place, AreaEdit, Areas, Players, PG, Classes, Skills, FX, Preview, Quests, Econ, Research, Admin, Requests, serialize, deserialize, setMode, setSpeed, applyQuality, toast, heightAt, slopeAt };
+window.__arcana = { get G() { return G; }, Cam, Terrain, Brush, Minimap, Objects, Monsters, Place, AreaEdit, Areas, Players, PG, Classes, Skills, FX, Preview, Dungeons, Quests, Econ, Research, Admin, Requests, serialize, deserialize, setMode, setSpeed, applyQuality, toast, heightAt, slopeAt };
 })();
 </script>
