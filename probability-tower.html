@@ -7,6 +7,7 @@
   --ink:#0d0b14;
   --panel:rgba(17,14,27,.8);
   --panel-solid:#161222;
+  --raise:#1f1930;
   --line:rgba(227,187,95,.24);
   --text:#efe9f7;
   --muted:#a79fbd;
@@ -18,27 +19,35 @@
   --mincho:"Shippori Mincho B1","Hiragino Mincho ProN","Yu Mincho",serif;
   --gothic:"Zen Kaku Gothic New","Hiragino Sans","Yu Gothic",system-ui,sans-serif;
   --mono:"JetBrains Mono",ui-monospace,Menlo,Consolas,monospace;
+  --g:14px;
+  --gl:calc(var(--g) + env(safe-area-inset-left,0px));
+  --gr:calc(var(--g) + env(safe-area-inset-right,0px));
+  --joy:clamp(112px,30vmin,150px);
+  --act:clamp(72px,20vmin,92px);
+  --slot:48px;
+  --mm:clamp(96px,26vmin,150px);
   color-scheme:dark;
 }
 [hidden]{display:none!important}
 html,body{height:100%}
-body{background:var(--ink);color:var(--text);font-family:var(--gothic);overflow:hidden;-webkit-user-select:none;user-select:none;touch-action:none}
+body{background:var(--ink);color:var(--text);font-family:var(--gothic);overflow:hidden;-webkit-user-select:none;user-select:none;touch-action:none;-webkit-tap-highlight-color:transparent}
 #app{position:relative;height:100%;overflow:hidden;background:var(--ink)}
 #stage{position:absolute;inset:0}
 #stage canvas{display:block;width:100%;height:100%;cursor:grab}
-#stage canvas:active{cursor:grabbing}
 .mono{font-family:var(--mono);font-variant-numeric:tabular-nums}
 .panel{background:var(--panel);border:1px solid var(--line);border-radius:6px;backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px)}
 .hud{position:absolute;pointer-events:none;z-index:2}
-button{font:inherit;color:inherit}
+button{font:inherit;color:inherit;touch-action:manipulation}
 button:focus-visible{outline:2px solid var(--gold);outline-offset:2px}
+.kbd{font-family:var(--mono);font-size:11px;padding:1px 6px;border:1px solid var(--line);border-radius:3px;color:var(--gold)}
 
-/* status */
-#stat{top:16px;left:16px;padding:10px 14px 12px;display:grid;gap:8px;min-width:210px}
+/* ----- top-left column: status + log ----- */
+#tl{top:var(--g);left:var(--gl);width:clamp(176px,46vw,260px);display:flex;flex-direction:column;gap:8px}
+#stat{padding:8px 12px 10px;display:grid;gap:6px}
 .floorline{display:flex;align-items:baseline;gap:4px;font-family:var(--mincho)}
-.floorline .k{font-size:14px;color:var(--muted)}
-#flNum{font-size:30px;line-height:1;font-weight:800;color:var(--gold)}
-.floorline .of{margin-left:6px;font-size:13px;color:var(--muted)}
+.floorline .k{font-size:13px;color:var(--muted)}
+#flNum{font-size:26px;line-height:1;font-weight:800;color:var(--gold)}
+.floorline .of{margin-left:6px;font-size:12px;color:var(--muted)}
 #pips{display:grid;grid-template-columns:repeat(10,1fr);gap:3px}
 #pips i{height:4px;border-radius:1px;background:rgba(255,255,255,.1)}
 #pips i.done{background:var(--gold-deep)}
@@ -48,25 +57,25 @@ button:focus-visible{outline:2px solid var(--gold);outline-offset:2px}
 .bar{height:8px;border-radius:2px;background:rgba(255,255,255,.08);overflow:hidden}
 #hpFill{display:block;height:100%;width:100%;background:linear-gradient(90deg,#b8443a,var(--blood));transition:width .35s}
 #hpTxt{font-size:12px}
-.chips{display:flex;flex-wrap:wrap;gap:6px}
-.chip{font-size:11px;padding:2px 7px;border-radius:3px;background:rgba(255,255,255,.06);color:var(--muted)}
+.chips{display:flex;flex-wrap:wrap;gap:5px}
+.chip{font-size:11px;padding:1px 6px;border-radius:3px;background:rgba(255,255,255,.06);color:var(--muted)}
 .chip b{color:var(--text);font-family:var(--mono);font-weight:700}
 .chip.gold{color:var(--gold);background:rgba(227,187,95,.1)}
-
-/* minimap */
-#mini{top:16px;right:16px;padding:8px 8px 6px;display:grid;gap:4px;justify-items:center}
-#miniC{width:150px;height:150px;display:block}
-#mini .cap{font-size:10px;letter-spacing:.12em;color:var(--muted)}
-
-/* log */
-#log{left:16px;bottom:16px;width:min(400px,calc(100% - 32px));max-height:150px;padding:8px 10px;display:flex;flex-direction:column;justify-content:flex-end;overflow:hidden;font-size:12px;-webkit-mask-image:linear-gradient(to bottom,transparent 0,#000 34px);mask-image:linear-gradient(to bottom,transparent 0,#000 34px)}
-#log ol{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:3px}
+#log{padding:6px 9px;max-height:74px;display:flex;flex-direction:column;justify-content:flex-end;overflow:hidden;font-size:11px;-webkit-mask-image:linear-gradient(to bottom,transparent 0,#000 22px);mask-image:linear-gradient(to bottom,transparent 0,#000 22px)}
+#log ol{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:2px}
 #log li{line-height:1.45}
-#log li.head{color:var(--gold);font-family:var(--mincho);font-weight:600;margin-top:4px}
+#log li.head{color:var(--gold);font-family:var(--mincho);font-weight:600;margin-top:3px}
 
-/* shared roll lines */
-.ln{display:flex;flex-wrap:wrap;align-items:baseline;gap:4px 8px}
-.ln .lbl{color:var(--text)}
+/* ----- top-right: minimap + current room ----- */
+#tr{top:var(--g);right:var(--gr);display:flex;flex-direction:column;align-items:flex-end;gap:6px}
+#mini{padding:6px;display:grid;justify-items:center}
+#miniC{width:var(--mm);height:var(--mm);display:block}
+#roomTag{max-width:calc(var(--mm) + 14px);padding:4px 8px;font-size:11px;line-height:1.4;text-align:right}
+#roomTag b{font-family:var(--mono);color:var(--gold);margin-right:4px}
+#roomTag .sp{display:block;font-weight:700}
+
+/* ----- roll lines ----- */
+.ln{display:flex;flex-wrap:wrap;align-items:baseline;gap:3px 8px}
 .ln .dice{font-family:var(--mono);font-size:11px;color:var(--muted)}
 .ln .dice b{color:var(--text)}
 .ln .res{font-size:11px;font-weight:700;padding:0 6px;border-radius:2px;line-height:1.6}
@@ -79,188 +88,235 @@ button:focus-visible{outline:2px solid var(--gold);outline-offset:2px}
 .tx.neutral{color:var(--muted)}
 .tx.gold{color:var(--gold)}
 
-/* prompt */
-#prompt{left:50%;bottom:92px;transform:translateX(-50%);padding:8px 14px;font-size:14px;white-space:nowrap;display:flex;gap:10px;align-items:center}
-#prompt kbd,.kbd{font-family:var(--mono);font-size:11px;padding:1px 6px;border:1px solid var(--line);border-radius:3px;color:var(--gold)}
+/* ----- bottom controls ----- */
+#prompt{left:50%;bottom:calc(var(--g) + var(--slot) + 12px);transform:translateX(-50%);padding:7px 12px;font-size:13px;white-space:nowrap;display:flex;gap:8px;align-items:center;max-width:calc(100% - 2 * var(--g))}
 #prompt .pct{font-family:var(--mono);color:var(--gold)}
-
-/* items */
-#items{right:16px;bottom:16px;display:flex;gap:6px;pointer-events:auto}
-.slot{position:relative;width:52px;height:60px;border-radius:5px;background:var(--panel);border:1px solid var(--line);display:grid;place-items:center;cursor:pointer;padding:0;transition:transform .12s,border-color .12s}
-.slot:hover{border-color:var(--gold);transform:translateY(-2px)}
-.slot .g{font-family:var(--mincho);font-size:22px;font-weight:800;color:var(--gold)}
-.slot .n{position:absolute;right:4px;bottom:2px;font-family:var(--mono);font-size:11px}
+#items{left:50%;bottom:var(--g);transform:translateX(-50%);display:flex;gap:6px;pointer-events:auto}
+.slot{position:relative;width:var(--slot);height:calc(var(--slot) + 6px);border-radius:5px;background:var(--panel);border:1px solid var(--line);display:grid;place-items:center;cursor:pointer;padding:0}
+.slot:active{transform:translateY(1px)}
+.slot .g{font-family:var(--mincho);font-size:20px;font-weight:800;color:var(--gold)}
+.slot .n{position:absolute;right:4px;bottom:2px;font-family:var(--mono);font-size:10px}
 .slot .k{position:absolute;left:4px;top:2px;font-family:var(--mono);font-size:9px;color:var(--muted)}
-.slot .p{position:absolute;right:4px;top:3px;font-size:8px;color:var(--muted);letter-spacing:.05em}
-.slot.empty{opacity:.32;cursor:default}
-.slot.empty:hover{transform:none;border-color:var(--line)}
-#tip{position:absolute;right:16px;bottom:84px;z-index:3;pointer-events:none;max-width:260px;padding:8px 10px;font-size:12px;line-height:1.5}
+.slot .p{position:absolute;right:3px;top:3px;font-size:8px;color:var(--muted)}
+.slot.empty{opacity:.3;cursor:default}
+#tip{left:50%;transform:translateX(-50%);bottom:calc(var(--g) + var(--slot) + 60px);z-index:3;max-width:min(280px,calc(100% - 2 * var(--g)));padding:8px 10px;font-size:12px;line-height:1.5}
 #tip b{font-family:var(--mincho);color:var(--gold);display:block;font-size:14px}
+#toast{left:50%;top:32%;transform:translateX(-50%);padding:10px 16px;text-align:center;width:max-content;max-width:calc(100% - 2 * var(--g));opacity:0;transition:opacity .4s}
+#toast.on{opacity:1}
+#toast b{display:block;font-family:var(--mincho);font-size:20px;color:var(--gold)}
+#toast span{font-size:12px;color:var(--muted)}
 
-#keys{left:50%;bottom:16px;transform:translateX(-50%);font-size:11px;color:var(--muted);padding:5px 10px;white-space:nowrap}
+#joy{display:none;position:absolute;z-index:3;left:var(--gl);bottom:var(--g);width:var(--joy);height:var(--joy);border-radius:50%;background:rgba(17,14,27,.5);border:1px solid var(--line);touch-action:none}
+#joy::after{content:"";position:absolute;inset:30%;border-radius:50%;border:1px dashed rgba(227,187,95,.2)}
+#knob{position:absolute;left:50%;top:50%;width:42%;height:42%;transform:translate(-50%,-50%);border-radius:50%;background:rgba(227,187,95,.3);border:1px solid var(--gold);z-index:1}
+#act{position:absolute;z-index:3;right:var(--gr);bottom:var(--g);width:var(--act);height:var(--act);border-radius:50%;background:rgba(227,187,95,.16);border:1px solid var(--gold);font-family:var(--mincho);font-weight:800;font-size:13px;line-height:1.25;color:var(--gold);padding:6px;display:grid;place-items:center;text-align:center;cursor:pointer}
+#act.idle{opacity:.35;border-color:var(--line);color:var(--muted)}
+.touch #joy{display:block}
 
-/* touch */
-#joy,#act{display:none}
-.touch #joy{display:block;position:absolute;z-index:3;left:24px;bottom:24px;width:120px;height:120px;border-radius:50%;background:rgba(17,14,27,.55);border:1px solid var(--line);pointer-events:auto;touch-action:none}
-#knob{position:absolute;left:50%;top:50%;width:48px;height:48px;margin:-24px 0 0 -24px;border-radius:50%;background:rgba(227,187,95,.35);border:1px solid var(--gold)}
-.touch #act{display:grid;place-items:center;position:absolute;z-index:3;right:24px;bottom:28px;width:78px;height:78px;border-radius:50%;background:rgba(227,187,95,.18);border:1px solid var(--gold);font-family:var(--mincho);font-weight:800;font-size:16px;color:var(--gold);pointer-events:auto}
-.touch #items{right:50%;transform:translateX(50%);bottom:150px}
-.touch #prompt{bottom:222px}
-.touch #keys{display:none}
-.touch #log{top:150px;bottom:auto;max-height:78px;width:min(300px,calc(100% - 32px));font-size:11px}
-.touch #tip{bottom:220px;right:50%;transform:translateX(50%)}
-
-@media (max-width:1180px){#keys{display:none}}
-@media (max-width:820px){
-  #stat{min-width:0;padding:8px 10px 10px;gap:6px}
-  #flNum{font-size:24px}
-  #miniC{width:112px;height:112px}
-  #log{top:150px;bottom:auto;max-height:78px;width:min(300px,calc(100% - 32px));font-size:11px}
-  #keys{display:none}
-  .slot{width:44px;height:52px}
-  .slot .g{font-size:18px}
-  #items{bottom:16px}
-  #prompt{bottom:84px;font-size:13px}
+/* narrow screens: items move above the thumb controls */
+@media (max-width:720px){
+  .touch #items{bottom:calc(var(--g) + var(--joy) + 10px)}
+  .touch #prompt{bottom:calc(var(--g) + var(--joy) + var(--slot) + 22px)}
+  .touch #tip{bottom:calc(var(--g) + var(--joy) + var(--slot) + 70px)}
+  :root{--slot:46px}
+}
+@media (max-width:420px){ :root{--slot:42px;--g:12px} .slot .g{font-size:17px} }
+/* short landscape phones */
+@media (max-height:480px){
+  :root{--slot:42px;--g:10px}
+  #stat{padding:6px 10px 8px;gap:4px}
+  #flNum{font-size:20px}
+  #log{max-height:40px}
+  #tl{width:clamp(170px,32vw,240px)}
+  #toast{top:22%}
+  .slot .g{font-size:17px}
 }
 
-/* modal */
-.layer{position:absolute;inset:0;z-index:10;display:grid;place-items:center;padding:16px;background:rgba(8,6,14,.62)}
-.sheet{width:min(720px,100%);max-height:calc(100% - 8px);overflow:auto;background:var(--panel-solid);border:1px solid var(--line);border-radius:8px;display:grid;grid-template-columns:auto 1fr;gap:22px;padding:22px}
-.sheet .body{display:grid;gap:10px;align-content:start;min-width:0}
+/* ----- modal ----- */
+.layer{position:absolute;inset:0;z-index:10;display:grid;place-items:center;padding:12px var(--gr) 12px var(--gl);background:rgba(8,6,14,.66)}
+.sheet{width:min(760px,100%);max-height:100%;overflow:auto;overscroll-behavior:contain;touch-action:pan-y;background:var(--panel-solid);border:1px solid var(--line);border-radius:10px;display:grid;gap:12px;padding:18px}
 .eyebrow{margin:0;font-size:11px;letter-spacing:.14em;color:var(--muted)}
-.sheet h2{margin:0;font-family:var(--mincho);font-weight:800;font-size:26px;line-height:1.25;text-wrap:balance}
-.sheet h2 .ori{font-size:14px;margin-left:10px;padding:2px 8px;border-radius:3px;vertical-align:middle}
+.sheet h2{margin:0;font-family:var(--mincho);font-weight:800;font-size:23px;line-height:1.25;text-wrap:balance}
+.ori{font-family:var(--gothic);font-size:12px;margin-left:8px;padding:2px 8px;border-radius:3px;vertical-align:middle;font-weight:700}
 .ori.up{background:rgba(92,207,185,.14);color:var(--tide)}
 .ori.rev{background:rgba(234,93,81,.14);color:var(--blood)}
-#mDesc{margin:0;color:var(--muted);font-size:14px;line-height:1.7}
+#mDesc{margin:0;color:var(--muted);font-size:13px;line-height:1.65}
+#mDesc:empty{display:none}
 #mLines{list-style:none;margin:0;padding:10px 0 0;border-top:1px solid var(--line);display:grid;gap:6px;font-size:13px}
-#mLines li{opacity:0;transform:translateY(4px);animation:lnIn .28s forwards}
+#mLines:empty{display:none}
+#mLines li{opacity:0;transform:translateY(4px);animation:lnIn .26s forwards}
 @keyframes lnIn{to{opacity:1;transform:none}}
-.btn{justify-self:start;margin-top:6px;padding:9px 18px;border-radius:4px;border:1px solid var(--gold);background:rgba(227,187,95,.12);color:var(--gold);font-weight:700;cursor:pointer;display:inline-flex;gap:10px;align-items:center}
-.btn:hover{background:rgba(227,187,95,.22)}
+#mOpts{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:8px}
+.opt{display:grid;grid-template-columns:auto 1fr auto;align-items:center;gap:10px;min-height:52px;padding:8px 12px;border-radius:6px;border:1px solid var(--line);background:var(--raise);text-align:left;cursor:pointer}
+.opt:hover:not(:disabled){border-color:var(--gold)}
+.opt:disabled{opacity:.38;cursor:default}
+.opt .ok{font-family:var(--mono);font-size:10px;color:var(--muted);border:1px solid var(--line);border-radius:3px;padding:0 5px}
+.opt .lb{display:grid;gap:2px;min-width:0}
+.opt .lb b{font-weight:700;font-size:14px}
+.opt .lb small{font-size:11px;color:var(--muted);line-height:1.45}
+.opt .pc{font-family:var(--mono);font-size:15px;font-weight:700;color:var(--gold)}
+.opt.main{border-color:var(--gold);background:rgba(227,187,95,.1)}
+.opt.main .lb b{color:var(--gold)}
+.opt.quiet{background:transparent}
+
+/* card preview */
+.cps{display:grid;gap:12px}
+.cp{display:grid;grid-template-columns:auto 1fr;gap:14px;align-items:start}
+.fxs{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.fxb{border-radius:6px;padding:8px 10px;border:1px solid;display:grid;gap:4px;align-content:start}
+.fxb.up{border-color:rgba(92,207,185,.35);background:rgba(92,207,185,.06)}
+.fxb.rev{border-color:rgba(234,93,81,.35);background:rgba(234,93,81,.06)}
+.fxb.dead{opacity:.32}
+.fxb .hd{display:flex;justify-content:space-between;align-items:baseline;font-size:12px;font-weight:700}
+.fxb.up .hd{color:var(--tide)} .fxb.rev .hd{color:var(--blood)}
+.fxb .hd .mono{font-size:15px}
+.meter{height:4px;border-radius:2px;background:rgba(255,255,255,.08);overflow:hidden}
+.meter i{display:block;height:100%}
+.fxb.up .meter i{background:var(--tide)} .fxb.rev .meter i{background:var(--blood)}
+.fxb p{margin:0;font-size:12px;line-height:1.6;color:var(--text)}
+.cpname{font-family:var(--mincho);font-weight:800;font-size:17px;margin:0 0 6px}
+.wallnote{margin:0;font-size:12px;color:var(--muted);line-height:1.6}
+.fxb p.wallnote{color:var(--muted)}
+.wallnote b{color:var(--gold);font-family:var(--mono)}
+.spnote{margin:0;padding:8px 10px;border-radius:6px;background:rgba(227,187,95,.08);border:1px dashed var(--line);font-size:12px;line-height:1.6}
+.spnote b{color:var(--gold)}
+.resrow{display:grid;grid-template-columns:auto 1fr;gap:16px;align-items:start}
+
+/* portal grid */
+.pgrid{display:grid;grid-template-columns:repeat(5,minmax(0,52px));gap:5px;justify-content:start}
+.pgrid button{aspect-ratio:1;border-radius:5px;border:1px solid var(--line);background:var(--raise);font-family:var(--mono);font-size:12px;cursor:pointer;padding:0}
+.pgrid button:disabled{opacity:.2;cursor:default}
+.pgrid button.here{border-color:var(--blood);color:var(--blood);opacity:.8}
+.pgrid button:hover:not(:disabled){border-color:var(--gold);color:var(--gold)}
 
 /* tarot card */
-.tarot{width:150px;aspect-ratio:3/5;max-width:100%;perspective:800px;align-self:start}
-.tarot .face{position:relative;height:100%;border-radius:8px;padding:10px;background:
-  radial-gradient(120% 70% at 50% 42%,rgba(227,187,95,.16),transparent 60%),
-  linear-gradient(160deg,#2a2044,#140f22);
-  border:1px solid var(--gold);box-shadow:inset 0 0 0 4px #140f22,inset 0 0 0 5px rgba(227,187,95,.5);
-  display:grid;grid-template-rows:auto 1fr auto auto;justify-items:center;align-items:center;animation:flip .7s cubic-bezier(.2,.7,.2,1)}
+.tarot{--tw:120px;width:var(--tw);aspect-ratio:3/5;flex:none}
+.tarot.sm{--tw:84px}
+.tarot .face{position:relative;height:100%;border-radius:7px;padding:6px;background:radial-gradient(120% 70% at 50% 42%,rgba(227,187,95,.16),transparent 60%),linear-gradient(160deg,#2a2044,#140f22);border:1px solid var(--gold);box-shadow:inset 0 0 0 3px #140f22,inset 0 0 0 4px rgba(227,187,95,.5);display:grid;grid-template-rows:auto 1fr auto auto;justify-items:center;align-items:center;container-type:inline-size}
+.tarot.flip .face{animation:flip .7s cubic-bezier(.2,.7,.2,1)}
 .tarot.rev .face{transform:rotate(180deg)}
-.tarot .num{font-family:var(--mincho);font-weight:800;color:var(--gold);font-size:15px;letter-spacing:.1em;padding-top:6px}
-.tarot .sym{font-size:58px;color:var(--gold);line-height:1;text-shadow:0 0 18px rgba(227,187,95,.5)}
-.tarot .nm{font-family:var(--mincho);font-weight:800;font-size:20px}
-.tarot .en{font-size:9px;letter-spacing:.18em;color:var(--muted);padding-bottom:6px}
+.tarot.rev.flip .face{animation-name:flipRev}
+.tarot .num{font-family:var(--mincho);font-weight:800;color:var(--gold);font-size:12cqw;letter-spacing:.1em;padding-top:4px}
+.tarot .sym{font-size:40cqw;color:var(--gold);line-height:1;text-shadow:0 0 16px rgba(227,187,95,.5)}
+.tarot .nm{font-family:var(--mincho);font-weight:800;font-size:15cqw;white-space:nowrap}
+.tarot .en{font-size:6.5cqw;letter-spacing:.14em;color:var(--muted);padding-bottom:4px;white-space:nowrap}
 @keyframes flip{from{transform:rotateY(90deg) scale(.9);opacity:0}}
-.tarot.rev .face{animation-name:flipRev}
 @keyframes flipRev{from{transform:rotate(180deg) rotateY(90deg) scale(.9);opacity:0}}
 
+@media (max-width:560px){
+  .sheet{padding:14px;gap:10px}
+  .sheet h2{font-size:20px}
+  .tarot{--tw:96px}
+  .tarot.sm{--tw:64px}
+  .cp{gap:10px}
+  #mOpts{grid-template-columns:1fr}
+}
+@media (max-width:400px){ .fxs{grid-template-columns:1fr} }
+@media (max-height:480px){
+  .sheet{padding:12px 14px;gap:8px}
+  .sheet h2{font-size:19px}
+  .tarot{--tw:80px}
+  .tarot.sm{--tw:60px}
+  .opt{min-height:44px;padding:6px 10px}
+}
+
 /* title / end */
-#title .sheet,#end .sheet{grid-template-columns:1fr;max-width:560px;gap:14px}
-.logo{font-family:var(--mincho);font-weight:800;font-size:clamp(40px,9vw,64px);line-height:1;margin:0;letter-spacing:.06em}
+.plain{max-width:560px}
+.logo{font-family:var(--mincho);font-weight:800;font-size:clamp(38px,9vw,60px);line-height:1;margin:0;letter-spacing:.06em}
 .logo em{font-style:normal;color:var(--gold)}
-.sub{margin:0;font-size:11px;letter-spacing:.28em;color:var(--muted)}
-.rules{margin:0;padding:0;list-style:none;display:grid;gap:8px;font-size:14px;line-height:1.65;color:var(--muted)}
-.rules b{color:var(--text);font-weight:700}
+.sub{margin:0;font-size:11px;letter-spacing:.24em;color:var(--muted)}
+.rules{margin:0;padding:0;list-style:none;display:grid;gap:8px;font-size:13px;line-height:1.7;color:var(--muted)}
+.rules b{color:var(--text)}
 .ctl{display:grid;grid-template-columns:auto 1fr;gap:4px 12px;font-size:12px;color:var(--muted);padding-top:10px;border-top:1px solid var(--line)}
 .stats{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
 .stats div{display:grid;gap:2px}
-.stats span{font-size:11px;color:var(--muted);letter-spacing:.06em}
-.stats b{font-family:var(--mono);font-size:20px}
+.stats span{font-size:11px;color:var(--muted)}
+.stats b{font-family:var(--mono);font-size:19px}
+.btn{justify-self:start;min-height:48px;padding:10px 22px;border-radius:6px;border:1px solid var(--gold);background:rgba(227,187,95,.14);color:var(--gold);font-weight:700;font-size:15px;cursor:pointer}
 
 #fade{position:absolute;inset:0;z-index:8;background:#000;opacity:0;pointer-events:none;transition:opacity .6s}
 #fade.on{opacity:1}
-#banner{position:absolute;left:0;right:0;top:34%;z-index:7;text-align:center;pointer-events:none;font-family:var(--mincho);font-weight:800;font-size:clamp(34px,7vw,56px);color:var(--gold);letter-spacing:.2em;opacity:0;text-shadow:0 2px 24px rgba(0,0,0,.8)}
-#banner small{display:block;font-family:var(--gothic);font-weight:500;font-size:12px;letter-spacing:.3em;color:var(--muted);margin-top:8px}
+#banner{position:absolute;left:0;right:0;top:30%;z-index:7;text-align:center;pointer-events:none;font-family:var(--mincho);font-weight:800;font-size:clamp(32px,8vw,54px);color:var(--gold);letter-spacing:.2em;opacity:0;text-shadow:0 2px 24px rgba(0,0,0,.8);padding:0 16px}
+#banner small{display:block;font-family:var(--gothic);font-weight:500;font-size:12px;letter-spacing:.2em;color:var(--muted);margin-top:8px}
 #banner.show{animation:ban 2.4s forwards}
 @keyframes ban{0%{opacity:0;transform:translateY(8px)}15%,70%{opacity:1;transform:none}100%{opacity:0}}
 #hurt{position:absolute;inset:0;z-index:6;pointer-events:none;box-shadow:inset 0 0 120px rgba(234,60,50,.7);opacity:0;transition:opacity .5s}
 #hurt.on{opacity:1;transition:none}
-
-@media (max-width:560px){
-  .sheet{grid-template-columns:1fr;padding:16px;gap:14px}
-  .tarot{width:110px;justify-self:center}
-  .tarot .sym{font-size:40px}
-  .sheet h2{font-size:21px}
-}
-@media (prefers-reduced-motion:reduce){
-  .tarot .face,#mLines li,#banner.show{animation-duration:.01s}
-}
+@media (prefers-reduced-motion:reduce){ .tarot.flip .face,#mLines li,#banner.show{animation-duration:.01s} }
 </style>
 
 <div id="app">
   <div id="stage"></div>
 
-  <div id="stat" class="hud panel">
-    <div class="floorline"><span class="k">第</span><span id="flNum">一</span><span class="k">層</span><span class="of">/ 十層</span></div>
-    <div id="pips"></div>
-    <div class="hpline"><span class="lbl">HP</span><div class="bar"><i id="hpFill"></i></div><span id="hpTxt" class="mono">30/30</span></div>
-    <div class="chips">
-      <span class="chip">運 <b id="luckTxt">±0%</b></span>
-      <span class="chip gold" id="coinChip" hidden>硬貨 <b id="coinTxt">0</b></span>
-      <span class="chip gold" id="revChip" hidden>再起 <b id="revTxt">0</b></span>
-      <span class="chip" id="dimChip" hidden>灯が陰っている</span>
+  <div id="tl" class="hud">
+    <div id="stat" class="panel">
+      <div class="floorline"><span class="k">第</span><span id="flNum">一</span><span class="k">層</span><span class="of">/ 十層</span></div>
+      <div id="pips"></div>
+      <div class="hpline"><span class="lbl">HP</span><div class="bar"><i id="hpFill"></i></div><span id="hpTxt" class="mono">30/30</span></div>
+      <div class="chips">
+        <span class="chip">運 <b id="luckTxt">±0%</b></span>
+        <span class="chip gold" id="coinChip" hidden>硬貨 <b id="coinTxt">0</b></span>
+        <span class="chip gold" id="revChip" hidden>再起 <b id="revTxt">0</b></span>
+        <span class="chip" id="dimChip" hidden>灯が陰る</span>
+      </div>
     </div>
+    <div id="log" class="panel"><ol id="logList"></ol></div>
   </div>
 
-  <div id="mini" class="hud panel">
-    <canvas id="miniC" width="300" height="300"></canvas>
-    <span class="cap">A–E × 1–5</span>
+  <div id="tr" class="hud">
+    <div id="mini" class="panel"><canvas id="miniC" width="300" height="300"></canvas></div>
+    <div id="roomTag" class="panel"></div>
   </div>
 
-  <div id="keys" class="hud panel"><span class="kbd">W S</span> 前後 · <span class="kbd">A D</span> 旋回 · ドラッグで視点 · <span class="kbd">E</span> 調べる · <span class="kbd">1–6</span> 道具</div>
-
-  <div id="log" class="hud panel"><ol id="logList"></ol></div>
+  <div id="toast" class="hud panel"></div>
   <div id="prompt" class="hud panel" hidden></div>
   <div id="items" class="hud"></div>
   <div id="tip" class="hud panel" hidden></div>
 
   <div id="joy"><div id="knob"></div></div>
-  <button id="act" type="button">調べる</button>
+  <button id="act" class="idle" type="button">調べる</button>
 
   <div id="hurt"></div>
   <div id="banner"></div>
   <div id="fade"></div>
 
   <div id="modal" class="layer" hidden>
-    <div class="sheet">
-      <div id="tarot" class="tarot"></div>
-      <div class="body">
-        <p class="eyebrow" id="mEye"></p>
-        <h2 id="mTitle"></h2>
-        <p id="mDesc"></p>
-        <ol id="mLines"></ol>
-        <button id="mBtn" class="btn" type="button">続ける <span class="kbd">Space</span></button>
-      </div>
+    <div class="sheet" id="sheet">
+      <p class="eyebrow" id="mEye"></p>
+      <h2 id="mTitle"></h2>
+      <p id="mDesc"></p>
+      <div id="mBody"></div>
+      <ol id="mLines"></ol>
+      <div id="mOpts"></div>
     </div>
   </div>
 
   <div id="title" class="layer">
-    <div class="sheet">
+    <div class="sheet plain">
       <p class="sub">ARCANA TOWER · TEN FLOORS OF CHANCE</p>
       <h1 class="logo">確率の<em>塔</em></h1>
       <ul class="rules">
-        <li>塔は<b>十層</b>。各層は <b>5×5</b> の部屋でできている。スタートは左下の <b>A1</b>、次の層へのエレベーターは<b>右端の列か最上段</b>のどこかにある。</li>
-        <li>部屋の祭壇でアルカナを引くと、<b>正位置か逆位置か</b>で運命が変わる。引いたあと、その部屋の壁が確率で崩れて隣の部屋へ進めるようになる。最初から崩れている壁もある。</li>
-        <li>引く、撃つ、避ける、飲む、爆破する。<b>どの行動にも失敗がある。</b>出目は d100 で、すべて画面に表示される。</li>
+        <li>塔は<b>十層</b>、各層は <b>5×5</b> の部屋。スタートは左下の <b>A1</b>、エレベーターは<b>右端の列か最上段</b>のどこか。</li>
+        <li>祭壇のカードは、引く前に<b>正位置と逆位置の効果、それぞれの確率</b>を確認できる。引くか、燃やして祭壇を叩くか、見送るかを選ぶ。</li>
+        <li>カードを引いた部屋の壁は確率で崩れ、隣へ進めるようになる。最初から崩れている壁もある。</li>
+        <li>各層には<b>特殊な部屋</b>が3〜4つ。祝福、呪詛、双子、予見、共鳴の祭壇、行商人、泉、賭博台、転移陣、宝箱。</li>
+        <li>どの行動にも失敗がある。出目は d100 で、すべて表示される。</li>
       </ul>
       <div class="ctl">
-        <span class="kbd">W S / ↑ ↓</span><span>前進・後退</span>
-        <span class="kbd">A D / ← →</span><span>旋回(画面ドラッグでも向きを変えられる)</span>
-        <span class="kbd">E / Space</span><span>カードを引く・祭壇を叩く・エレベーターに乗る</span>
-        <span class="kbd">1 – 6</span><span>道具を使う(アイコンのクリックでも可)</span>
+        <span>スマホ</span><span>左下のスティックで移動・旋回、画面スワイプで視点、右下のボタンで調べる</span>
+        <span>キーボード</span><span>W S 前後 · A D 旋回 · E 調べる · 1–6 道具 · 選択肢は数字キー</span>
       </div>
-      <button id="startBtn" class="btn" type="button">塔に挑む <span class="kbd">Enter</span></button>
+      <button id="startBtn" class="btn" type="button">塔に挑む</button>
     </div>
   </div>
 
   <div id="end" class="layer" hidden>
-    <div class="sheet">
+    <div class="sheet plain">
       <p class="sub" id="endSub"></p>
       <h1 class="logo" id="endTitle"></h1>
       <p id="endDesc" style="margin:0;color:var(--muted);line-height:1.7"></p>
       <div class="stats" id="endStats"></div>
-      <button id="againBtn" class="btn" type="button">もう一度挑む <span class="kbd">Enter</span></button>
+      <button id="againBtn" class="btn" type="button">もう一度挑む</button>
     </div>
   </div>
 </div>
@@ -274,6 +330,7 @@ const $ = id => document.getElementById(id);
 const rnd = (a, b) => a + Math.floor(Math.random() * (b - a + 1));
 const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
 const pick = a => a[Math.floor(Math.random() * a.length)];
+const shuffle = a => { for (let i = a.length - 1; i > 0; i--) { const j = rnd(0, i); [a[i], a[j]] = [a[j], a[i]]; } return a; };
 const KANJI = ['〇','一','二','三','四','五','六','七','八','九','十'];
 const DIRS = [['N','北'],['E','東'],['S','南'],['W','西']];
 const roomName = (cx, cy) => 'ABCDE'[cx] + (cy + 1);
@@ -292,9 +349,12 @@ const camera = new THREE.PerspectiveCamera(62, 1, 0.1, 300);
 function resize() {
   const w = stage.clientWidth || 1, h = stage.clientHeight || 1;
   renderer.setSize(w, h, false);
-  camera.aspect = w / h; camera.updateProjectionMatrix();
+  camera.aspect = w / h;
+  camera.fov = w < h ? 74 : 62; // portrait: wider view so the room stays readable
+  camera.updateProjectionMatrix();
 }
 addEventListener('resize', resize);
+if (window.visualViewport) visualViewport.addEventListener('resize', resize);
 
 /* ---------- procedural textures ---------- */
 function canvasTex(w, h, draw) {
@@ -316,13 +376,10 @@ function speckle(g, w, h, n, a) {
 const floorTex = canvasTex(256, 256, (g, w, h) => {
   g.fillStyle = '#2b2733'; g.fillRect(0, 0, w, h);
   for (let y = 0; y < 2; y++) for (let x = 0; x < 2; x++) {
-    const l = 52 + Math.random() * 14;
-    g.fillStyle = `hsl(260,6%,${l}%)`;
+    g.fillStyle = `hsl(260,6%,${52 + Math.random() * 14}%)`;
     g.fillRect(x * 128 + 3, y * 128 + 3, 122, 122);
   }
   speckle(g, w, h, 2600, .18);
-  g.strokeStyle = 'rgba(0,0,0,.25)'; g.lineWidth = 1;
-  for (let i = 0; i < 6; i++) { g.beginPath(); const x = Math.random() * w, y = Math.random() * h; g.moveTo(x, y); g.lineTo(x + rnd(-30, 30), y + rnd(-30, 30)); g.stroke(); }
 });
 floorTex.repeat.set(N * 3, N * 3);
 const brickTex = canvasTex(256, 256, (g, w, h) => {
@@ -331,8 +388,7 @@ const brickTex = canvasTex(256, 256, (g, w, h) => {
   for (let r = 0; r < rows; r++) {
     const off = r % 2 ? 32 : 0;
     for (let x = -64; x < w; x += 64) {
-      const l = 50 + Math.random() * 16;
-      g.fillStyle = `hsl(255,7%,${l}%)`;
+      g.fillStyle = `hsl(255,7%,${50 + Math.random() * 16}%)`;
       g.fillRect(x + off + 2, r * bh + 2, 60, bh - 4);
     }
   }
@@ -348,10 +404,16 @@ const cardTex = canvasTex(128, 208, (g, w, h) => {
   for (let i = 0; i < 16; i++) { g.rotate(Math.PI / 8); g.beginPath(); g.moveTo(0, 14); g.lineTo(0, i % 2 ? 34 : 46); g.stroke(); }
   g.beginPath(); g.arc(0, 0, 11, 0, Math.PI * 2); g.fillStyle = '#e3bb5f'; g.fill();
 });
-const glowTex = canvasTex(128, 128, (g, w, h) => {
+const glowTex = canvasTex(128, 128, (g) => {
   const gr = g.createRadialGradient(64, 64, 0, 64, 64, 64);
   gr.addColorStop(0, 'rgba(255,255,255,1)'); gr.addColorStop(.3, 'rgba(255,255,255,.35)'); gr.addColorStop(1, 'rgba(255,255,255,0)');
-  g.fillStyle = gr; g.fillRect(0, 0, w, h);
+  g.fillStyle = gr; g.fillRect(0, 0, 128, 128);
+});
+const runeTex = canvasTex(256, 256, (g) => {
+  g.translate(128, 128); g.strokeStyle = '#fff'; g.fillStyle = '#fff';
+  g.lineWidth = 4; g.beginPath(); g.arc(0, 0, 120, 0, 7); g.stroke();
+  g.lineWidth = 2; g.beginPath(); g.arc(0, 0, 104, 0, 7); g.stroke();
+  for (let i = 0; i < 12; i++) { g.rotate(Math.PI / 6); g.fillRect(-2, -118, 4, 12); g.beginPath(); g.arc(0, -92, 3, 0, 7); g.fill(); }
 });
 
 /* ---------- shared materials & geometry ---------- */
@@ -368,8 +430,8 @@ const geoPed = new THREE.CylinderGeometry(.55, .8, 1.1, 12);
 const geoPedTop = new THREE.BoxGeometry(1.5, .16, 1.5);
 const geoCard = new THREE.PlaneGeometry(1.1, 1.8);
 const geoDeb = new THREE.BoxGeometry(.55, .35, .4);
+const geoRune = new THREE.PlaneGeometry(9, 9);
 
-/* stars above the open tower */
 {
   const pts = []; for (let i = 0; i < 500; i++) pts.push((Math.random() - .3) * 260, 45 + Math.random() * 60, (Math.random() - .7) * 260);
   const g = new THREE.BufferGeometry(); g.setAttribute('position', new THREE.Float32BufferAttribute(pts, 3));
@@ -383,7 +445,7 @@ const player = new THREE.Group();
 {
   const m = (c, o = {}) => new THREE.MeshStandardMaterial(Object.assign({ color: c, roughness: .75 }, o));
   const coat = new THREE.Mesh(new THREE.CylinderGeometry(.36, .58, 1.35, 12), m(0x6b2a2a)); coat.position.y = 1.0;
-  const cape = new THREE.Mesh(new THREE.CylinderGeometry(.5, .72, 1.1, 12, 1, true, Math.PI * .6, Math.PI * .8), m(0x2b1f2e, { side: THREE.DoubleSide })); cape.position.set(0, 1.08, 0);
+  const cape = new THREE.Mesh(new THREE.CylinderGeometry(.5, .72, 1.1, 12, 1, true, Math.PI * .6, Math.PI * .8), m(0x2b1f2e, { side: THREE.DoubleSide })); cape.position.y = 1.08;
   const legL = new THREE.Mesh(new THREE.BoxGeometry(.18, .5, .2), m(0x241c22)); legL.position.set(-.15, .25, 0);
   const legR = legL.clone(); legR.position.x = .15;
   const head = new THREE.Mesh(new THREE.SphereGeometry(.26, 16, 12), m(0xd8b596)); head.position.y = 1.9;
@@ -399,10 +461,11 @@ const player = new THREE.Group();
 const lamp = new THREE.PointLight(0xffc98a, 1.5, 28, 1.4);
 scene.add(lamp);
 
-/* ---------- game state ---------- */
-let G = null, world = null, running = false, modalOpen = false, fading = false, modalAt = 0, onModalClose = null;
+/* ---------- state ---------- */
+let G = null, world = null, running = false, fading = false;
 const debris = [];
 let shake = 0;
+const M = { open: false, at: 0, phase: 'choose', opts: [], grid: [], cfg: null, after: null, log: null };
 
 const ITEMS = {
   potion: { name: '治癒の小瓶', g: '瓶', desc: 'HPを回復する。成功率 85%。', key: 1 },
@@ -420,7 +483,25 @@ function randItem() {
   return 'potion';
 }
 
+/* ---------- special rooms ---------- */
+const SPECIAL = {
+  blessed:  { name: '祝福の祭壇', g: '祝', col: 0xf3dc8a, css: '#f3dc8a', desc: 'この部屋のカードは正位置が出やすい(+25%)。' },
+  cursed:   { name: '呪詛の祭壇', g: '呪', col: 0xe0524a, css: '#e0524a', desc: '正位置が出にくい(−20%)。そのかわり、引いた後の壁は 85% で崩れる。' },
+  twin:     { name: '双子の祭壇', g: '双', col: 0x9d8aec, css: '#b3a4f5', desc: 'カードが2枚並ぶ。どちらか1枚を選んで引ける。' },
+  seer:     { name: '予見の祭壇', g: '視', col: 0xc59cff, css: '#c59cff', desc: '近づくと正位置か逆位置かが先に判明する。' },
+  echo:     { name: '共鳴の祭壇', g: '響', col: 0x5ccfb9, css: '#5ccfb9', desc: 'カードの効果が2回発動する。良くも悪くも。' },
+  merchant: { name: '行商人',     g: '商', col: 0xe39a4f, css: '#e39a4f', desc: 'HPと引き換えに道具を売っている。', station: true },
+  spring:   { name: '癒しの泉',   g: '泉', col: 0x5aaee8, css: '#5aaee8', desc: '一度だけ、水を飲むか小瓶に汲める。', station: true },
+  gamble:   { name: '賭博台',     g: '賭', col: 0xd86fb0, css: '#e38ac4', desc: 'HPを賭けて道具を狙う。3回まで。', station: true },
+  portal:   { name: '転移陣',     g: '転', col: 0x8f7cff, css: '#a596ff', desc: '訪れた部屋へ転移できる。何度でも使える。', station: true },
+  chest:    { name: '宝箱',       g: '宝', col: 0xe3bb5f, css: '#e3bb5f', desc: '中身は道具2つ。ただしミミックかもしれない。', station: true },
+};
+const SPECIAL_KEYS = Object.keys(SPECIAL);
+
 /* ---------- rolls & effects ---------- */
+const D = n => Math.max(1, Math.round(n * (1 + (G.floor - 1) * 0.1)));   // floor-scaled damage
+const EHP = n => Math.round(n + (G.floor - 1) * 1.6);                     // floor-scaled enemy HP
+const pct = b => clamp(Math.round(b + G.luck), 5, 95);
 function roll(label, base, opt = {}) {
   let c = base + (opt.noLuck ? 0 : G.luck), tag = '';
   if (!opt.noBuff && G.coin > 0) { c += 15; G.coin--; tag = '硬貨 +15'; }
@@ -431,7 +512,7 @@ function roll(label, base, opt = {}) {
 }
 const tx = (text, kind = 'neutral') => ({ text, kind });
 function hurt(n, L) {
-  const d = Math.max(1, Math.round(n * (1 + (G.floor - 1) * 0.1)));
+  const d = D(n);
   if (G.inv.charm > 0) {
     const r = roll('護符が守る', 60, { noBuff: true }); L.push(r);
     if (r.ok) { G.inv.charm--; r.note = `護符が砕け、${d} ダメージを打ち消した`; return 0; }
@@ -441,6 +522,7 @@ function hurt(n, L) {
   flashHurt(); shake = Math.max(shake, .25);
   return d;
 }
+function pay(n, L) { G.hp -= n; L.push(tx(`HP を ${n} 支払った`, 'bad')); }
 function heal(n, L) {
   const a = Math.max(0, Math.min(G.maxHp - G.hp, Math.round(n)));
   G.hp += a; L.push(tx(a ? `HP が ${a} 回復した` : 'HP はすでに満ちている', 'good'));
@@ -474,7 +556,7 @@ function resolveDeath(L) {
   G.hp = 0; G.over = 'dead'; L.push(tx('力尽きた……', 'bad'));
 }
 function battle(name, ehp, atk, L) {
-  ehp = Math.round(ehp + (G.floor - 1) * 1.6);
+  ehp = EHP(ehp);
   L.push(tx(`${name} が現れた(HP ${ehp})`, 'bad'));
   for (let rd = 1; rd <= 8; rd++) {
     let bonus = 0, lbl = `第${rd}射`;
@@ -491,62 +573,62 @@ function battle(name, ehp, atk, L) {
   return false;
 }
 
-/* ---------- the major arcana ---------- */
+/* ---------- the major arcana (u / r describe the effect with this floor's numbers) ---------- */
 const ARCANA = [
   { num: '0', name: '愚者', en: 'THE FOOL', sym: '✧',
-    up: '気ままな一歩が風を呼ぶ。運が少し上向く。', rev: '足元が抜け落ちる。塔のどこかへ飛ばされるかもしれない。',
+    u: () => '運 +5%。', r: () => `${pct(35)}% で踏みとどまる。失敗すると塔のどこかの部屋へ飛ばされる。`,
     fx(up, L) { if (up) luckMod(5, L); else { const r = roll('転移に抗う', 35); L.push(r); if (r.ok) r.note = '踏みとどまった'; else teleport(L); } } },
   { num: 'I', name: '魔術師', en: 'THE MAGICIAN', sym: '∞',
-    up: '手の中に道具がひとつ現れる。', rev: '手品に化かされ、道具をひとつ失う。',
+    u: () => 'ランダムな道具を1つ得る。', r: () => '持っている道具を1つ失う。',
     fx(up, L) { up ? gainItem(randItem(), L) : loseItem(L); } },
   { num: 'II', name: '女教皇', en: 'THE HIGH PRIESTESS', sym: '☾',
-    up: '書の頁に、この層のエレベーターの場所が記されている。', rev: '誤った囁きが耳に残る。運が下がる。',
+    u: () => 'この層のエレベーターの位置がわかる。', r: () => '運 −4%。',
     fx(up, L) { if (up) { G.elevKnown = true; L.push(tx(`エレベーターは ${roomName(G.elev.cx, G.elev.cy)} にある`, 'gold')); } else luckMod(-4, L); } },
   { num: 'III', name: '女帝', en: 'THE EMPRESS', sym: '♀',
-    up: '豊穣の加護。傷が大きく癒える。', rev: '実りが枯れる。最大HPが減る。',
+    u: () => 'HP を 12 回復。', r: () => '最大HP −3。',
     fx(up, L) { up ? heal(12, L) : maxHpMod(-3, L); } },
   { num: 'IV', name: '皇帝', en: 'THE EMPEROR', sym: '♔',
-    up: '鉄の意志を授かる。最大HP +4。', rev: '暴君の杖が振り下ろされる。',
+    u: () => '最大HP +4(HPも+4)。', r: () => `${D(6)} ダメージ。`,
     fx(up, L) { up ? maxHpMod(4, L) : hurt(6, L); } },
   { num: 'VII', name: '戦車', en: 'THE CHARIOT', sym: '⚔',
-    up: '塔の衛兵と撃ち合う。勝てば戦利品。', rev: '暴走する鉄騎が突っ込んでくる。',
-    fx(up, L) { const w = battle(up ? '鉄の衛兵' : '暴走する鉄騎', up ? 8 : 12, up ? 3 : 5, L); if (w) gainItem(randItem(), L); } },
+    u: () => `鉄の衛兵(HP ${EHP(8)}・攻撃 ${D(3)})と撃ち合う。勝てば道具1つ。`, r: () => `暴走する鉄騎(HP ${EHP(12)}・攻撃 ${D(5)})と撃ち合う。勝てば道具1つ。`,
+    fx(up, L) { if (battle(up ? '鉄の衛兵' : '暴走する鉄騎', up ? 8 : 12, up ? 3 : 5, L)) gainItem(randItem(), L); } },
   { num: 'VIII', name: '力', en: 'STRENGTH', sym: '∾',
-    up: '獅子を手懐け、その牙を護符にする。', rev: '獅子の爪が肩を裂く。',
+    u: () => '護符を1つ得る。', r: () => `${D(5)} ダメージ。`,
     fx(up, L) { up ? gainItem('charm', L) : hurt(5, L); } },
   { num: 'IX', name: '隠者', en: 'THE HERMIT', sym: '✶',
-    up: '隠者のランタンが、この層の壁をすべて照らし出す。', rev: '灯が陰る。この層では視界が狭くなる。',
-    fx(up, L) { if (up) { G.revealAll = true; L.push(tx('地図にこの層の全ての壁が浮かんだ', 'gold')); } else { G.dim = true; L.push(tx('霧が濃くなった', 'bad')); } } },
+    u: () => 'この層の壁と特殊な部屋がすべて地図に載る。', r: () => 'この層では霧が濃くなる。',
+    fx(up, L) { if (up) { G.revealAll = true; L.push(tx('地図にこの層の全てが浮かんだ', 'gold')); } else { G.dim = true; L.push(tx('霧が濃くなった', 'bad')); } } },
   { num: 'X', name: '運命の輪', en: 'WHEEL OF FORTUNE', sym: '☸',
-    up: '輪が回る。当たれば道具がふたつ。', rev: '輪が軋む。外れれば深手を負う。',
+    u: () => `${pct(60)}% で道具2つ、外れれば ${D(4)} ダメージ。`, r: () => `${pct(40)}% で道具2つ、外れれば ${D(8)} ダメージ。`,
     fx(up, L) { const r = roll('輪の目', up ? 60 : 40); L.push(r); if (r.ok) { r.note = '当たり'; gainItem(randItem(), L); gainItem(randItem(), L); } else { r.note = '外れ'; hurt(up ? 4 : 8, L); } } },
   { num: 'XIII', name: '死神', en: 'DEATH', sym: '☠',
-    up: '死神と正面から撃ち合う。勝てば運が上がる。', rev: '死神の鎌が先に動く。',
+    u: () => `死神(HP ${EHP(14)}・攻撃 ${D(5)})と撃ち合う。勝てば運 +6%。`, r: () => `先制で ${D(4)} ダメージ、そのあと死神と撃ち合う。`,
     fx(up, L) { if (!up) { L.push(tx('鎌が先に振るわれた', 'bad')); hurt(4, L); if (G.hp <= 0) return; } if (battle('死神', 14, 5, L)) luckMod(6, L); } },
   { num: 'XIV', name: '節制', en: 'TEMPERANCE', sym: '⚱',
-    up: 'ふたつの杯の水を注ぎ合わせる。HPが半分まで満ちる。', rev: '濁った水を飲んでしまう。',
+    u: () => `HP を ${Math.max(8, Math.round(G.maxHp / 2))} 回復。`, r: () => `${D(3)} ダメージと運 −2%。`,
     fx(up, L) { if (up) heal(Math.max(8, G.maxHp / 2), L); else { hurt(3, L); luckMod(-2, L); } } },
   { num: 'XV', name: '悪魔', en: 'THE DEVIL', sym: '⛧',
-    up: '契約を結ぶ。道具ふたつと引き換えに最大HP −4。', rev: '鎖が締め上げる。',
+    u: () => '最大HP −4 と引き換えに道具2つ。', r: () => `${D(7)} ダメージ。`,
     fx(up, L) { if (up) { maxHpMod(-4, L); gainItem(randItem(), L); gainItem(randItem(), L); } else hurt(7, L); } },
   { num: 'XVI', name: '塔', en: 'THE TOWER', sym: 'ϟ',
-    up: '落雷。この部屋の壁がすべて崩れる。瓦礫に注意。', rev: '崩落。壁はすべて崩れるが、瓦礫が降りそそぐ。',
-    fx(up, L) { if (up) { const r = roll('瓦礫を避ける', 50); L.push(r); if (r.ok) r.note = '身を翻した'; else hurt(4, L); } else hurt(7, L); return { allBreak: true }; } },
+    u: () => `${pct(50)}% で瓦礫を避ける。失敗で ${D(4)} ダメージ。`, r: () => `瓦礫が降りそそぐ。確実に ${D(7)} ダメージ。`,
+    fx(up, L) { if (up) { const r = roll('瓦礫を避ける', 50); L.push(r); if (r.ok) r.note = '身を翻した'; else hurt(4, L); } else hurt(7, L); return { allBreak: true }; }, allUp: true, allRev: true },
   { num: 'XVII', name: '星', en: 'THE STAR', sym: '★',
-    up: '希望の光が降る。運 +8。', rev: '星が陰る。運 −4。',
+    u: () => '運 +8%。', r: () => '運 −4%。',
     fx(up, L) { luckMod(up ? 8 : -4, L); } },
   { num: 'XVIII', name: '月', en: 'THE MOON', sym: '☽',
-    up: '幻の中で、本物の道具を拾う。', rev: '幻の敵に引き金を引く。撃ったのは自分の影だった。',
+    u: () => 'ランダムな道具を1つ得る。', r: () => `自分の影を撃ってしまう。${D(4)} ダメージ。`,
     fx(up, L) { up ? gainItem(randItem(), L) : hurt(4, L); } },
   { num: 'XIX', name: '太陽', en: 'THE SUN', sym: '☉',
-    up: '陽光が差し込む。回復し、道具をひとつ得る。', rev: '薄日が差す。わずかに回復する。',
+    u: () => 'HP を 8 回復し、道具を1つ得る。', r: () => 'HP を 3 回復。',
     fx(up, L) { if (up) { heal(8, L); gainItem(randItem(), L); } else heal(3, L); } },
   { num: 'XX', name: '審判', en: 'JUDGEMENT', sym: '♆',
-    up: '再起の加護。倒れても一度だけ立ち上がれる(70%)。', rev: '裁きのラッパが鼓膜を裂く。',
+    u: () => '再起の加護。倒れても 70% で HP10 で立ち上がる。', r: () => `${D(5)} ダメージ。`,
     fx(up, L) { if (up) { G.revive++; L.push(tx('再起の加護を得た', 'gold')); } else hurt(5, L); } },
   { num: 'XXI', name: '世界', en: 'THE WORLD', sym: '◎',
-    up: '輪が閉じる。部屋の壁がすべて崩れ、傷も癒える。', rev: '未完の輪。何も起きない。',
-    fx(up, L) { if (up) { heal(5, L); return { allBreak: true }; } L.push(tx('何も起きなかった', 'neutral')); } },
+    u: () => 'HP を 5 回復。', r: () => '何も起きない。',
+    fx(up, L) { if (up) { heal(5, L); return { allBreak: true }; } L.push(tx('何も起きなかった', 'neutral')); }, allUp: true },
 ];
 
 /* ---------- walls ---------- */
@@ -568,7 +650,7 @@ function wallRolls(cx, cy, chance, L, auto) {
   const sides = closedSides(cx, cy);
   if (!sides.length) { L.push(tx('この部屋に崩せる壁は残っていない', 'neutral')); return out; }
   for (const s of sides) {
-    if (auto) { L.push({ roll: true, auto: true, ok: true, label: `${s.jp}の壁が崩れる`, note: '' }); out.push(s.w); continue; }
+    if (auto) { L.push({ roll: true, auto: true, ok: true, label: `${s.jp}の壁が崩れる` }); out.push(s.w); continue; }
     const r = roll(`${s.jp}の壁が崩れる`, chance); L.push(r);
     if (r.ok) out.push(s.w);
   }
@@ -579,10 +661,7 @@ function breakWalls(list) {
     if (isOpen(w)) continue;
     G[w.t][w.i][w.j] = true; G.stats.walls++;
     const m = G.wm[wKey(w)];
-    if (m) {
-      world.remove(m); G.ray.splice(G.ray.indexOf(m), 1);
-      spawnDebris(m.position, w.t);
-    }
+    if (m) { world.remove(m); G.ray.splice(G.ray.indexOf(m), 1); spawnDebris(m.position, w.t); }
   }
   if (list.length) { shake = Math.max(shake, .45); rebuildColliders(); drawMini(); }
 }
@@ -599,6 +678,50 @@ function spawnDebris(pos, t) {
 }
 
 /* ---------- floor construction ---------- */
+const roomCenter = (cx, cy) => ({ x: cx * S + S / 2, z: -(cy * S + S / 2) });
+function makeCard(x, y, z, tint) {
+  const card = new THREE.Mesh(geoCard, new THREE.MeshBasicMaterial({ map: cardTex, side: THREE.DoubleSide, transparent: true }));
+  card.position.set(x, y, z); card.rotation.y = Math.random() * 6;
+  const glow = new THREE.Sprite(new THREE.SpriteMaterial({ map: glowTex, color: tint, transparent: true, opacity: .55, blending: THREE.AdditiveBlending, depthWrite: false }));
+  glow.position.set(x, y, z); glow.scale.set(3.4, 3.4, 1);
+  world.add(card, glow);
+  return { card, glow, baseY: y };
+}
+function buildStation(kind, x, z, col) {
+  const g = new THREE.Group(); g.position.set(x, 0, z);
+  const mat = c => new THREE.MeshStandardMaterial({ color: c, roughness: .7 });
+  const glowM = new THREE.MeshStandardMaterial({ color: col, emissive: col, emissiveIntensity: .6, roughness: .5 });
+  let spin = null;
+  if (kind === 'merchant') {
+    const tent = new THREE.Mesh(new THREE.ConeGeometry(1.3, 2.4, 6, 1, true), new THREE.MeshStandardMaterial({ color: 0x8a4a2a, side: THREE.DoubleSide, roughness: .9 })); tent.position.y = 1.2;
+    const crate = new THREE.Mesh(new THREE.BoxGeometry(.8, .6, .8), mat(0x6b4a2a)); crate.position.set(.9, .3, .6);
+    const lan = new THREE.Mesh(new THREE.SphereGeometry(.18, 10, 8), new THREE.MeshBasicMaterial({ color: col })); lan.position.set(0, 2.5, 0);
+    g.add(tent, crate, lan);
+  } else if (kind === 'spring') {
+    const basin = new THREE.Mesh(new THREE.CylinderGeometry(1.2, 1.35, .6, 20), mat(0x5a566a)); basin.position.y = .3;
+    const water = new THREE.Mesh(new THREE.CircleGeometry(1.05, 24), new THREE.MeshBasicMaterial({ color: col, transparent: true, opacity: .85 })); water.rotation.x = -Math.PI / 2; water.position.y = .62;
+    g.add(basin, water); spin = water;
+  } else if (kind === 'gamble') {
+    const table = new THREE.Mesh(new THREE.CylinderGeometry(1.1, .5, .9, 16), mat(0x3b2440)); table.position.y = .45;
+    const felt = new THREE.Mesh(new THREE.CircleGeometry(1.0, 20), new THREE.MeshStandardMaterial({ color: 0x1f5a3c })); felt.rotation.x = -Math.PI / 2; felt.position.y = .91;
+    const d1 = new THREE.Mesh(new THREE.BoxGeometry(.28, .28, .28), new THREE.MeshStandardMaterial({ color: 0xf0e8f5 })); d1.position.set(-.2, 1.2, 0);
+    const d2 = d1.clone(); d2.position.set(.25, 1.2, .15);
+    g.add(table, felt, d1, d2); spin = [d1, d2];
+  } else if (kind === 'portal') {
+    const disc = new THREE.Mesh(new THREE.CircleGeometry(1.5, 32), new THREE.MeshBasicMaterial({ map: runeTex, color: col, transparent: true, blending: THREE.AdditiveBlending, depthWrite: false })); disc.rotation.x = -Math.PI / 2; disc.position.y = .05;
+    const ring = new THREE.Mesh(new THREE.TorusGeometry(1.1, .05, 8, 40), new THREE.MeshBasicMaterial({ color: col })); ring.rotation.x = Math.PI / 2; ring.position.y = 1.2;
+    g.add(disc, ring); spin = disc;
+  } else if (kind === 'chest') {
+    const box = new THREE.Mesh(new THREE.BoxGeometry(1.3, .7, .85), mat(0x5a3a22)); box.position.y = .35;
+    const lid = new THREE.Mesh(new THREE.CylinderGeometry(.43, .43, 1.3, 12, 1, false, 0, Math.PI), mat(0x5a3a22)); lid.rotation.z = Math.PI / 2; lid.position.y = .7;
+    const trim = new THREE.Mesh(new THREE.BoxGeometry(1.34, .1, .9), glowM); trim.position.y = .66;
+    const lock = new THREE.Mesh(new THREE.BoxGeometry(.18, .22, .06), glowM); lock.position.set(0, .6, .45);
+    g.add(box, lid, trim, lock);
+  }
+  const light = new THREE.PointLight(col, .9, 8, 1.6); light.position.y = 2; g.add(light);
+  world.add(g);
+  return { group: g, spin };
+}
 function buildFloor() {
   if (world) scene.remove(world);
   debris.length = 0;
@@ -621,49 +744,66 @@ function buildFloor() {
   for (let cx = 0; cx < N; cx++) for (let cy = 0; cy < N; cy++) if (cx === N - 1 || cy === N - 1) cands.push({ cx, cy });
   G.elev = pick(cands);
 
+  // special rooms: 3 per floor (4 from floor 5), never the start room
+  const cells = [];
+  for (let cx = 0; cx < N; cx++) for (let cy = 0; cy < N; cy++) if (cx || cy) cells.push({ cx, cy });
+  shuffle(cells);
+  const kinds = shuffle(SPECIAL_KEYS.slice()).slice(0, f >= 5 ? 4 : 3);
+  const spAt = {};
+  kinds.forEach((k, i) => { spAt[cells[i].cx + ',' + cells[i].cy] = k; });
+
   const fl = new THREE.Mesh(new THREE.PlaneGeometry(N * S, N * S), floorMat);
   fl.rotation.x = -Math.PI / 2; fl.position.set(N * S / 2, 0, -N * S / 2);
   world.add(fl);
 
-  // outer walls
   const L = N * S;
   const outer = [
     [new THREE.BoxGeometry(T, H, L), 0, -L / 2], [new THREE.BoxGeometry(T, H, L), L, -L / 2],
     [new THREE.BoxGeometry(L, H, T), L / 2, 0], [new THREE.BoxGeometry(L, H, T), L / 2, -L],
   ];
   for (const [g, x, z] of outer) { const m = new THREE.Mesh(g, outerMat); m.position.set(x, H / 2, z); world.add(m); G.ray.push(m); }
-  // pillars
   for (let i = 0; i <= N; i++) for (let j = 0; j <= N; j++) {
     const m = new THREE.Mesh(geoPil, pillarMat); m.position.set(i * S, (H + .5) / 2, -j * S); world.add(m); G.ray.push(m);
   }
-  // inner walls
-  for (let i = 0; i < N - 1; i++) for (let j = 0; j < N; j++) if (!G.v[i][j]) {
-    const m = new THREE.Mesh(geoV, wallMat); m.position.set((i + 1) * S, H / 2, -(j + .5) * S); world.add(m); G.wm[`v${i}_${j}`] = m; G.ray.push(m);
+  for (let i = 0; i < N - 1; i++) for (let j = 0; j < N; j++) {
+    if (!G.v[i][j]) { const m = new THREE.Mesh(geoV, wallMat); m.position.set((i + 1) * S, H / 2, -(j + .5) * S); world.add(m); G.wm[`v${i}_${j}`] = m; G.ray.push(m); }
+    else scatterRubble((i + 1) * S, -(j + .5) * S, 'v');
   }
-  for (let i = 0; i < N; i++) for (let j = 0; j < N - 1; j++) if (!G.h[i][j]) {
-    const m = new THREE.Mesh(geoH, wallMat); m.position.set((i + .5) * S, H / 2, -(j + 1) * S); world.add(m); G.wm[`h${i}_${j}`] = m; G.ray.push(m);
+  for (let i = 0; i < N; i++) for (let j = 0; j < N - 1; j++) {
+    if (!G.h[i][j]) { const m = new THREE.Mesh(geoH, wallMat); m.position.set((i + .5) * S, H / 2, -(j + 1) * S); world.add(m); G.wm[`h${i}_${j}`] = m; G.ray.push(m); }
+    else scatterRubble((i + .5) * S, -(j + 1) * S, 'h');
   }
-  // rubble from walls that were already down
-  for (let i = 0; i < N - 1; i++) for (let j = 0; j < N; j++) if (G.v[i][j]) scatterRubble((i + 1) * S, -(j + .5) * S, 'v');
-  for (let i = 0; i < N; i++) for (let j = 0; j < N - 1; j++) if (G.h[i][j]) scatterRubble((i + .5) * S, -(j + 1) * S, 'h');
 
-  // altars with a card each
   for (let cx = 0; cx < N; cx++) for (let cy = 0; cy < N; cy++) {
-    const x = cx * S + S / 2, z = -(cy * S + S / 2);
+    const { x, z } = roomCenter(cx, cy);
+    const special = spAt[cx + ',' + cy] || null;
+    const sp = special && SPECIAL[special];
     const ped = new THREE.Mesh(geoPed, stoneMat); ped.position.set(x, .55, z);
     const top = new THREE.Mesh(geoPedTop, stoneMat); top.position.set(x, 1.15, z);
-    const card = new THREE.Mesh(geoCard, new THREE.MeshBasicMaterial({ map: cardTex, side: THREE.DoubleSide, transparent: true }));
-    card.position.set(x, 2.35, z); card.rotation.y = Math.random() * 6;
-    const glow = new THREE.Sprite(new THREE.SpriteMaterial({ map: glowTex, color: 0xe3bb5f, transparent: true, opacity: .55, blending: THREE.AdditiveBlending, depthWrite: false }));
-    glow.position.set(x, 2.35, z); glow.scale.set(3.4, 3.4, 1);
-    world.add(ped, top, card, glow);
-    G.rooms[cx][cy] = { used: false, card, glow, phase: Math.random() * 6, fly: 0 };
+    world.add(ped, top);
+    const room = { used: false, special, arcana: pick(ARCANA), cards: [], fly: 0, phase: Math.random() * 6, feat: null, fixedUp: null };
+    const tint = sp && !sp.station ? sp.col : 0xe3bb5f;
+    if (special === 'twin') {
+      let b; do { b = pick(ARCANA); } while (b === room.arcana);
+      room.arcana2 = b;
+      room.cards.push(makeCard(x - .75, 2.35, z, tint), makeCard(x + .75, 2.35, z, tint));
+    } else room.cards.push(makeCard(x, 2.35, z, tint));
+    if (sp) {
+      const rune = new THREE.Mesh(geoRune, new THREE.MeshBasicMaterial({ map: runeTex, color: sp.col, transparent: true, opacity: .55, blending: THREE.AdditiveBlending, depthWrite: false }));
+      rune.rotation.x = -Math.PI / 2; rune.position.set(x, .03, z);
+      world.add(rune); room.rune = rune;
+      if (sp.station) {
+        const fx = x - 3.3, fz = z + 3.3;
+        const st = buildStation(special, fx, fz, sp.col);
+        room.feat = { x: fx, z: fz, ...st, used: false, plays: 3, offers: null };
+      }
+    }
+    G.rooms[cx][cy] = room;
   }
 
-  // elevator
-  const ex = G.elev.cx * S + S / 2 + 3.3, ez = -(G.elev.cy * S + S / 2) - 3.3;
-  const top = f === 10;
-  const col = top ? 0xe3bb5f : 0x5ccfb9;
+  const { x: rx, z: rz } = roomCenter(G.elev.cx, G.elev.cy);
+  const ex = rx + 3.3, ez = rz - 3.3;
+  const col = f === 10 ? 0xe3bb5f : 0x5ccfb9;
   const eg = new THREE.Group(); eg.position.set(ex, 0, ez);
   const plat = new THREE.Mesh(new THREE.CylinderGeometry(1.6, 1.75, .24, 28), new THREE.MeshStandardMaterial({ color: 0x1e2c30, emissive: col, emissiveIntensity: .35, roughness: .5 }));
   plat.position.y = .12;
@@ -680,7 +820,7 @@ function buildFloor() {
   G.cell = null;
   rebuildColliders();
   enterCell(0, 0);
-  camPos.set(G.px, 3.6, G.pz + 7);
+  camPos.set(G.px, 4, G.pz + 7);
   updateHUD(); drawMini();
 }
 function scatterRubble(x, z, t) {
@@ -702,7 +842,10 @@ function rebuildColliders() {
   for (let i = 0; i <= N; i++) for (let j = 0; j <= N; j++) colliders.push({ x: i * S, z: -j * S, hx: PIL / 2, hz: PIL / 2 });
   for (let i = 0; i < N - 1; i++) for (let j = 0; j < N; j++) if (!G.v[i][j]) colliders.push({ x: (i + 1) * S, z: -(j + .5) * S, hx: T / 2, hz: S / 2 });
   for (let i = 0; i < N; i++) for (let j = 0; j < N - 1; j++) if (!G.h[i][j]) colliders.push({ x: (i + .5) * S, z: -(j + 1) * S, hx: S / 2, hz: T / 2 });
-  for (let cx = 0; cx < N; cx++) for (let cy = 0; cy < N; cy++) circles.push({ x: cx * S + S / 2, z: -(cy * S + S / 2), r: .85 });
+  for (let cx = 0; cx < N; cx++) for (let cy = 0; cy < N; cy++) {
+    const c = roomCenter(cx, cy); circles.push({ x: c.x, z: c.z, r: .85 });
+    const f = G.rooms[cx][cy].feat; if (f && G.rooms[cx][cy].special !== 'portal') circles.push({ x: f.x, z: f.z, r: 1.1 });
+  }
 }
 function resolve() {
   for (let it = 0; it < 3; it++) {
@@ -724,16 +867,28 @@ function resolve() {
   }
 }
 const cellOf = () => ({ cx: clamp(Math.floor(G.px / S), 0, N - 1), cy: clamp(Math.floor(-G.pz / S), 0, N - 1) });
+let toastT = 0;
+function toast(big, small) {
+  const t = $('toast'); t.innerHTML = `<b>${big}</b><span>${small}</span>`;
+  t.classList.add('on'); clearTimeout(toastT); toastT = setTimeout(() => t.classList.remove('on'), 2600);
+}
 function enterCell(cx, cy) {
   G.cell = { cx, cy };
-  if (!G.visited[cx][cy]) { G.visited[cx][cy] = true; G.stats.rooms++; }
-  drawMini();
+  const first = !G.visited[cx][cy];
+  if (first) { G.visited[cx][cy] = true; G.stats.rooms++; }
+  const sp = G.rooms[cx][cy].special;
+  if (sp && first && running) toast(SPECIAL[sp].name, SPECIAL[sp].desc);
+  updateRoomTag(); drawMini();
+}
+function teleportTo(cx, cy) {
+  const c = roomCenter(cx, cy);
+  G.px = c.x; G.pz = c.z + 3; G.yaw = 0;
+  camPos.set(G.px, 4, G.pz + 7);
+  enterCell(cx, cy);
 }
 function teleport(L) {
   const cx = rnd(0, N - 1), cy = rnd(0, N - 1);
-  G.px = cx * S + S / 2; G.pz = -(cy * S + S / 2) + 3; G.yaw = 0;
-  camPos.set(G.px, 3.6, G.pz + 7);
-  enterCell(cx, cy);
+  teleportTo(cx, cy);
   L.push(tx(`${roomName(cx, cy)} の部屋へ飛ばされた`, 'bad'));
 }
 
@@ -746,60 +901,178 @@ function facingDir() {
 function target() {
   if (!G || !G.cell) return null;
   const { cx, cy } = G.cell;
+  const room = G.rooms[cx][cy];
   if (cx === G.elev.cx && cy === G.elev.cy && Math.hypot(G.px - G.elevObj.x, G.pz - G.elevObj.z) < 2.3) return { type: 'elev' };
-  const rx = cx * S + S / 2, rz = -(cy * S + S / 2);
-  if (Math.hypot(G.px - rx, G.pz - rz) < 2.7) {
-    const r = G.rooms[cx][cy];
-    if (!r.used) return { type: 'card' };
+  if (room.feat && Math.hypot(G.px - room.feat.x, G.pz - room.feat.z) < 2.5) return { type: 'station', kind: room.special };
+  const c = roomCenter(cx, cy);
+  if (Math.hypot(G.px - c.x, G.pz - c.z) < 2.7) {
+    if (!room.used) return { type: 'card' };
     if (closedSides(cx, cy).length) return { type: 'altar' };
     return { type: 'spent' };
   }
   return null;
 }
-const pct = b => clamp(Math.round(b + G.luck), 5, 95);
 const CARD_BASE = () => 90 - G.floor;
-const ELEV_BASE = 85, ALTAR_BASE = 65, WALL_BASE = 48, ALTAR_WALL = 40;
+const ELEV_BASE = 85, ALTAR_BASE = 65, ALTAR_WALL = 40;
+const upBase = room => 55 + (room.special === 'blessed' ? 25 : 0) + (room.special === 'cursed' ? -20 : 0);
+const wallBase = room => room.special === 'cursed' ? 85 : 48;
+
 function interact() {
-  if (!running || modalOpen || fading || G.over) return;
+  if (!running || M.open || fading || G.over) return;
   const t = target(); if (!t) return;
   const { cx, cy } = G.cell;
-  const where = roomName(cx, cy);
-  if (t.type === 'card') drawCard(cx, cy);
+  if (t.type === 'card') openCardPreview(cx, cy);
   else if (t.type === 'altar') {
-    const L = [];
-    L.push(tx('祭壇を拳で叩いた。反動が腕を走る', 'neutral'));
-    hurt(1, L);
-    const r = roll('祭壇が震える', ALTAR_BASE); L.push(r);
-    let br = [];
-    if (r.ok) br = wallRolls(cx, cy, ALTAR_WALL, L); else r.note = '祭壇は沈黙している';
-    resolveDeath(L);
-    pushLog(`${where} 祭壇を叩く`, L);
-    breakWalls(br); afterAction();
+    const L = strikeAltar(cx, cy, false);
+    pushLog(`${roomName(cx, cy)} 祭壇を叩く`, L);
+    afterAction();
   } else if (t.type === 'elev') useElevator();
-  else if (t.type === 'spent') pushLog(`${where}`, [tx('この祭壇はもう何も返さない', 'neutral')]);
+  else if (t.type === 'station') openStation(cx, cy);
+  else pushLog(roomName(cx, cy), [tx('この祭壇はもう何も返さない', 'neutral')]);
 }
-function drawCard(cx, cy) {
+function strikeAltar(cx, cy, burned) {
+  const L = [];
+  if (burned) { consumeCards(G.rooms[cx][cy]); L.push(tx('カードを燭台の火にくべた', 'neutral')); }
+  L.push(tx('祭壇を拳で叩く。反動が腕を走る', 'neutral'));
+  hurt(1, L);
+  let br = [];
+  if (G.hp > 0) {
+    const r = roll('祭壇が震える', ALTAR_BASE); L.push(r);
+    if (r.ok) br = wallRolls(cx, cy, ALTAR_WALL, L); else r.note = '祭壇は沈黙している';
+  }
+  resolveDeath(L);
+  breakWalls(br);
+  return L;
+}
+function consumeCards(room) { room.used = true; room.fly = .001; drawMini(); }
+
+/* --- card preview & draw --- */
+function tarotHTML(a, cls = '') {
+  return `<div class="tarot ${cls}"><div class="face"><span class="num">${a.num}</span><span class="sym">${a.sym}</span><span class="nm">${a.name}</span><span class="en">${a.en}</span></div></div>`;
+}
+function openCardPreview(cx, cy) {
+  const room = G.rooms[cx][cy], sp = room.special;
+  const where = roomName(cx, cy);
+  const lines = [];
+  if (sp === 'seer' && room.fixedUp === null) {
+    const o = roll('予見 · 正位置で現れる', upBase(room)); lines.push(o);
+    room.fixedUp = o.ok; o.note = o.ok ? '正位置が見えた' : '逆位置が見えた';
+  }
+  const cards = sp === 'twin' ? [room.arcana, room.arcana2] : [room.arcana];
+  const upP = sp === 'seer' ? (room.fixedUp ? 100 : 0) : pct(upBase(room));
+  const walls = closedSides(cx, cy).length;
+  const wp = pct(wallBase(room));
+  const echo = sp === 'echo';
+  let body = '';
+  if (sp) body += `<p class="spnote"><b>${SPECIAL[sp].name}</b> — ${SPECIAL[sp].desc}</p>`;
+  body += '<div class="cps">' + cards.map(a => {
+    const wallTxt = (up) => {
+      if (!walls) return '崩せる壁は残っていない。';
+      if ((up && a.allUp) || (!up && a.allRev)) return `閉じた壁 <b>${walls}</b> 枚がすべて崩れる。`;
+      return `閉じた壁 <b>${walls}</b> 枚が各 <b>${wp}%</b> で崩れる。`;
+    };
+    const box = (up) => {
+      const p = up ? upP : 100 - upP;
+      return `<div class="fxb ${up ? 'up' : 'rev'}${p === 0 ? ' dead' : ''}"><div class="hd"><span>${up ? '正位置' : '逆位置'}</span><span class="mono">${p}%</span></div><div class="meter"><i style="width:${p}%"></i></div><p>${echo ? '【2回】' : ''}${up ? a.u() : a.r()}</p><p class="wallnote">${wallTxt(up)}</p></div>`;
+    };
+    return `<div class="cp">${tarotHTML(a, 'sm')}<div><p class="cpname">${a.num} ${a.name}</p><div class="fxs">${box(true)}${box(false)}</div></div></div>`;
+  }).join('') + '</div>';
+  const drawP = pct(CARD_BASE());
+  const opts = cards.map(a => ({
+    label: cards.length > 1 ? `${a.name}を引く` : 'カードを引く',
+    sub: `失敗すると ${D(1)} ダメージ、カードは残る`, pct: drawP, kind: 'main',
+    fn: () => drawCard(cx, cy, a),
+  }));
+  opts.push({ label: 'カードを燃やして祭壇を叩く', sub: `HP −${D(1)} · 震えれば壁が各 ${pct(ALTAR_WALL)}% で崩れる`, pct: pct(ALTAR_BASE),
+    fn: () => ({ L: strikeAltar(cx, cy, true), title: '祭壇を叩く', log: `${where} 祭壇を叩く` }) });
+  opts.push({ label: '見送る', sub: 'カードは残る。あとで戻って引ける', kind: 'quiet', fn: null });
+  openModal({
+    eye: `第${KANJI[G.floor]}層 · 部屋 ${where}`,
+    title: cards.length > 1 ? '二枚のアルカナ' : 'アルカナを引くか',
+    body, lines, options: opts,
+  });
+}
+function drawCard(cx, cy, a) {
+  const room = G.rooms[cx][cy], where = roomName(cx, cy);
   const L = [];
   const r = roll('カードを引く', CARD_BASE()); L.push(r);
-  const where = roomName(cx, cy);
   if (!r.ok) {
     r.note = 'カードが指をすり抜け、火花が散った';
     hurt(1, L); resolveDeath(L);
-    pushLog(`${where} カード`, L); afterAction();
-    return;
+    return { L, title: '引けなかった', log: `${where} カード` };
   }
-  const room = G.rooms[cx][cy];
-  room.used = true; room.fly = .001; G.stats.cards++;
-  const a = pick(ARCANA);
-  const o = roll('正位置で現れる', 55); L.push(o);
-  const up = o.ok;
+  consumeCards(room); G.stats.cards++;
+  let up;
+  if (room.special === 'seer') { up = room.fixedUp; L.push(tx(`予見どおり${up ? '正' : '逆'}位置で現れた`, 'gold')); }
+  else { const o = roll('正位置で現れる', upBase(room)); L.push(o); up = o.ok; }
   const res = a.fx(up, L) || {};
+  if (room.special === 'echo' && G.hp > 0 && !G.over) {
+    L.push(tx('共鳴 — 効果がもう一度響く', 'gold'));
+    const r2 = a.fx(up, L) || {}; if (r2.allBreak) res.allBreak = true;
+  }
   let br = [];
-  if (G.hp > 0) br = wallRolls(cx, cy, WALL_BASE, L, res.allBreak);
+  if (G.hp > 0) br = wallRolls(cx, cy, wallBase(room), L, res.allBreak);
   resolveDeath(L);
-  updateHUD(); drawMini();
-  showEvent({ a, up, where }, L, () => { breakWalls(br); pushLog(`${where} ${a.name}・${up ? '正' : '逆'}`, L, true); afterAction(); });
+  return {
+    L, log: `${where} ${a.name}・${up ? '正' : '逆'}`,
+    title: `${a.num} ${a.name}<span class="ori ${up ? 'up' : 'rev'}">${up ? '正位置' : '逆位置'}</span>`,
+    desc: up ? a.u() : a.r(),
+    body: `<div class="resrow">${tarotHTML(a, 'flip' + (up ? '' : ' rev'))}<div></div></div>`,
+    after: () => breakWalls(br),
+  };
 }
+
+/* --- special stations --- */
+function openStation(cx, cy) {
+  const room = G.rooms[cx][cy], f = room.feat, kind = room.special, sp = SPECIAL[kind];
+  const eye = `第${KANJI[G.floor]}層 · 部屋 ${roomName(cx, cy)}`;
+  const leave = { label: '立ち去る', kind: 'quiet', fn: null };
+  const res = (L, title) => { resolveDeath(L); return { L, title, log: sp.name }; };
+  if (kind === 'merchant') {
+    if (!f.offers) f.offers = shuffle(ITEM_ORDER.slice()).slice(0, 3).map(id => ({ id, cost: rnd(3, 5), sold: false }));
+    openModal({ eye, title: sp.name, desc: '「どれも本物さ。たぶんね」 代金はHPで払う。', options: [
+      ...f.offers.map(o => ({
+        label: `${ITEMS[o.id].name}${o.sold ? '(売約済)' : ''}`, sub: `HP −${o.cost} · ${ITEMS[o.id].desc}`, pct: pct(90), disabled: o.sold || G.hp <= o.cost,
+        fn: () => { o.sold = true; const L = []; pay(o.cost, L); const r = roll('本物をつかむ', 90); L.push(r); if (r.ok) gainItem(o.id, L); else r.note = '中身は砂だった'; return res(L, '取引'); },
+      })), leave] });
+  } else if (kind === 'spring') {
+    if (f.used) { pushLog(sp.name, [tx('泉は枯れている', 'neutral')]); return; }
+    openModal({ eye, title: sp.name, desc: '澄んだ水がわずかに湧いている。使えるのは一度だけ。', options: [
+      { label: '水を飲む', sub: `HP を ${Math.round(G.maxHp * .4)} 回復 · 濁っていたら ${D(2)} ダメージ`, pct: pct(80), kind: 'main',
+        fn: () => { f.used = true; const L = []; const r = roll('澄んだ水', 80); L.push(r); if (r.ok) heal(G.maxHp * .4, L); else { r.note = '底の泥をすくってしまった'; hurt(2, L); } return res(L, '泉の水'); } },
+      { label: '小瓶に汲む', sub: '治癒の小瓶を1つ得る', pct: pct(70),
+        fn: () => { f.used = true; const L = []; const r = roll('こぼさず汲む', 70); L.push(r); if (r.ok) gainItem('potion', L); else r.note = '手が滑ってこぼれた'; return res(L, '泉の水'); } },
+      leave] });
+  } else if (kind === 'gamble') {
+    if (f.plays <= 0) { pushLog(sp.name, [tx('胴元はもう店じまいだ', 'neutral')]); return; }
+    openModal({ eye, title: sp.name, desc: `「賭けるのは血だ」 残り ${f.plays} 回。`, options: [
+      { label: '小さく賭ける', sub: 'HP −2 · 勝てば道具1つ', pct: pct(50), disabled: G.hp <= 2,
+        fn: () => { f.plays--; const L = []; pay(2, L); const r = roll('サイコロ', 50); L.push(r); if (r.ok) gainItem(randItem(), L); else r.note = '胴元が笑う'; return res(L, '賭けの結果'); } },
+      { label: '大きく賭ける', sub: 'HP −5 · 勝てば道具3つ', pct: pct(35), disabled: G.hp <= 5,
+        fn: () => { f.plays--; const L = []; pay(5, L); const r = roll('サイコロ', 35); L.push(r); if (r.ok) { r.note = '大当たり'; for (let i = 0; i < 3; i++) gainItem(randItem(), L); } else r.note = '胴元が笑う'; return res(L, '賭けの結果'); } },
+      leave] });
+  } else if (kind === 'portal') {
+    const grid = [];
+    for (let y = N - 1; y >= 0; y--) for (let x = 0; x < N; x++) {
+      const here = x === cx && y === cy;
+      grid.push({ label: roomName(x, y), here, disabled: here || !G.visited[x][y],
+        fn: () => { const L = []; const r = roll(`${roomName(x, y)} へ転移`, 80); L.push(r);
+          if (r.ok) { teleportTo(x, y); r.note = '光が収まると、見覚えのある部屋にいた'; } else { r.note = '陣が乱れた'; teleport(L); }
+          return res(L, '転移'); } });
+    }
+    openModal({ eye, title: sp.name, desc: `訪れたことのある部屋を選ぶ。成功率 ${pct(80)}%、失敗するとランダムな部屋へ飛ぶ。`, grid, options: [leave] });
+  } else if (kind === 'chest') {
+    if (f.used) { pushLog(sp.name, [tx('宝箱は空だ', 'neutral')]); return; }
+    const mimic = `ミミック(HP ${EHP(9)}・攻撃 ${D(4)})と戦闘`;
+    openModal({ eye, title: sp.name, desc: '重い錠前がついている。', options: [
+      { label: 'こじ開ける', sub: `成功で道具2つ · 失敗すると${mimic}`, pct: pct(60), kind: 'main',
+        fn: () => { f.used = true; const L = []; const r = roll('ただの宝箱', 60); L.push(r); if (r.ok) { gainItem(randItem(), L); gainItem(randItem(), L); } else { r.note = '箱に牙が生えた'; if (battle('ミミック', 9, 4, L)) gainItem(randItem(), L); } return res(L, '宝箱'); } },
+      { label: '慎重に調べてから開ける', sub: `HP −2 · 成功で道具2つ · 失敗すると${mimic}`, pct: pct(88), disabled: G.hp <= 2,
+        fn: () => { f.used = true; const L = []; pay(2, L); const r = roll('罠を見抜く', 88); L.push(r); if (r.ok) { gainItem(randItem(), L); gainItem(randItem(), L); } else { r.note = '見抜けなかった'; if (battle('ミミック', 9, 4, L)) gainItem(randItem(), L); } return res(L, '宝箱'); } },
+      leave] });
+  }
+}
+
 function useElevator() {
   const L = [];
   const r = roll(G.floor === 10 ? '頂上の扉を開く' : 'エレベーターを動かす', ELEV_BASE); L.push(r);
@@ -816,16 +1089,16 @@ function useElevator() {
   setTimeout(() => {
     G.floor++;
     buildFloor();
-    const L2 = []; heal(5, L2); L2.unshift(tx('昇降のあいだに息を整えた', 'neutral'));
+    const L2 = [tx('昇降のあいだに息を整えた', 'neutral')]; heal(5, L2);
     pushLog(`第${KANJI[G.floor]}層`, L2);
     updateHUD();
     $('fade').classList.remove('on');
-    banner(`第${KANJI[G.floor]}層`, G.floor === 10 ? '最上層 · 頂上の扉を探せ' : `エレベーターは右端か最上段のどこか`);
+    banner(`第${KANJI[G.floor]}層`, G.floor === 10 ? '最上層 · 頂上の扉を探せ' : 'エレベーターは右端か最上段のどこか');
     setTimeout(() => { fading = false; }, 400);
   }, 650);
 }
 function useItem(id) {
-  if (!running || modalOpen || fading || G.over) return;
+  if (!running || M.open || fading || G.over) return;
   const it = ITEMS[id];
   if (G.inv[id] <= 0) return;
   if (it.passive) { pushLog(it.name, [tx(`${it.desc}(自動で使われる)`, 'neutral')]); return; }
@@ -849,16 +1122,56 @@ function useItem(id) {
   pushLog(it.name, L); afterAction();
 }
 function afterAction() {
-  updateHUD(); drawMini();
+  updateHUD(); drawMini(); updateRoomTag();
   if (G.over) setTimeout(showEnd, G.over === 'win' ? 300 : 900);
 }
 
-/* ---------- UI ---------- */
+/* ---------- modal ---------- */
+function openModal(cfg) {
+  M.open = true; M.at = performance.now(); M.phase = 'choose'; M.after = null; M.log = null;
+  renderModal(cfg);
+  $('modal').hidden = false;
+  $('sheet').scrollTop = 0;
+}
+function renderModal(cfg) {
+  $('mEye').textContent = cfg.eye || '';
+  $('mTitle').innerHTML = cfg.title || '';
+  $('mDesc').textContent = cfg.desc || '';
+  let body = cfg.body || '';
+  if (cfg.grid) body += '<div class="pgrid">' + cfg.grid.map((g, i) => `<button type="button" data-grid="${i}" class="${g.here ? 'here' : ''}" ${g.disabled ? 'disabled' : ''}>${g.label}</button>`).join('') + '</div>';
+  $('mBody').innerHTML = body;
+  $('mLines').innerHTML = (cfg.lines || []).map((l, i) => `<li style="animation-delay:${Math.min(i * 130, 2200) + (cfg.delay || 0)}ms">${lineHTML(l)}</li>`).join('');
+  M.opts = cfg.options || []; M.grid = cfg.grid || []; M.cfg = cfg;
+  $('mOpts').innerHTML = M.opts.map((o, i) => `<button type="button" class="opt ${o.kind || ''}" data-opt="${i}" ${o.disabled ? 'disabled' : ''}><span class="ok">${o.key || i + 1}</span><span class="lb"><b>${o.label}</b>${o.sub ? `<small>${o.sub}</small>` : ''}</span>${o.pct != null ? `<span class="pc">${o.pct}%</span>` : '<span></span>'}</button>`).join('');
+}
+function choose(o) {
+  if (!o || o.disabled || performance.now() - M.at < 250) return;
+  if (o.close) { closeModal(); return; }
+  const res = o.fn ? o.fn() : null;
+  if (!res) { closeModal(); return; }
+  M.phase = 'result'; M.at = performance.now(); M.after = res.after || null; M.log = { head: res.log, L: res.L };
+  renderModal({ eye: M.cfg.eye, title: res.title || M.cfg.title, desc: res.desc || '', body: res.body || '', lines: res.L, delay: res.body ? 350 : 0,
+    options: [{ label: G.over === 'dead' ? '……' : '続ける', key: '␣', kind: 'main', close: true }] });
+  $('sheet').scrollTop = 0;
+  updateHUD();
+}
+function closeModal() {
+  if (!M.open) return;
+  M.open = false; $('modal').hidden = true;
+  const log = M.log; M.log = null;
+  if (log) pushLog(log.head, log.L, true);
+  const cb = M.after; M.after = null; if (cb) cb();
+  if (log) afterAction();
+}
+$('mOpts').addEventListener('click', e => { const b = e.target.closest('[data-opt]'); if (b) choose(M.opts[+b.dataset.opt]); });
+$('mBody').addEventListener('click', e => { const b = e.target.closest('[data-grid]'); if (b) choose(M.grid[+b.dataset.grid]); });
+
+/* ---------- HUD ---------- */
 const fmtLuck = () => (G.luck > 0 ? '+' : G.luck < 0 ? '−' : '±') + Math.abs(G.luck) + '%';
 function lineHTML(l) {
   if (l.roll) {
-    if (l.auto) return `<div class="ln ok"><span class="lbl">${l.label}</span><span class="dice">確定</span><span class="res">成功</span></div>`;
-    return `<div class="ln ${l.ok ? 'ok' : 'ng'}"><span class="lbl">${l.label}</span><span class="dice">d100 <b>${l.d}</b> ${l.ok ? '≤' : '>'} ${l.c}</span><span class="res">${l.ok ? '成功' : '失敗'}</span>${l.tag ? `<span class="tag">${l.tag}</span>` : ''}${l.note ? `<span class="note">${l.note}</span>` : ''}</div>`;
+    if (l.auto) return `<div class="ln ok"><span>${l.label}</span><span class="dice">確定</span><span class="res">成功</span></div>`;
+    return `<div class="ln ${l.ok ? 'ok' : 'ng'}"><span>${l.label}</span><span class="dice">d100 <b>${l.d}</b> ${l.ok ? '≤' : '>'} ${l.c}</span><span class="res">${l.ok ? '成功' : '失敗'}</span>${l.tag ? `<span class="tag">${l.tag}</span>` : ''}${l.note ? `<span class="note">${l.note}</span>` : ''}</div>`;
   }
   return `<div class="tx ${l.kind}">${l.text}</div>`;
 }
@@ -866,7 +1179,7 @@ function pushLog(head, L, quiet) {
   const ol = $('logList');
   const add = (html, cls) => { const li = document.createElement('li'); if (cls) li.className = cls; li.innerHTML = html; ol.appendChild(li); };
   add(head, 'head');
-  const lines = quiet ? L.filter(l => !l.roll || !l.ok || l.note).slice(-4) : L;
+  const lines = quiet ? L.filter(l => !l.roll || !l.ok || l.note).slice(-3) : L;
   for (const l of lines) add(lineHTML(l));
   while (ol.children.length > 40) ol.removeChild(ol.firstChild);
 }
@@ -881,40 +1194,54 @@ function updateHUD() {
   $('revChip').hidden = !G.revive; $('revTxt').textContent = G.revive;
   $('dimChip').hidden = !G.dim;
   $('items').innerHTML = ITEM_ORDER.map(k => {
-    const it = ITEMS[k], n = G.inv[k];
+    const it = ITEMS[k], n = G.inv[k] || 0;
     return `<button type="button" class="slot${n ? '' : ' empty'}" data-item="${k}" aria-label="${it.name} ${n}個"><span class="k">${it.key}</span>${it.passive ? '<span class="p">自動</span>' : ''}<span class="g">${it.g}</span><span class="n">×${n}</span></button>`;
   }).join('');
 }
+function updateRoomTag() {
+  if (!G || !G.cell) return;
+  const { cx, cy } = G.cell, sp = G.rooms[cx][cy].special;
+  $('roomTag').innerHTML = `<b>${roomName(cx, cy)}</b>${sp ? `<span class="sp" style="color:${SPECIAL[sp].css}">${SPECIAL[sp].name}</span>` : '<span style="color:var(--muted)">石の間</span>'}`;
+}
+let tipT = 0;
 $('items').addEventListener('click', e => { const b = e.target.closest('.slot'); if (b) useItem(b.dataset.item); });
-$('items').addEventListener('pointerover', e => {
+$('items').addEventListener('pointerdown', e => {
   const b = e.target.closest('.slot'); if (!b) return;
   const it = ITEMS[b.dataset.item];
   $('tip').innerHTML = `<b>${it.name}</b>${it.desc}`; $('tip').hidden = false;
+  clearTimeout(tipT); tipT = setTimeout(() => { $('tip').hidden = true; }, 1800);
 });
-$('items').addEventListener('pointerout', () => { $('tip').hidden = true; });
+$('items').addEventListener('pointerover', e => {
+  if (e.pointerType !== 'mouse') return;
+  const b = e.target.closest('.slot'); if (!b) return;
+  const it = ITEMS[b.dataset.item];
+  $('tip').innerHTML = `<b>${it.name}</b>${it.desc}`; $('tip').hidden = false; clearTimeout(tipT);
+});
+$('items').addEventListener('pointerout', e => { if (e.pointerType === 'mouse') $('tip').hidden = true; });
 
 function drawMini() {
   if (!G || !G.visited) return;
-  const c = $('miniC'), g = c.getContext('2d'), W = c.width, pad = 12, cs = (W - pad * 2) / N;
+  const c = $('miniC'), g = c.getContext('2d'), W = c.width, pad = 14, cs = (W - pad * 2) / N;
   g.clearRect(0, 0, W, W);
   const X = cx => pad + cx * cs, Y = cy => pad + (N - 1 - cy) * cs;
   for (let cx = 0; cx < N; cx++) for (let cy = 0; cy < N; cy++) {
-    const vis = G.visited[cx][cy];
+    const vis = G.visited[cx][cy], room = G.rooms[cx][cy];
     g.fillStyle = vis ? 'rgba(157,138,236,.28)' : G.revealAll ? 'rgba(157,138,236,.1)' : 'rgba(255,255,255,.04)';
     g.fillRect(X(cx) + 2, Y(cy) + 2, cs - 4, cs - 4);
-    if (vis && !G.rooms[cx][cy].used) { g.fillStyle = '#e3bb5f'; g.beginPath(); g.arc(X(cx) + cs / 2, Y(cy) + cs / 2, 4, 0, 7); g.fill(); }
+    if (room.special && (vis || G.revealAll)) {
+      g.fillStyle = SPECIAL[room.special].css; g.font = `800 ${Math.round(cs * .42)}px "Shippori Mincho B1", serif`; g.textAlign = 'center'; g.textBaseline = 'middle';
+      g.fillText(SPECIAL[room.special].g, X(cx) + cs * .3, Y(cy) + cs * .7);
+    }
+    if (vis && !room.used) { g.fillStyle = '#e3bb5f'; g.beginPath(); g.arc(X(cx) + cs / 2, Y(cy) + cs / 2, 5, 0, 7); g.fill(); }
   }
-  // elevator
   if (G.elevKnown || G.visited[G.elev.cx][G.elev.cy]) {
     g.fillStyle = G.floor === 10 ? '#e3bb5f' : '#5ccfb9';
-    const ex = X(G.elev.cx) + cs * .78, ey = Y(G.elev.cy) + cs * .22;
-    g.beginPath(); g.arc(ex, ey, 6.5, 0, 7); g.fill();
+    g.beginPath(); g.arc(X(G.elev.cx) + cs * .78, Y(G.elev.cy) + cs * .22, 7, 0, 7); g.fill();
     g.strokeStyle = 'rgba(0,0,0,.6)'; g.lineWidth = 2; g.stroke();
   }
-  // walls
   g.lineCap = 'round';
   const known = (a, b) => G.revealAll || G.visited[a.cx][a.cy] || G.visited[b.cx][b.cy];
-  g.strokeStyle = '#d9d0ee'; g.lineWidth = 4;
+  g.strokeStyle = '#d9d0ee'; g.lineWidth = 5;
   for (let i = 0; i < N - 1; i++) for (let j = 0; j < N; j++) if (!G.v[i][j] && known({ cx: i, cy: j }, { cx: i + 1, cy: j })) {
     g.beginPath(); g.moveTo(X(i + 1), Y(j)); g.lineTo(X(i + 1), Y(j) + cs); g.stroke();
   }
@@ -922,34 +1249,13 @@ function drawMini() {
     g.beginPath(); g.moveTo(X(i), Y(j)); g.lineTo(X(i) + cs, Y(j)); g.stroke();
   }
   g.strokeStyle = '#e3bb5f'; g.lineWidth = 3; g.strokeRect(pad, pad, W - pad * 2, W - pad * 2);
-  // edges where the elevator can be
-  g.strokeStyle = 'rgba(92,207,185,.5)'; g.lineWidth = 3; g.setLineDash([6, 6]);
-  g.beginPath(); g.moveTo(pad, pad - 6); g.lineTo(W - pad + 6, pad - 6); g.lineTo(W - pad + 6, W - pad); g.stroke(); g.setLineDash([]);
-  // player
+  g.strokeStyle = 'rgba(92,207,185,.55)'; g.lineWidth = 3; g.setLineDash([7, 7]);
+  g.beginPath(); g.moveTo(pad, pad - 7); g.lineTo(W - pad + 7, pad - 7); g.lineTo(W - pad + 7, W - pad); g.stroke(); g.setLineDash([]);
   const px = pad + (G.px / S) * cs, py = pad + (N - (-G.pz / S)) * cs;
   g.save(); g.translate(px, py); g.rotate(-G.yaw);
-  g.fillStyle = '#ea5d51'; g.beginPath(); g.moveTo(0, -9); g.lineTo(6.5, 7); g.lineTo(0, 3.5); g.lineTo(-6.5, 7); g.closePath(); g.fill();
+  g.fillStyle = '#ea5d51'; g.beginPath(); g.moveTo(0, -11); g.lineTo(8, 8); g.lineTo(0, 4); g.lineTo(-8, 8); g.closePath(); g.fill();
   g.restore();
 }
-
-function showEvent(ev, L, onClose) {
-  modalOpen = true; modalAt = performance.now(); onModalClose = onClose;
-  const { a, up, where } = ev;
-  $('tarot').className = 'tarot' + (up ? '' : ' rev');
-  $('tarot').innerHTML = `<div class="face"><span class="num">${a.num}</span><span class="sym">${a.sym}</span><span class="nm">${a.name}</span><span class="en">${a.en}</span></div>`;
-  $('mEye').textContent = `第${KANJI[G.floor]}層 · 部屋 ${where}`;
-  $('mTitle').innerHTML = `${a.num} ${a.name}<span class="ori ${up ? 'up' : 'rev'}">${up ? '正位置' : '逆位置'}</span>`;
-  $('mDesc').textContent = up ? a.up : a.rev;
-  $('mLines').innerHTML = L.map((l, i) => `<li style="animation-delay:${Math.min(i * 140, 2200) + 350}ms">${lineHTML(l)}</li>`).join('');
-  $('modal').hidden = false;
-  $('mBtn').focus({ preventScroll: true });
-}
-function closeModal() {
-  if (!modalOpen || performance.now() - modalAt < 350) return;
-  modalOpen = false; $('modal').hidden = true;
-  const cb = onModalClose; onModalClose = null; if (cb) cb();
-}
-$('mBtn').addEventListener('click', closeModal);
 
 function banner(big, small) {
   const b = $('banner'); b.innerHTML = `${big}<small>${small}</small>`;
@@ -970,18 +1276,20 @@ function showEnd() {
     ['判定回数', s.rolls], ['成功率', rate + '%'], ['崩した壁', s.walls],
   ].map(([k, v]) => `<div><span>${k}</span><b>${v}</b></div>`).join('');
   $('end').hidden = false;
-  $('againBtn').focus({ preventScroll: true });
 }
 
+function freshState() {
+  return { floor: 1, hp: 30, maxHp: 30, luck: 0, coin: 0, revive: 0, over: false,
+    inv: { potion: 1, bomb: 1, coin: 0, chart: 0, bullet: 1, charm: 0 },
+    stats: { cards: 0, rolls: 0, succ: 0, walls: 0, dmg: 0, rooms: 0 } };
+}
 function newGame() {
-  G = { floor: 1, hp: 30, maxHp: 30, luck: 0, coin: 0, revive: 0, over: false,
-        inv: { potion: 1, bomb: 1, coin: 0, chart: 0, bullet: 1, charm: 0 },
-        stats: { cards: 0, rolls: 0, succ: 0, walls: 0, dmg: 0, rooms: 0 } };
+  G = freshState();
   $('logList').innerHTML = '';
-  buildFloor();
-  pushLog('第一層', [tx('A1 に降り立った。祭壇のカードに近づいて E で引く', 'neutral')]);
-  $('title').hidden = true; $('end').hidden = true;
   running = true;
+  buildFloor();
+  pushLog('第一層', [tx('A1 に降り立った。祭壇に近づいてカードを確かめよう', 'neutral')]);
+  $('title').hidden = true; $('end').hidden = true;
   banner('第一層', 'エレベーターは右端か最上段のどこか');
 }
 $('startBtn').addEventListener('click', newGame);
@@ -993,7 +1301,13 @@ addEventListener('keydown', e => {
   const k = e.key.toLowerCase();
   if ([' ', 'arrowup', 'arrowdown', 'arrowleft', 'arrowright'].includes(k)) e.preventDefault();
   if (!$('title').hidden || !$('end').hidden) { if (k === 'enter' && !e.repeat && !(e.target instanceof HTMLButtonElement)) newGame(); return; }
-  if (modalOpen) { if (!e.repeat && (k === ' ' || k === 'enter' || k === 'e')) closeModal(); return; }
+  if (M.open) {
+    if (e.repeat) return;
+    if (M.phase === 'result' && (k === ' ' || k === 'enter' || k === 'e')) { closeModal(); return; }
+    if (M.phase === 'choose' && k === 'escape') { closeModal(); return; }
+    const n = parseInt(k, 10); if (n >= 1 && n <= M.opts.length) choose(M.opts[n - 1]);
+    return;
+  }
   keys[k] = true;
   if (e.repeat) return;
   if (k === 'e' || k === ' ' || k === 'enter') interact();
@@ -1003,42 +1317,46 @@ addEventListener('keydown', e => {
 addEventListener('keyup', e => { keys[e.key.toLowerCase()] = false; });
 addEventListener('blur', () => { for (const k in keys) keys[k] = false; });
 
+// swipe / drag on the scene turns the view
 let drag = null;
-renderer.domElement.addEventListener('pointerdown', e => { drag = { id: e.pointerId, x: e.clientX }; renderer.domElement.setPointerCapture(e.pointerId); });
-renderer.domElement.addEventListener('pointermove', e => {
-  if (!drag || drag.id !== e.pointerId || !running || modalOpen) return;
-  G.yaw -= (e.clientX - drag.x) * 0.0065; drag.x = e.clientX;
+const cv = renderer.domElement;
+cv.addEventListener('pointerdown', e => { drag = { id: e.pointerId, x: e.clientX }; try { cv.setPointerCapture(e.pointerId); } catch (_) {} });
+cv.addEventListener('pointermove', e => {
+  if (!drag || drag.id !== e.pointerId || !running || M.open) return;
+  G.yaw -= (e.clientX - drag.x) * (e.pointerType === 'touch' ? 0.009 : 0.0065); drag.x = e.clientX;
 });
 const endDrag = () => { drag = null; };
-renderer.domElement.addEventListener('pointerup', endDrag);
-renderer.domElement.addEventListener('pointercancel', endDrag);
+cv.addEventListener('pointerup', endDrag); cv.addEventListener('pointercancel', endDrag);
 
 const joy = { x: 0, y: 0, id: null };
 const joyEl = $('joy'), knob = $('knob');
 function joyMove(e) {
   const r = joyEl.getBoundingClientRect(), R = r.width / 2;
   let dx = e.clientX - (r.left + R), dy = e.clientY - (r.top + R);
-  const d = Math.hypot(dx, dy); if (d > R * .8) { dx *= R * .8 / d; dy *= R * .8 / d; }
-  knob.style.transform = `translate(${dx}px,${dy}px)`;
-  joy.x = dx / (R * .8); joy.y = dy / (R * .8);
+  const lim = R * .72, d = Math.hypot(dx, dy); if (d > lim) { dx *= lim / d; dy *= lim / d; }
+  knob.style.transform = `translate(calc(-50% + ${dx}px), calc(-50% + ${dy}px))`;
+  joy.x = dx / lim; joy.y = dy / lim;
 }
-joyEl.addEventListener('pointerdown', e => { joy.id = e.pointerId; joyEl.setPointerCapture(e.pointerId); joyMove(e); });
+joyEl.addEventListener('pointerdown', e => { e.preventDefault(); joy.id = e.pointerId; try { joyEl.setPointerCapture(e.pointerId); } catch (_) {} joyMove(e); });
 joyEl.addEventListener('pointermove', e => { if (joy.id === e.pointerId) joyMove(e); });
 const joyEnd = () => { joy.id = null; joy.x = joy.y = 0; knob.style.transform = ''; };
 joyEl.addEventListener('pointerup', joyEnd); joyEl.addEventListener('pointercancel', joyEnd);
-$('act').addEventListener('click', () => { if (modalOpen) closeModal(); else interact(); });
-addEventListener('touchstart', () => document.getElementById('app').classList.add('touch'), { once: true, passive: true });
-if (matchMedia('(pointer: coarse)').matches) $('app').classList.add('touch');
+$('act').addEventListener('click', interact);
+const setTouch = () => $('app').classList.add('touch');
+addEventListener('touchstart', setTouch, { once: true, passive: true });
+if (matchMedia('(pointer: coarse)').matches || navigator.maxTouchPoints > 0) setTouch();
+document.addEventListener('gesturestart', e => e.preventDefault());
 
 /* ---------- loop ---------- */
 const camPos = new THREE.Vector3(6, 4, 4), camLook = new THREE.Vector3();
 const ray = new THREE.Raycaster();
 const tmpO = new THREE.Vector3(), tmpD = new THREE.Vector3(), want = new THREE.Vector3();
-let lastPrompt = '', walkT = 0, time = 0;
+let lastPrompt = null, walkT = 0, time = 0;
+const STATION_VERB = { merchant: '話す', spring: '泉', gamble: '賭ける', portal: '転移', chest: '開ける' };
 
 function update(dt) {
   time += dt;
-  const active = running && !modalOpen && !fading && G && !G.over;
+  const active = running && !M.open && !fading && G && !G.over;
   let moving = 0;
   if (active) {
     let f = 0, t = 0;
@@ -1046,9 +1364,11 @@ function update(dt) {
     if (keys['s'] || keys['arrowdown']) f -= 1;
     if (keys['a'] || keys['arrowleft']) t += 1;
     if (keys['d'] || keys['arrowright']) t -= 1;
-    f += -joy.y; t += -joy.x * .9;
+    // joystick: up = forward, sideways = turn (with a small dead zone)
+    const jy = Math.abs(joy.y) > .15 ? -joy.y : 0, jx = Math.abs(joy.x) > .15 ? -joy.x : 0;
+    f += jy; t += jx * (1 - Math.abs(jy) * .35);
     f = clamp(f, -1, 1); t = clamp(t, -1, 1);
-    G.yaw += t * 2.5 * dt;
+    G.yaw += t * 2.4 * dt;
     const sp = (f < 0 ? 4 : 7.5) * f * dt;
     G.px += -Math.sin(G.yaw) * sp; G.pz += -Math.cos(G.yaw) * sp;
     resolve();
@@ -1056,20 +1376,23 @@ function update(dt) {
     const c = cellOf();
     if (!G.cell || c.cx !== G.cell.cx || c.cy !== G.cell.cy) enterCell(c.cx, c.cy);
     else if (moving || t) drawMini();
-    // prompt
     const tg = target();
-    let html = '';
+    let html = '', act = '';
     if (tg) {
-      if (tg.type === 'card') html = `<kbd>E</kbd> カードを引く <span class="pct">${pct(CARD_BASE())}%</span>`;
-      else if (tg.type === 'altar') html = `<kbd>E</kbd> 祭壇を叩く(HP−1)<span class="pct">${pct(ALTAR_BASE)}%</span>`;
-      else if (tg.type === 'elev') html = `<kbd>E</kbd> ${G.floor === 10 ? '頂上の扉を開く' : 'エレベーターに乗る'} <span class="pct">${pct(ELEV_BASE)}%</span>`;
+      if (tg.type === 'card') { const r = G.rooms[G.cell.cx][G.cell.cy]; html = `<span class="kbd">E</span> ${r.special === 'twin' ? '二枚のカード' : r.arcana.name + 'のカード'}を確かめる`; act = 'カードを見る'; }
+      else if (tg.type === 'altar') { html = `<span class="kbd">E</span> 祭壇を叩く(HP−${D(1)})<span class="pct">${pct(ALTAR_BASE)}%</span>`; act = '祭壇を叩く'; }
+      else if (tg.type === 'elev') { html = `<span class="kbd">E</span> ${G.floor === 10 ? '頂上の扉を開く' : 'エレベーターに乗る'} <span class="pct">${pct(ELEV_BASE)}%</span>`; act = '乗る'; }
+      else if (tg.type === 'station') { html = `<span class="kbd">E</span> ${SPECIAL[tg.kind].name}`; act = STATION_VERB[tg.kind]; }
       else html = '祭壇は沈黙している · 壁はすべて崩れた';
     }
-    if (html !== lastPrompt) { lastPrompt = html; $('prompt').innerHTML = html; $('prompt').hidden = !html; }
-  } else if (lastPrompt) { lastPrompt = ''; $('prompt').hidden = true; }
+    const key = html + '|' + act;
+    if (key !== lastPrompt) {
+      lastPrompt = key; $('prompt').innerHTML = html; $('prompt').hidden = !html;
+      $('act').textContent = act || '調べる'; $('act').classList.toggle('idle', !act);
+    }
+  } else if (lastPrompt !== '') { lastPrompt = ''; $('prompt').hidden = true; $('act').classList.add('idle'); }
 
   if (!G || !world) return;
-  // player model
   walkT += dt * moving * 9;
   player.position.set(G.px, Math.abs(Math.sin(walkT)) * .06 * (moving ? 1 : 0), G.pz);
   player.rotation.y = G.yaw;
@@ -1079,23 +1402,32 @@ function update(dt) {
   lamp.distance = G.dim ? 15 : 28;
   scene.fog.density += ((G.dim ? .07 : .028) - scene.fog.density) * Math.min(1, dt * 2);
 
-  // cards
   for (let cx = 0; cx < N; cx++) for (let cy = 0; cy < N; cy++) {
-    const r = G.rooms[cx][cy]; if (!r.card) continue;
+    const r = G.rooms[cx][cy];
+    if (r.rune) r.rune.rotation.z += dt * .15;
+    if (r.feat && r.feat.spin) {
+      const s = r.feat.spin;
+      if (Array.isArray(s)) s.forEach((d, i) => { d.rotation.x += dt * (1 + i); d.rotation.y += dt * 1.3; });
+      else s.rotation.z += dt * .6;
+    }
+    if (!r.cards.length) continue;
     if (r.fly > 0) {
       r.fly += dt;
-      r.card.position.y += dt * 4; r.card.rotation.y += dt * 12;
-      r.card.material.opacity = Math.max(0, 1 - r.fly * 1.4); r.glow.material.opacity = Math.max(0, .55 - r.fly);
-      if (r.fly > .8) { world.remove(r.card, r.glow); r.card = null; }
+      for (const c of r.cards) {
+        c.card.position.y += dt * 4; c.card.rotation.y += dt * 12;
+        c.card.material.opacity = Math.max(0, 1 - r.fly * 1.4); c.glow.material.opacity = Math.max(0, .55 - r.fly);
+      }
+      if (r.fly > .8) { for (const c of r.cards) world.remove(c.card, c.glow); r.cards = []; }
       continue;
     }
-    r.card.rotation.y += dt * .8;
-    r.card.position.y = 2.35 + Math.sin(time * 1.6 + r.phase) * .12;
-    r.glow.material.opacity = .45 + Math.sin(time * 2 + r.phase) * .1;
+    r.cards.forEach((c, i) => {
+      c.card.rotation.y += dt * (i ? -.8 : .8);
+      c.card.position.y = c.baseY + Math.sin(time * 1.6 + r.phase + i) * .12;
+      c.glow.material.opacity = .45 + Math.sin(time * 2 + r.phase) * .1;
+    });
   }
-  if (G.elevObj) { G.elevObj.ring.position.y = .3 + ((time * .7) % 1) * 3.6; }
+  if (G.elevObj) G.elevObj.ring.position.y = .3 + ((time * .7) % 1) * 3.6;
 
-  // debris
   for (const d of debris) {
     if (d.done) continue;
     d.vy -= 16 * dt;
@@ -1104,17 +1436,19 @@ function update(dt) {
     if (d.m.position.y < .15) { d.m.position.y = .15; if (Math.abs(d.vy) < 2) d.done = true; d.vy *= -.3; d.vx *= .5; d.vz *= .5; }
   }
 
-  // camera: third person, behind and above
+  // third-person camera, behind and above; portrait sits a little higher and further back
+  const portrait = camera.aspect < 1;
+  const back = portrait ? 7.2 : 6.2, up = portrait ? 4.4 : 3.7;
   const fx = -Math.sin(G.yaw), fz = -Math.cos(G.yaw);
   tmpO.set(G.px, 2.1, G.pz);
-  want.set(G.px - fx * 6.2, 3.7, G.pz - fz * 6.2);
+  want.set(G.px - fx * back, up, G.pz - fz * back);
   tmpD.subVectors(want, tmpO); const len = tmpD.length(); tmpD.normalize();
   ray.set(tmpO, tmpD); ray.far = len;
   const hit = ray.intersectObjects(G.ray, false)[0];
   if (hit) {
     const d = Math.max(.8, hit.distance - .45);
     want.copy(tmpO).addScaledVector(tmpD, d);
-    want.y += (1 - d / len) * 3.2; // blocked behind: rise over the shoulder
+    want.y += (1 - d / len) * 3.2;
   }
   const k = 1 - Math.exp(-dt * 10);
   camPos.lerp(want, hit ? Math.max(k, .5) : k);
@@ -1135,11 +1469,10 @@ function frame(now) {
 
 /* ---------- boot: a quiet floor behind the title ---------- */
 resize();
-G = { floor: 1, hp: 30, maxHp: 30, luck: 0, coin: 0, revive: 0, over: false, inv: {}, stats: { cards: 0, rolls: 0, succ: 0, walls: 0, dmg: 0, rooms: 0 } };
+G = freshState();
 ITEM_ORDER.forEach(k => G.inv[k] = 0);
 buildFloor();
 G.yaw = -0.6;
 requestAnimationFrame(frame);
-$('startBtn').focus({ preventScroll: true });
 })();
 </script>
