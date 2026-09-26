@@ -1,0 +1,1145 @@
+<title>確率の塔</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Shippori+Mincho+B1:wght@600;800&family=Zen+Kaku+Gothic+New:wght@400;500;700&family=JetBrains+Mono:wght@500;700&display=swap">
+<style>
+:root{
+  --ink:#0d0b14;
+  --panel:rgba(17,14,27,.8);
+  --panel-solid:#161222;
+  --line:rgba(227,187,95,.24);
+  --text:#efe9f7;
+  --muted:#a79fbd;
+  --gold:#e3bb5f;
+  --gold-deep:#7d5f1f;
+  --blood:#ea5d51;
+  --tide:#5ccfb9;
+  --violet:#9d8aec;
+  --mincho:"Shippori Mincho B1","Hiragino Mincho ProN","Yu Mincho",serif;
+  --gothic:"Zen Kaku Gothic New","Hiragino Sans","Yu Gothic",system-ui,sans-serif;
+  --mono:"JetBrains Mono",ui-monospace,Menlo,Consolas,monospace;
+  color-scheme:dark;
+}
+[hidden]{display:none!important}
+html,body{height:100%}
+body{background:var(--ink);color:var(--text);font-family:var(--gothic);overflow:hidden;-webkit-user-select:none;user-select:none;touch-action:none}
+#app{position:relative;height:100%;overflow:hidden;background:var(--ink)}
+#stage{position:absolute;inset:0}
+#stage canvas{display:block;width:100%;height:100%;cursor:grab}
+#stage canvas:active{cursor:grabbing}
+.mono{font-family:var(--mono);font-variant-numeric:tabular-nums}
+.panel{background:var(--panel);border:1px solid var(--line);border-radius:6px;backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px)}
+.hud{position:absolute;pointer-events:none;z-index:2}
+button{font:inherit;color:inherit}
+button:focus-visible{outline:2px solid var(--gold);outline-offset:2px}
+
+/* status */
+#stat{top:16px;left:16px;padding:10px 14px 12px;display:grid;gap:8px;min-width:210px}
+.floorline{display:flex;align-items:baseline;gap:4px;font-family:var(--mincho)}
+.floorline .k{font-size:14px;color:var(--muted)}
+#flNum{font-size:30px;line-height:1;font-weight:800;color:var(--gold)}
+.floorline .of{margin-left:6px;font-size:13px;color:var(--muted)}
+#pips{display:grid;grid-template-columns:repeat(10,1fr);gap:3px}
+#pips i{height:4px;border-radius:1px;background:rgba(255,255,255,.1)}
+#pips i.done{background:var(--gold-deep)}
+#pips i.now{background:var(--gold)}
+.hpline{display:grid;grid-template-columns:auto 1fr auto;align-items:center;gap:8px;font-size:12px}
+.hpline .lbl{letter-spacing:.08em;color:var(--muted)}
+.bar{height:8px;border-radius:2px;background:rgba(255,255,255,.08);overflow:hidden}
+#hpFill{display:block;height:100%;width:100%;background:linear-gradient(90deg,#b8443a,var(--blood));transition:width .35s}
+#hpTxt{font-size:12px}
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chip{font-size:11px;padding:2px 7px;border-radius:3px;background:rgba(255,255,255,.06);color:var(--muted)}
+.chip b{color:var(--text);font-family:var(--mono);font-weight:700}
+.chip.gold{color:var(--gold);background:rgba(227,187,95,.1)}
+
+/* minimap */
+#mini{top:16px;right:16px;padding:8px 8px 6px;display:grid;gap:4px;justify-items:center}
+#miniC{width:150px;height:150px;display:block}
+#mini .cap{font-size:10px;letter-spacing:.12em;color:var(--muted)}
+
+/* log */
+#log{left:16px;bottom:16px;width:min(400px,calc(100% - 32px));max-height:150px;padding:8px 10px;display:flex;flex-direction:column;justify-content:flex-end;overflow:hidden;font-size:12px;-webkit-mask-image:linear-gradient(to bottom,transparent 0,#000 34px);mask-image:linear-gradient(to bottom,transparent 0,#000 34px)}
+#log ol{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:3px}
+#log li{line-height:1.45}
+#log li.head{color:var(--gold);font-family:var(--mincho);font-weight:600;margin-top:4px}
+
+/* shared roll lines */
+.ln{display:flex;flex-wrap:wrap;align-items:baseline;gap:4px 8px}
+.ln .lbl{color:var(--text)}
+.ln .dice{font-family:var(--mono);font-size:11px;color:var(--muted)}
+.ln .dice b{color:var(--text)}
+.ln .res{font-size:11px;font-weight:700;padding:0 6px;border-radius:2px;line-height:1.6}
+.ln.ok .res{background:rgba(92,207,185,.16);color:var(--tide)}
+.ln.ng .res{background:rgba(234,93,81,.16);color:var(--blood)}
+.ln .note{font-size:11px;color:var(--muted)}
+.ln .tag{font-size:10px;color:var(--gold)}
+.tx.good{color:var(--tide)}
+.tx.bad{color:var(--blood)}
+.tx.neutral{color:var(--muted)}
+.tx.gold{color:var(--gold)}
+
+/* prompt */
+#prompt{left:50%;bottom:92px;transform:translateX(-50%);padding:8px 14px;font-size:14px;white-space:nowrap;display:flex;gap:10px;align-items:center}
+#prompt kbd,.kbd{font-family:var(--mono);font-size:11px;padding:1px 6px;border:1px solid var(--line);border-radius:3px;color:var(--gold)}
+#prompt .pct{font-family:var(--mono);color:var(--gold)}
+
+/* items */
+#items{right:16px;bottom:16px;display:flex;gap:6px;pointer-events:auto}
+.slot{position:relative;width:52px;height:60px;border-radius:5px;background:var(--panel);border:1px solid var(--line);display:grid;place-items:center;cursor:pointer;padding:0;transition:transform .12s,border-color .12s}
+.slot:hover{border-color:var(--gold);transform:translateY(-2px)}
+.slot .g{font-family:var(--mincho);font-size:22px;font-weight:800;color:var(--gold)}
+.slot .n{position:absolute;right:4px;bottom:2px;font-family:var(--mono);font-size:11px}
+.slot .k{position:absolute;left:4px;top:2px;font-family:var(--mono);font-size:9px;color:var(--muted)}
+.slot .p{position:absolute;right:4px;top:3px;font-size:8px;color:var(--muted);letter-spacing:.05em}
+.slot.empty{opacity:.32;cursor:default}
+.slot.empty:hover{transform:none;border-color:var(--line)}
+#tip{position:absolute;right:16px;bottom:84px;z-index:3;pointer-events:none;max-width:260px;padding:8px 10px;font-size:12px;line-height:1.5}
+#tip b{font-family:var(--mincho);color:var(--gold);display:block;font-size:14px}
+
+#keys{left:50%;bottom:16px;transform:translateX(-50%);font-size:11px;color:var(--muted);padding:5px 10px;white-space:nowrap}
+
+/* touch */
+#joy,#act{display:none}
+.touch #joy{display:block;position:absolute;z-index:3;left:24px;bottom:24px;width:120px;height:120px;border-radius:50%;background:rgba(17,14,27,.55);border:1px solid var(--line);pointer-events:auto;touch-action:none}
+#knob{position:absolute;left:50%;top:50%;width:48px;height:48px;margin:-24px 0 0 -24px;border-radius:50%;background:rgba(227,187,95,.35);border:1px solid var(--gold)}
+.touch #act{display:grid;place-items:center;position:absolute;z-index:3;right:24px;bottom:28px;width:78px;height:78px;border-radius:50%;background:rgba(227,187,95,.18);border:1px solid var(--gold);font-family:var(--mincho);font-weight:800;font-size:16px;color:var(--gold);pointer-events:auto}
+.touch #items{right:50%;transform:translateX(50%);bottom:150px}
+.touch #prompt{bottom:222px}
+.touch #keys{display:none}
+.touch #log{top:150px;bottom:auto;max-height:78px;width:min(300px,calc(100% - 32px));font-size:11px}
+.touch #tip{bottom:220px;right:50%;transform:translateX(50%)}
+
+@media (max-width:1180px){#keys{display:none}}
+@media (max-width:820px){
+  #stat{min-width:0;padding:8px 10px 10px;gap:6px}
+  #flNum{font-size:24px}
+  #miniC{width:112px;height:112px}
+  #log{top:150px;bottom:auto;max-height:78px;width:min(300px,calc(100% - 32px));font-size:11px}
+  #keys{display:none}
+  .slot{width:44px;height:52px}
+  .slot .g{font-size:18px}
+  #items{bottom:16px}
+  #prompt{bottom:84px;font-size:13px}
+}
+
+/* modal */
+.layer{position:absolute;inset:0;z-index:10;display:grid;place-items:center;padding:16px;background:rgba(8,6,14,.62)}
+.sheet{width:min(720px,100%);max-height:calc(100% - 8px);overflow:auto;background:var(--panel-solid);border:1px solid var(--line);border-radius:8px;display:grid;grid-template-columns:auto 1fr;gap:22px;padding:22px}
+.sheet .body{display:grid;gap:10px;align-content:start;min-width:0}
+.eyebrow{margin:0;font-size:11px;letter-spacing:.14em;color:var(--muted)}
+.sheet h2{margin:0;font-family:var(--mincho);font-weight:800;font-size:26px;line-height:1.25;text-wrap:balance}
+.sheet h2 .ori{font-size:14px;margin-left:10px;padding:2px 8px;border-radius:3px;vertical-align:middle}
+.ori.up{background:rgba(92,207,185,.14);color:var(--tide)}
+.ori.rev{background:rgba(234,93,81,.14);color:var(--blood)}
+#mDesc{margin:0;color:var(--muted);font-size:14px;line-height:1.7}
+#mLines{list-style:none;margin:0;padding:10px 0 0;border-top:1px solid var(--line);display:grid;gap:6px;font-size:13px}
+#mLines li{opacity:0;transform:translateY(4px);animation:lnIn .28s forwards}
+@keyframes lnIn{to{opacity:1;transform:none}}
+.btn{justify-self:start;margin-top:6px;padding:9px 18px;border-radius:4px;border:1px solid var(--gold);background:rgba(227,187,95,.12);color:var(--gold);font-weight:700;cursor:pointer;display:inline-flex;gap:10px;align-items:center}
+.btn:hover{background:rgba(227,187,95,.22)}
+
+/* tarot card */
+.tarot{width:150px;aspect-ratio:3/5;max-width:100%;perspective:800px;align-self:start}
+.tarot .face{position:relative;height:100%;border-radius:8px;padding:10px;background:
+  radial-gradient(120% 70% at 50% 42%,rgba(227,187,95,.16),transparent 60%),
+  linear-gradient(160deg,#2a2044,#140f22);
+  border:1px solid var(--gold);box-shadow:inset 0 0 0 4px #140f22,inset 0 0 0 5px rgba(227,187,95,.5);
+  display:grid;grid-template-rows:auto 1fr auto auto;justify-items:center;align-items:center;animation:flip .7s cubic-bezier(.2,.7,.2,1)}
+.tarot.rev .face{transform:rotate(180deg)}
+.tarot .num{font-family:var(--mincho);font-weight:800;color:var(--gold);font-size:15px;letter-spacing:.1em;padding-top:6px}
+.tarot .sym{font-size:58px;color:var(--gold);line-height:1;text-shadow:0 0 18px rgba(227,187,95,.5)}
+.tarot .nm{font-family:var(--mincho);font-weight:800;font-size:20px}
+.tarot .en{font-size:9px;letter-spacing:.18em;color:var(--muted);padding-bottom:6px}
+@keyframes flip{from{transform:rotateY(90deg) scale(.9);opacity:0}}
+.tarot.rev .face{animation-name:flipRev}
+@keyframes flipRev{from{transform:rotate(180deg) rotateY(90deg) scale(.9);opacity:0}}
+
+/* title / end */
+#title .sheet,#end .sheet{grid-template-columns:1fr;max-width:560px;gap:14px}
+.logo{font-family:var(--mincho);font-weight:800;font-size:clamp(40px,9vw,64px);line-height:1;margin:0;letter-spacing:.06em}
+.logo em{font-style:normal;color:var(--gold)}
+.sub{margin:0;font-size:11px;letter-spacing:.28em;color:var(--muted)}
+.rules{margin:0;padding:0;list-style:none;display:grid;gap:8px;font-size:14px;line-height:1.65;color:var(--muted)}
+.rules b{color:var(--text);font-weight:700}
+.ctl{display:grid;grid-template-columns:auto 1fr;gap:4px 12px;font-size:12px;color:var(--muted);padding-top:10px;border-top:1px solid var(--line)}
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.stats div{display:grid;gap:2px}
+.stats span{font-size:11px;color:var(--muted);letter-spacing:.06em}
+.stats b{font-family:var(--mono);font-size:20px}
+
+#fade{position:absolute;inset:0;z-index:8;background:#000;opacity:0;pointer-events:none;transition:opacity .6s}
+#fade.on{opacity:1}
+#banner{position:absolute;left:0;right:0;top:34%;z-index:7;text-align:center;pointer-events:none;font-family:var(--mincho);font-weight:800;font-size:clamp(34px,7vw,56px);color:var(--gold);letter-spacing:.2em;opacity:0;text-shadow:0 2px 24px rgba(0,0,0,.8)}
+#banner small{display:block;font-family:var(--gothic);font-weight:500;font-size:12px;letter-spacing:.3em;color:var(--muted);margin-top:8px}
+#banner.show{animation:ban 2.4s forwards}
+@keyframes ban{0%{opacity:0;transform:translateY(8px)}15%,70%{opacity:1;transform:none}100%{opacity:0}}
+#hurt{position:absolute;inset:0;z-index:6;pointer-events:none;box-shadow:inset 0 0 120px rgba(234,60,50,.7);opacity:0;transition:opacity .5s}
+#hurt.on{opacity:1;transition:none}
+
+@media (max-width:560px){
+  .sheet{grid-template-columns:1fr;padding:16px;gap:14px}
+  .tarot{width:110px;justify-self:center}
+  .tarot .sym{font-size:40px}
+  .sheet h2{font-size:21px}
+}
+@media (prefers-reduced-motion:reduce){
+  .tarot .face,#mLines li,#banner.show{animation-duration:.01s}
+}
+</style>
+
+<div id="app">
+  <div id="stage"></div>
+
+  <div id="stat" class="hud panel">
+    <div class="floorline"><span class="k">第</span><span id="flNum">一</span><span class="k">層</span><span class="of">/ 十層</span></div>
+    <div id="pips"></div>
+    <div class="hpline"><span class="lbl">HP</span><div class="bar"><i id="hpFill"></i></div><span id="hpTxt" class="mono">30/30</span></div>
+    <div class="chips">
+      <span class="chip">運 <b id="luckTxt">±0%</b></span>
+      <span class="chip gold" id="coinChip" hidden>硬貨 <b id="coinTxt">0</b></span>
+      <span class="chip gold" id="revChip" hidden>再起 <b id="revTxt">0</b></span>
+      <span class="chip" id="dimChip" hidden>灯が陰っている</span>
+    </div>
+  </div>
+
+  <div id="mini" class="hud panel">
+    <canvas id="miniC" width="300" height="300"></canvas>
+    <span class="cap">A–E × 1–5</span>
+  </div>
+
+  <div id="keys" class="hud panel"><span class="kbd">W S</span> 前後 · <span class="kbd">A D</span> 旋回 · ドラッグで視点 · <span class="kbd">E</span> 調べる · <span class="kbd">1–6</span> 道具</div>
+
+  <div id="log" class="hud panel"><ol id="logList"></ol></div>
+  <div id="prompt" class="hud panel" hidden></div>
+  <div id="items" class="hud"></div>
+  <div id="tip" class="hud panel" hidden></div>
+
+  <div id="joy"><div id="knob"></div></div>
+  <button id="act" type="button">調べる</button>
+
+  <div id="hurt"></div>
+  <div id="banner"></div>
+  <div id="fade"></div>
+
+  <div id="modal" class="layer" hidden>
+    <div class="sheet">
+      <div id="tarot" class="tarot"></div>
+      <div class="body">
+        <p class="eyebrow" id="mEye"></p>
+        <h2 id="mTitle"></h2>
+        <p id="mDesc"></p>
+        <ol id="mLines"></ol>
+        <button id="mBtn" class="btn" type="button">続ける <span class="kbd">Space</span></button>
+      </div>
+    </div>
+  </div>
+
+  <div id="title" class="layer">
+    <div class="sheet">
+      <p class="sub">ARCANA TOWER · TEN FLOORS OF CHANCE</p>
+      <h1 class="logo">確率の<em>塔</em></h1>
+      <ul class="rules">
+        <li>塔は<b>十層</b>。各層は <b>5×5</b> の部屋でできている。スタートは左下の <b>A1</b>、次の層へのエレベーターは<b>右端の列か最上段</b>のどこかにある。</li>
+        <li>部屋の祭壇でアルカナを引くと、<b>正位置か逆位置か</b>で運命が変わる。引いたあと、その部屋の壁が確率で崩れて隣の部屋へ進めるようになる。最初から崩れている壁もある。</li>
+        <li>引く、撃つ、避ける、飲む、爆破する。<b>どの行動にも失敗がある。</b>出目は d100 で、すべて画面に表示される。</li>
+      </ul>
+      <div class="ctl">
+        <span class="kbd">W S / ↑ ↓</span><span>前進・後退</span>
+        <span class="kbd">A D / ← →</span><span>旋回(画面ドラッグでも向きを変えられる)</span>
+        <span class="kbd">E / Space</span><span>カードを引く・祭壇を叩く・エレベーターに乗る</span>
+        <span class="kbd">1 – 6</span><span>道具を使う(アイコンのクリックでも可)</span>
+      </div>
+      <button id="startBtn" class="btn" type="button">塔に挑む <span class="kbd">Enter</span></button>
+    </div>
+  </div>
+
+  <div id="end" class="layer" hidden>
+    <div class="sheet">
+      <p class="sub" id="endSub"></p>
+      <h1 class="logo" id="endTitle"></h1>
+      <p id="endDesc" style="margin:0;color:var(--muted);line-height:1.7"></p>
+      <div class="stats" id="endStats"></div>
+      <button id="againBtn" class="btn" type="button">もう一度挑む <span class="kbd">Enter</span></button>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script>
+(() => {
+'use strict';
+const S = 12, H = 5, T = 0.8, N = 5, PR = 0.55, PIL = 1.3;
+const $ = id => document.getElementById(id);
+const rnd = (a, b) => a + Math.floor(Math.random() * (b - a + 1));
+const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
+const pick = a => a[Math.floor(Math.random() * a.length)];
+const KANJI = ['〇','一','二','三','四','五','六','七','八','九','十'];
+const DIRS = [['N','北'],['E','東'],['S','南'],['W','西']];
+const roomName = (cx, cy) => 'ABCDE'[cx] + (cy + 1);
+const reduceMotion = matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+/* ---------- renderer ---------- */
+const stage = $('stage');
+const renderer = new THREE.WebGLRenderer({ antialias: true });
+renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+renderer.outputEncoding = THREE.sRGBEncoding;
+stage.appendChild(renderer.domElement);
+const scene = new THREE.Scene();
+scene.background = new THREE.Color(0x0d0b14);
+scene.fog = new THREE.FogExp2(0x0d0b14, 0.028);
+const camera = new THREE.PerspectiveCamera(62, 1, 0.1, 300);
+function resize() {
+  const w = stage.clientWidth || 1, h = stage.clientHeight || 1;
+  renderer.setSize(w, h, false);
+  camera.aspect = w / h; camera.updateProjectionMatrix();
+}
+addEventListener('resize', resize);
+
+/* ---------- procedural textures ---------- */
+function canvasTex(w, h, draw) {
+  const c = document.createElement('canvas'); c.width = w; c.height = h;
+  draw(c.getContext('2d'), w, h);
+  const t = new THREE.CanvasTexture(c);
+  t.encoding = THREE.sRGBEncoding;
+  t.wrapS = t.wrapT = THREE.RepeatWrapping;
+  t.anisotropy = 4;
+  return t;
+}
+function speckle(g, w, h, n, a) {
+  for (let i = 0; i < n; i++) {
+    const v = Math.random() < .5 ? 0 : 255;
+    g.fillStyle = `rgba(${v},${v},${v},${Math.random() * a})`;
+    g.fillRect(Math.random() * w, Math.random() * h, 2, 2);
+  }
+}
+const floorTex = canvasTex(256, 256, (g, w, h) => {
+  g.fillStyle = '#2b2733'; g.fillRect(0, 0, w, h);
+  for (let y = 0; y < 2; y++) for (let x = 0; x < 2; x++) {
+    const l = 52 + Math.random() * 14;
+    g.fillStyle = `hsl(260,6%,${l}%)`;
+    g.fillRect(x * 128 + 3, y * 128 + 3, 122, 122);
+  }
+  speckle(g, w, h, 2600, .18);
+  g.strokeStyle = 'rgba(0,0,0,.25)'; g.lineWidth = 1;
+  for (let i = 0; i < 6; i++) { g.beginPath(); const x = Math.random() * w, y = Math.random() * h; g.moveTo(x, y); g.lineTo(x + rnd(-30, 30), y + rnd(-30, 30)); g.stroke(); }
+});
+floorTex.repeat.set(N * 3, N * 3);
+const brickTex = canvasTex(256, 256, (g, w, h) => {
+  g.fillStyle = '#35303d'; g.fillRect(0, 0, w, h);
+  const rows = 8, bh = h / rows;
+  for (let r = 0; r < rows; r++) {
+    const off = r % 2 ? 32 : 0;
+    for (let x = -64; x < w; x += 64) {
+      const l = 50 + Math.random() * 16;
+      g.fillStyle = `hsl(255,7%,${l}%)`;
+      g.fillRect(x + off + 2, r * bh + 2, 60, bh - 4);
+    }
+  }
+  speckle(g, w, h, 2200, .2);
+});
+brickTex.repeat.set(2.5, 1.2);
+const cardTex = canvasTex(128, 208, (g, w, h) => {
+  const gr = g.createLinearGradient(0, 0, w, h); gr.addColorStop(0, '#3a2a63'); gr.addColorStop(1, '#171027');
+  g.fillStyle = gr; g.fillRect(0, 0, w, h);
+  g.strokeStyle = '#e3bb5f'; g.lineWidth = 4; g.strokeRect(6, 6, w - 12, h - 12);
+  g.lineWidth = 1.5; g.strokeRect(13, 13, w - 26, h - 26);
+  g.translate(w / 2, h / 2);
+  for (let i = 0; i < 16; i++) { g.rotate(Math.PI / 8); g.beginPath(); g.moveTo(0, 14); g.lineTo(0, i % 2 ? 34 : 46); g.stroke(); }
+  g.beginPath(); g.arc(0, 0, 11, 0, Math.PI * 2); g.fillStyle = '#e3bb5f'; g.fill();
+});
+const glowTex = canvasTex(128, 128, (g, w, h) => {
+  const gr = g.createRadialGradient(64, 64, 0, 64, 64, 64);
+  gr.addColorStop(0, 'rgba(255,255,255,1)'); gr.addColorStop(.3, 'rgba(255,255,255,.35)'); gr.addColorStop(1, 'rgba(255,255,255,0)');
+  g.fillStyle = gr; g.fillRect(0, 0, w, h);
+});
+
+/* ---------- shared materials & geometry ---------- */
+const floorMat = new THREE.MeshStandardMaterial({ map: floorTex, roughness: .95 });
+const wallMat = new THREE.MeshStandardMaterial({ map: brickTex, roughness: .9 });
+const outerMat = new THREE.MeshStandardMaterial({ map: brickTex, roughness: .9 });
+const pillarMat = new THREE.MeshStandardMaterial({ color: 0x4a4356, roughness: .8 });
+const stoneMat = new THREE.MeshStandardMaterial({ color: 0x6d6478, roughness: .7 });
+const debrisMat = new THREE.MeshStandardMaterial({ map: brickTex, roughness: .9 });
+const geoV = new THREE.BoxGeometry(T, H, S - PIL + .02);
+const geoH = new THREE.BoxGeometry(S - PIL + .02, H, T);
+const geoPil = new THREE.BoxGeometry(PIL, H + .5, PIL);
+const geoPed = new THREE.CylinderGeometry(.55, .8, 1.1, 12);
+const geoPedTop = new THREE.BoxGeometry(1.5, .16, 1.5);
+const geoCard = new THREE.PlaneGeometry(1.1, 1.8);
+const geoDeb = new THREE.BoxGeometry(.55, .35, .4);
+
+/* stars above the open tower */
+{
+  const pts = []; for (let i = 0; i < 500; i++) pts.push((Math.random() - .3) * 260, 45 + Math.random() * 60, (Math.random() - .7) * 260);
+  const g = new THREE.BufferGeometry(); g.setAttribute('position', new THREE.Float32BufferAttribute(pts, 3));
+  scene.add(new THREE.Points(g, new THREE.PointsMaterial({ color: 0xcfc4ff, size: .6, fog: false })));
+}
+scene.add(new THREE.AmbientLight(0x4a4266, .75));
+scene.add(new THREE.HemisphereLight(0x8577c8, 0x1a1420, .45));
+
+/* ---------- player ---------- */
+const player = new THREE.Group();
+{
+  const m = (c, o = {}) => new THREE.MeshStandardMaterial(Object.assign({ color: c, roughness: .75 }, o));
+  const coat = new THREE.Mesh(new THREE.CylinderGeometry(.36, .58, 1.35, 12), m(0x6b2a2a)); coat.position.y = 1.0;
+  const cape = new THREE.Mesh(new THREE.CylinderGeometry(.5, .72, 1.1, 12, 1, true, Math.PI * .6, Math.PI * .8), m(0x2b1f2e, { side: THREE.DoubleSide })); cape.position.set(0, 1.08, 0);
+  const legL = new THREE.Mesh(new THREE.BoxGeometry(.18, .5, .2), m(0x241c22)); legL.position.set(-.15, .25, 0);
+  const legR = legL.clone(); legR.position.x = .15;
+  const head = new THREE.Mesh(new THREE.SphereGeometry(.26, 16, 12), m(0xd8b596)); head.position.y = 1.9;
+  const brim = new THREE.Mesh(new THREE.CylinderGeometry(.62, .62, .05, 24), m(0x2a2019)); brim.position.y = 2.1;
+  const crown = new THREE.Mesh(new THREE.CylinderGeometry(.28, .33, .36, 16), m(0x2a2019)); crown.position.y = 2.3;
+  const band = new THREE.Mesh(new THREE.CylinderGeometry(.335, .335, .06, 16), m(0xe3bb5f, { metalness: .6, roughness: .3 })); band.position.y = 2.16;
+  const gun = new THREE.Mesh(new THREE.BoxGeometry(.09, .16, .55), m(0x3c3c44, { metalness: .8, roughness: .35 })); gun.position.set(.48, 1.0, -.18);
+  const lantern = new THREE.Mesh(new THREE.BoxGeometry(.16, .22, .16), new THREE.MeshBasicMaterial({ color: 0xffc27a })); lantern.position.set(-.5, .95, -.05);
+  player.add(coat, cape, legL, legR, head, brim, crown, band, gun, lantern);
+  player.userData = { legL, legR };
+  scene.add(player);
+}
+const lamp = new THREE.PointLight(0xffc98a, 1.5, 28, 1.4);
+scene.add(lamp);
+
+/* ---------- game state ---------- */
+let G = null, world = null, running = false, modalOpen = false, fading = false, modalAt = 0, onModalClose = null;
+const debris = [];
+let shake = 0;
+
+const ITEMS = {
+  potion: { name: '治癒の小瓶', g: '瓶', desc: 'HPを回復する。成功率 85%。', key: 1 },
+  bomb:   { name: '発破筒',     g: '爆', desc: '向いている方向の壁を爆破する。成功率 70%。', key: 2 },
+  coin:   { name: '幸運の硬貨', g: '貨', desc: '次の3回の判定に +15%。成功率 90%。', key: 3 },
+  chart:  { name: '星図',       g: '図', desc: 'この層のエレベーターの位置を知る。成功率 80%。', key: 4 },
+  bullet: { name: '銀の弾丸',   g: '弾', desc: '戦闘で自動装填。その射撃の命中 +30%。', key: 5, passive: true },
+  charm:  { name: '護符',       g: '護', desc: '被弾時に 60% でダメージを打ち消し、砕ける。', key: 6, passive: true },
+};
+const ITEM_ORDER = ['potion', 'bomb', 'coin', 'chart', 'bullet', 'charm'];
+const ITEM_W = { potion: 30, bomb: 22, coin: 15, bullet: 13, chart: 10, charm: 10 };
+function randItem() {
+  let tot = 0; for (const k in ITEM_W) tot += ITEM_W[k];
+  let r = Math.random() * tot; for (const k in ITEM_W) { r -= ITEM_W[k]; if (r < 0) return k; }
+  return 'potion';
+}
+
+/* ---------- rolls & effects ---------- */
+function roll(label, base, opt = {}) {
+  let c = base + (opt.noLuck ? 0 : G.luck), tag = '';
+  if (!opt.noBuff && G.coin > 0) { c += 15; G.coin--; tag = '硬貨 +15'; }
+  c = clamp(Math.round(c), 5, 95);
+  const d = rnd(1, 100), ok = d <= c;
+  G.stats.rolls++; if (ok) G.stats.succ++;
+  return { roll: true, label, d, c, ok, tag, note: '' };
+}
+const tx = (text, kind = 'neutral') => ({ text, kind });
+function hurt(n, L) {
+  const d = Math.max(1, Math.round(n * (1 + (G.floor - 1) * 0.1)));
+  if (G.inv.charm > 0) {
+    const r = roll('護符が守る', 60, { noBuff: true }); L.push(r);
+    if (r.ok) { G.inv.charm--; r.note = `護符が砕け、${d} ダメージを打ち消した`; return 0; }
+  }
+  G.hp -= d; G.stats.dmg += d;
+  L.push(tx(`${d} ダメージを受けた`, 'bad'));
+  flashHurt(); shake = Math.max(shake, .25);
+  return d;
+}
+function heal(n, L) {
+  const a = Math.max(0, Math.min(G.maxHp - G.hp, Math.round(n)));
+  G.hp += a; L.push(tx(a ? `HP が ${a} 回復した` : 'HP はすでに満ちている', 'good'));
+}
+function maxHpMod(n, L) {
+  G.maxHp = Math.max(10, G.maxHp + n);
+  if (n > 0) G.hp += n;
+  G.hp = Math.min(G.hp, G.maxHp);
+  L.push(tx(`最大HP ${n > 0 ? '+' : ''}${n}`, n > 0 ? 'good' : 'bad'));
+}
+function luckMod(n, L) {
+  G.luck = clamp(G.luck + n, -20, 30);
+  L.push(tx(`運 ${n > 0 ? '+' : ''}${n}%(現在 ${fmtLuck()})`, n > 0 ? 'good' : 'bad'));
+}
+function gainItem(id, L) {
+  if (G.inv[id] >= 5) { L.push(tx(`${ITEMS[id].name} はもう持ちきれない`, 'neutral')); return; }
+  G.inv[id]++; L.push(tx(`${ITEMS[id].name} を手に入れた`, 'gold'));
+}
+function loseItem(L) {
+  const own = ITEM_ORDER.filter(k => G.inv[k] > 0);
+  if (!own.length) { L.push(tx('失うものは何も持っていなかった', 'neutral')); return; }
+  const k = pick(own); G.inv[k]--; L.push(tx(`${ITEMS[k].name} が消えた`, 'bad'));
+}
+function resolveDeath(L) {
+  if (G.hp > 0 || G.over) return;
+  if (G.revive > 0) {
+    G.revive--;
+    const r = roll('審判の再起', 70, { noBuff: true }); L.push(r);
+    if (r.ok) { G.hp = Math.min(G.maxHp, 10); r.note = 'ラッパの音に引き上げられ、立ち上がった'; return; }
+  }
+  G.hp = 0; G.over = 'dead'; L.push(tx('力尽きた……', 'bad'));
+}
+function battle(name, ehp, atk, L) {
+  ehp = Math.round(ehp + (G.floor - 1) * 1.6);
+  L.push(tx(`${name} が現れた(HP ${ehp})`, 'bad'));
+  for (let rd = 1; rd <= 8; rd++) {
+    let bonus = 0, lbl = `第${rd}射`;
+    if (G.inv.bullet > 0) { G.inv.bullet--; bonus = 30; lbl += '(銀の弾丸)'; }
+    const r = roll(lbl, 62 + bonus); L.push(r);
+    if (r.ok) { const d = rnd(3, 6) + (bonus ? 2 : 0); ehp -= d; r.note = `${d} 命中 · 敵HP ${Math.max(0, ehp)}`; }
+    else r.note = '弾が逸れた';
+    if (ehp <= 0) { L.push(tx(`${name} を撃ち倒した`, 'good')); return true; }
+    const e = roll('敵の攻撃をかわす', 52 - G.floor * 1.5); L.push(e);
+    if (!e.ok) hurt(atk, L); else e.note = '紙一重で避けた';
+    if (G.hp <= 0) return false;
+  }
+  L.push(tx(`${name} は霧の中へ退いた`, 'neutral'));
+  return false;
+}
+
+/* ---------- the major arcana ---------- */
+const ARCANA = [
+  { num: '0', name: '愚者', en: 'THE FOOL', sym: '✧',
+    up: '気ままな一歩が風を呼ぶ。運が少し上向く。', rev: '足元が抜け落ちる。塔のどこかへ飛ばされるかもしれない。',
+    fx(up, L) { if (up) luckMod(5, L); else { const r = roll('転移に抗う', 35); L.push(r); if (r.ok) r.note = '踏みとどまった'; else teleport(L); } } },
+  { num: 'I', name: '魔術師', en: 'THE MAGICIAN', sym: '∞',
+    up: '手の中に道具がひとつ現れる。', rev: '手品に化かされ、道具をひとつ失う。',
+    fx(up, L) { up ? gainItem(randItem(), L) : loseItem(L); } },
+  { num: 'II', name: '女教皇', en: 'THE HIGH PRIESTESS', sym: '☾',
+    up: '書の頁に、この層のエレベーターの場所が記されている。', rev: '誤った囁きが耳に残る。運が下がる。',
+    fx(up, L) { if (up) { G.elevKnown = true; L.push(tx(`エレベーターは ${roomName(G.elev.cx, G.elev.cy)} にある`, 'gold')); } else luckMod(-4, L); } },
+  { num: 'III', name: '女帝', en: 'THE EMPRESS', sym: '♀',
+    up: '豊穣の加護。傷が大きく癒える。', rev: '実りが枯れる。最大HPが減る。',
+    fx(up, L) { up ? heal(12, L) : maxHpMod(-3, L); } },
+  { num: 'IV', name: '皇帝', en: 'THE EMPEROR', sym: '♔',
+    up: '鉄の意志を授かる。最大HP +4。', rev: '暴君の杖が振り下ろされる。',
+    fx(up, L) { up ? maxHpMod(4, L) : hurt(6, L); } },
+  { num: 'VII', name: '戦車', en: 'THE CHARIOT', sym: '⚔',
+    up: '塔の衛兵と撃ち合う。勝てば戦利品。', rev: '暴走する鉄騎が突っ込んでくる。',
+    fx(up, L) { const w = battle(up ? '鉄の衛兵' : '暴走する鉄騎', up ? 8 : 12, up ? 3 : 5, L); if (w) gainItem(randItem(), L); } },
+  { num: 'VIII', name: '力', en: 'STRENGTH', sym: '∾',
+    up: '獅子を手懐け、その牙を護符にする。', rev: '獅子の爪が肩を裂く。',
+    fx(up, L) { up ? gainItem('charm', L) : hurt(5, L); } },
+  { num: 'IX', name: '隠者', en: 'THE HERMIT', sym: '✶',
+    up: '隠者のランタンが、この層の壁をすべて照らし出す。', rev: '灯が陰る。この層では視界が狭くなる。',
+    fx(up, L) { if (up) { G.revealAll = true; L.push(tx('地図にこの層の全ての壁が浮かんだ', 'gold')); } else { G.dim = true; L.push(tx('霧が濃くなった', 'bad')); } } },
+  { num: 'X', name: '運命の輪', en: 'WHEEL OF FORTUNE', sym: '☸',
+    up: '輪が回る。当たれば道具がふたつ。', rev: '輪が軋む。外れれば深手を負う。',
+    fx(up, L) { const r = roll('輪の目', up ? 60 : 40); L.push(r); if (r.ok) { r.note = '当たり'; gainItem(randItem(), L); gainItem(randItem(), L); } else { r.note = '外れ'; hurt(up ? 4 : 8, L); } } },
+  { num: 'XIII', name: '死神', en: 'DEATH', sym: '☠',
+    up: '死神と正面から撃ち合う。勝てば運が上がる。', rev: '死神の鎌が先に動く。',
+    fx(up, L) { if (!up) { L.push(tx('鎌が先に振るわれた', 'bad')); hurt(4, L); if (G.hp <= 0) return; } if (battle('死神', 14, 5, L)) luckMod(6, L); } },
+  { num: 'XIV', name: '節制', en: 'TEMPERANCE', sym: '⚱',
+    up: 'ふたつの杯の水を注ぎ合わせる。HPが半分まで満ちる。', rev: '濁った水を飲んでしまう。',
+    fx(up, L) { if (up) heal(Math.max(8, G.maxHp / 2), L); else { hurt(3, L); luckMod(-2, L); } } },
+  { num: 'XV', name: '悪魔', en: 'THE DEVIL', sym: '⛧',
+    up: '契約を結ぶ。道具ふたつと引き換えに最大HP −4。', rev: '鎖が締め上げる。',
+    fx(up, L) { if (up) { maxHpMod(-4, L); gainItem(randItem(), L); gainItem(randItem(), L); } else hurt(7, L); } },
+  { num: 'XVI', name: '塔', en: 'THE TOWER', sym: 'ϟ',
+    up: '落雷。この部屋の壁がすべて崩れる。瓦礫に注意。', rev: '崩落。壁はすべて崩れるが、瓦礫が降りそそぐ。',
+    fx(up, L) { if (up) { const r = roll('瓦礫を避ける', 50); L.push(r); if (r.ok) r.note = '身を翻した'; else hurt(4, L); } else hurt(7, L); return { allBreak: true }; } },
+  { num: 'XVII', name: '星', en: 'THE STAR', sym: '★',
+    up: '希望の光が降る。運 +8。', rev: '星が陰る。運 −4。',
+    fx(up, L) { luckMod(up ? 8 : -4, L); } },
+  { num: 'XVIII', name: '月', en: 'THE MOON', sym: '☽',
+    up: '幻の中で、本物の道具を拾う。', rev: '幻の敵に引き金を引く。撃ったのは自分の影だった。',
+    fx(up, L) { up ? gainItem(randItem(), L) : hurt(4, L); } },
+  { num: 'XIX', name: '太陽', en: 'THE SUN', sym: '☉',
+    up: '陽光が差し込む。回復し、道具をひとつ得る。', rev: '薄日が差す。わずかに回復する。',
+    fx(up, L) { if (up) { heal(8, L); gainItem(randItem(), L); } else heal(3, L); } },
+  { num: 'XX', name: '審判', en: 'JUDGEMENT', sym: '♆',
+    up: '再起の加護。倒れても一度だけ立ち上がれる(70%)。', rev: '裁きのラッパが鼓膜を裂く。',
+    fx(up, L) { if (up) { G.revive++; L.push(tx('再起の加護を得た', 'gold')); } else hurt(5, L); } },
+  { num: 'XXI', name: '世界', en: 'THE WORLD', sym: '◎',
+    up: '輪が閉じる。部屋の壁がすべて崩れ、傷も癒える。', rev: '未完の輪。何も起きない。',
+    fx(up, L) { if (up) { heal(5, L); return { allBreak: true }; } L.push(tx('何も起きなかった', 'neutral')); } },
+];
+
+/* ---------- walls ---------- */
+function sideWall(cx, cy, dir) {
+  if (dir === 'N') return cy < N - 1 ? { t: 'h', i: cx, j: cy } : null;
+  if (dir === 'S') return cy > 0 ? { t: 'h', i: cx, j: cy - 1 } : null;
+  if (dir === 'E') return cx < N - 1 ? { t: 'v', i: cx, j: cy } : null;
+  if (dir === 'W') return cx > 0 ? { t: 'v', i: cx - 1, j: cy } : null;
+}
+const isOpen = w => G[w.t][w.i][w.j];
+const wKey = w => `${w.t}${w.i}_${w.j}`;
+function closedSides(cx, cy) {
+  const out = [];
+  for (const [d, jp] of DIRS) { const w = sideWall(cx, cy, d); if (w && !isOpen(w)) out.push({ w, d, jp }); }
+  return out;
+}
+function wallRolls(cx, cy, chance, L, auto) {
+  const out = [];
+  const sides = closedSides(cx, cy);
+  if (!sides.length) { L.push(tx('この部屋に崩せる壁は残っていない', 'neutral')); return out; }
+  for (const s of sides) {
+    if (auto) { L.push({ roll: true, auto: true, ok: true, label: `${s.jp}の壁が崩れる`, note: '' }); out.push(s.w); continue; }
+    const r = roll(`${s.jp}の壁が崩れる`, chance); L.push(r);
+    if (r.ok) out.push(s.w);
+  }
+  return out;
+}
+function breakWalls(list) {
+  for (const w of list) {
+    if (isOpen(w)) continue;
+    G[w.t][w.i][w.j] = true; G.stats.walls++;
+    const m = G.wm[wKey(w)];
+    if (m) {
+      world.remove(m); G.ray.splice(G.ray.indexOf(m), 1);
+      spawnDebris(m.position, w.t);
+    }
+  }
+  if (list.length) { shake = Math.max(shake, .45); rebuildColliders(); drawMini(); }
+}
+function spawnDebris(pos, t) {
+  for (let i = 0; i < 18; i++) {
+    const m = new THREE.Mesh(geoDeb, debrisMat);
+    const along = (Math.random() - .5) * (S - 2);
+    m.position.set(pos.x + (t === 'h' ? along : (Math.random() - .5) * .6), .5 + Math.random() * H * .8, pos.z + (t === 'v' ? along : (Math.random() - .5) * .6));
+    m.rotation.set(Math.random() * 3, Math.random() * 3, Math.random() * 3);
+    const s = .6 + Math.random() * .9; m.scale.set(s, s, s);
+    world.add(m);
+    debris.push({ m, vx: (Math.random() - .5) * 5, vy: Math.random() * 4, vz: (Math.random() - .5) * 5, done: false });
+  }
+}
+
+/* ---------- floor construction ---------- */
+function buildFloor() {
+  if (world) scene.remove(world);
+  debris.length = 0;
+  world = new THREE.Group(); scene.add(world);
+  const f = G.floor;
+  const hue = (260 - (f - 1) * 26 + 360) % 360 / 360;
+  wallMat.color.setHSL(hue, .16, .7);
+  outerMat.color.setHSL(hue, .12, .5);
+  pillarMat.color.setHSL(hue, .12, .32);
+  floorMat.color.setHSL(hue, .08, .72);
+
+  const openP = 0.22;
+  G.v = [...Array(N - 1)].map(() => [...Array(N)].map(() => Math.random() < openP));
+  G.h = [...Array(N)].map(() => [...Array(N - 1)].map(() => Math.random() < openP));
+  G.visited = [...Array(N)].map(() => Array(N).fill(false));
+  G.rooms = [...Array(N)].map(() => Array(N).fill(null));
+  G.elevKnown = false; G.revealAll = false; G.dim = false;
+  G.wm = {}; G.ray = [];
+  const cands = [];
+  for (let cx = 0; cx < N; cx++) for (let cy = 0; cy < N; cy++) if (cx === N - 1 || cy === N - 1) cands.push({ cx, cy });
+  G.elev = pick(cands);
+
+  const fl = new THREE.Mesh(new THREE.PlaneGeometry(N * S, N * S), floorMat);
+  fl.rotation.x = -Math.PI / 2; fl.position.set(N * S / 2, 0, -N * S / 2);
+  world.add(fl);
+
+  // outer walls
+  const L = N * S;
+  const outer = [
+    [new THREE.BoxGeometry(T, H, L), 0, -L / 2], [new THREE.BoxGeometry(T, H, L), L, -L / 2],
+    [new THREE.BoxGeometry(L, H, T), L / 2, 0], [new THREE.BoxGeometry(L, H, T), L / 2, -L],
+  ];
+  for (const [g, x, z] of outer) { const m = new THREE.Mesh(g, outerMat); m.position.set(x, H / 2, z); world.add(m); G.ray.push(m); }
+  // pillars
+  for (let i = 0; i <= N; i++) for (let j = 0; j <= N; j++) {
+    const m = new THREE.Mesh(geoPil, pillarMat); m.position.set(i * S, (H + .5) / 2, -j * S); world.add(m); G.ray.push(m);
+  }
+  // inner walls
+  for (let i = 0; i < N - 1; i++) for (let j = 0; j < N; j++) if (!G.v[i][j]) {
+    const m = new THREE.Mesh(geoV, wallMat); m.position.set((i + 1) * S, H / 2, -(j + .5) * S); world.add(m); G.wm[`v${i}_${j}`] = m; G.ray.push(m);
+  }
+  for (let i = 0; i < N; i++) for (let j = 0; j < N - 1; j++) if (!G.h[i][j]) {
+    const m = new THREE.Mesh(geoH, wallMat); m.position.set((i + .5) * S, H / 2, -(j + 1) * S); world.add(m); G.wm[`h${i}_${j}`] = m; G.ray.push(m);
+  }
+  // rubble from walls that were already down
+  for (let i = 0; i < N - 1; i++) for (let j = 0; j < N; j++) if (G.v[i][j]) scatterRubble((i + 1) * S, -(j + .5) * S, 'v');
+  for (let i = 0; i < N; i++) for (let j = 0; j < N - 1; j++) if (G.h[i][j]) scatterRubble((i + .5) * S, -(j + 1) * S, 'h');
+
+  // altars with a card each
+  for (let cx = 0; cx < N; cx++) for (let cy = 0; cy < N; cy++) {
+    const x = cx * S + S / 2, z = -(cy * S + S / 2);
+    const ped = new THREE.Mesh(geoPed, stoneMat); ped.position.set(x, .55, z);
+    const top = new THREE.Mesh(geoPedTop, stoneMat); top.position.set(x, 1.15, z);
+    const card = new THREE.Mesh(geoCard, new THREE.MeshBasicMaterial({ map: cardTex, side: THREE.DoubleSide, transparent: true }));
+    card.position.set(x, 2.35, z); card.rotation.y = Math.random() * 6;
+    const glow = new THREE.Sprite(new THREE.SpriteMaterial({ map: glowTex, color: 0xe3bb5f, transparent: true, opacity: .55, blending: THREE.AdditiveBlending, depthWrite: false }));
+    glow.position.set(x, 2.35, z); glow.scale.set(3.4, 3.4, 1);
+    world.add(ped, top, card, glow);
+    G.rooms[cx][cy] = { used: false, card, glow, phase: Math.random() * 6, fly: 0 };
+  }
+
+  // elevator
+  const ex = G.elev.cx * S + S / 2 + 3.3, ez = -(G.elev.cy * S + S / 2) - 3.3;
+  const top = f === 10;
+  const col = top ? 0xe3bb5f : 0x5ccfb9;
+  const eg = new THREE.Group(); eg.position.set(ex, 0, ez);
+  const plat = new THREE.Mesh(new THREE.CylinderGeometry(1.6, 1.75, .24, 28), new THREE.MeshStandardMaterial({ color: 0x1e2c30, emissive: col, emissiveIntensity: .35, roughness: .5 }));
+  plat.position.y = .12;
+  const ring = new THREE.Mesh(new THREE.TorusGeometry(1.45, .06, 8, 48), new THREE.MeshBasicMaterial({ color: col }));
+  ring.rotation.x = Math.PI / 2;
+  const beam = new THREE.Mesh(new THREE.CylinderGeometry(1.4, 1.4, 4.2, 28, 1, true), new THREE.MeshBasicMaterial({ color: col, transparent: true, opacity: .14, blending: THREE.AdditiveBlending, depthWrite: false, side: THREE.DoubleSide }));
+  beam.position.y = 2.1;
+  const el = new THREE.PointLight(col, 1.4, 12, 1.6); el.position.y = 2;
+  eg.add(plat, ring, beam, el);
+  world.add(eg);
+  G.elevObj = { ring, x: ex, z: ez };
+
+  G.px = S / 2; G.pz = -S / 2 + 3; G.yaw = 0;
+  G.cell = null;
+  rebuildColliders();
+  enterCell(0, 0);
+  camPos.set(G.px, 3.6, G.pz + 7);
+  updateHUD(); drawMini();
+}
+function scatterRubble(x, z, t) {
+  for (let i = 0; i < 7; i++) {
+    const m = new THREE.Mesh(geoDeb, debrisMat);
+    const along = (Math.random() - .5) * (S - 2);
+    m.position.set(x + (t === 'h' ? along : (Math.random() - .5) * 1.6), .15, z + (t === 'v' ? along : (Math.random() - .5) * 1.6));
+    m.rotation.set(Math.random(), Math.random() * 3, Math.random());
+    world.add(m);
+  }
+}
+
+/* ---------- collision ---------- */
+let colliders = [], circles = [];
+function rebuildColliders() {
+  colliders = []; circles = [];
+  const L = N * S;
+  colliders.push({ x: 0, z: -L / 2, hx: T / 2, hz: L / 2 }, { x: L, z: -L / 2, hx: T / 2, hz: L / 2 }, { x: L / 2, z: 0, hx: L / 2, hz: T / 2 }, { x: L / 2, z: -L, hx: L / 2, hz: T / 2 });
+  for (let i = 0; i <= N; i++) for (let j = 0; j <= N; j++) colliders.push({ x: i * S, z: -j * S, hx: PIL / 2, hz: PIL / 2 });
+  for (let i = 0; i < N - 1; i++) for (let j = 0; j < N; j++) if (!G.v[i][j]) colliders.push({ x: (i + 1) * S, z: -(j + .5) * S, hx: T / 2, hz: S / 2 });
+  for (let i = 0; i < N; i++) for (let j = 0; j < N - 1; j++) if (!G.h[i][j]) colliders.push({ x: (i + .5) * S, z: -(j + 1) * S, hx: S / 2, hz: T / 2 });
+  for (let cx = 0; cx < N; cx++) for (let cy = 0; cy < N; cy++) circles.push({ x: cx * S + S / 2, z: -(cy * S + S / 2), r: .85 });
+}
+function resolve() {
+  for (let it = 0; it < 3; it++) {
+    for (const b of colliders) {
+      const qx = clamp(G.px, b.x - b.hx, b.x + b.hx), qz = clamp(G.pz, b.z - b.hz, b.z + b.hz);
+      const dx = G.px - qx, dz = G.pz - qz, d2 = dx * dx + dz * dz;
+      if (d2 < PR * PR) {
+        if (d2 > 1e-9) { const d = Math.sqrt(d2); G.px += dx / d * (PR - d); G.pz += dz / d * (PR - d); }
+        else {
+          const ox = b.hx + PR - Math.abs(G.px - b.x), oz = b.hz + PR - Math.abs(G.pz - b.z);
+          if (ox < oz) G.px += Math.sign(G.px - b.x || 1) * ox; else G.pz += Math.sign(G.pz - b.z || 1) * oz;
+        }
+      }
+    }
+    for (const c of circles) {
+      const dx = G.px - c.x, dz = G.pz - c.z, d = Math.hypot(dx, dz), m = c.r + PR;
+      if (d < m && d > 1e-6) { G.px = c.x + dx / d * m; G.pz = c.z + dz / d * m; }
+    }
+  }
+}
+const cellOf = () => ({ cx: clamp(Math.floor(G.px / S), 0, N - 1), cy: clamp(Math.floor(-G.pz / S), 0, N - 1) });
+function enterCell(cx, cy) {
+  G.cell = { cx, cy };
+  if (!G.visited[cx][cy]) { G.visited[cx][cy] = true; G.stats.rooms++; }
+  drawMini();
+}
+function teleport(L) {
+  const cx = rnd(0, N - 1), cy = rnd(0, N - 1);
+  G.px = cx * S + S / 2; G.pz = -(cy * S + S / 2) + 3; G.yaw = 0;
+  camPos.set(G.px, 3.6, G.pz + 7);
+  enterCell(cx, cy);
+  L.push(tx(`${roomName(cx, cy)} の部屋へ飛ばされた`, 'bad'));
+}
+
+/* ---------- interaction ---------- */
+function facingDir() {
+  const fx = -Math.sin(G.yaw), fz = -Math.cos(G.yaw);
+  if (Math.abs(fx) > Math.abs(fz)) return fx > 0 ? 'E' : 'W';
+  return fz < 0 ? 'N' : 'S';
+}
+function target() {
+  if (!G || !G.cell) return null;
+  const { cx, cy } = G.cell;
+  if (cx === G.elev.cx && cy === G.elev.cy && Math.hypot(G.px - G.elevObj.x, G.pz - G.elevObj.z) < 2.3) return { type: 'elev' };
+  const rx = cx * S + S / 2, rz = -(cy * S + S / 2);
+  if (Math.hypot(G.px - rx, G.pz - rz) < 2.7) {
+    const r = G.rooms[cx][cy];
+    if (!r.used) return { type: 'card' };
+    if (closedSides(cx, cy).length) return { type: 'altar' };
+    return { type: 'spent' };
+  }
+  return null;
+}
+const pct = b => clamp(Math.round(b + G.luck), 5, 95);
+const CARD_BASE = () => 90 - G.floor;
+const ELEV_BASE = 85, ALTAR_BASE = 65, WALL_BASE = 48, ALTAR_WALL = 40;
+function interact() {
+  if (!running || modalOpen || fading || G.over) return;
+  const t = target(); if (!t) return;
+  const { cx, cy } = G.cell;
+  const where = roomName(cx, cy);
+  if (t.type === 'card') drawCard(cx, cy);
+  else if (t.type === 'altar') {
+    const L = [];
+    L.push(tx('祭壇を拳で叩いた。反動が腕を走る', 'neutral'));
+    hurt(1, L);
+    const r = roll('祭壇が震える', ALTAR_BASE); L.push(r);
+    let br = [];
+    if (r.ok) br = wallRolls(cx, cy, ALTAR_WALL, L); else r.note = '祭壇は沈黙している';
+    resolveDeath(L);
+    pushLog(`${where} 祭壇を叩く`, L);
+    breakWalls(br); afterAction();
+  } else if (t.type === 'elev') useElevator();
+  else if (t.type === 'spent') pushLog(`${where}`, [tx('この祭壇はもう何も返さない', 'neutral')]);
+}
+function drawCard(cx, cy) {
+  const L = [];
+  const r = roll('カードを引く', CARD_BASE()); L.push(r);
+  const where = roomName(cx, cy);
+  if (!r.ok) {
+    r.note = 'カードが指をすり抜け、火花が散った';
+    hurt(1, L); resolveDeath(L);
+    pushLog(`${where} カード`, L); afterAction();
+    return;
+  }
+  const room = G.rooms[cx][cy];
+  room.used = true; room.fly = .001; G.stats.cards++;
+  const a = pick(ARCANA);
+  const o = roll('正位置で現れる', 55); L.push(o);
+  const up = o.ok;
+  const res = a.fx(up, L) || {};
+  let br = [];
+  if (G.hp > 0) br = wallRolls(cx, cy, WALL_BASE, L, res.allBreak);
+  resolveDeath(L);
+  updateHUD(); drawMini();
+  showEvent({ a, up, where }, L, () => { breakWalls(br); pushLog(`${where} ${a.name}・${up ? '正' : '逆'}`, L, true); afterAction(); });
+}
+function useElevator() {
+  const L = [];
+  const r = roll(G.floor === 10 ? '頂上の扉を開く' : 'エレベーターを動かす', ELEV_BASE); L.push(r);
+  if (!r.ok) {
+    r.note = 'ケーブルが軋み、火花が降った';
+    hurt(2, L); resolveDeath(L);
+    pushLog('エレベーター', L); afterAction();
+    return;
+  }
+  r.note = G.floor === 10 ? '扉の向こうに夜空が広がる' : '箱が上昇を始めた';
+  pushLog('エレベーター', L);
+  if (G.floor === 10) { G.over = 'win'; afterAction(); return; }
+  fading = true; $('fade').classList.add('on');
+  setTimeout(() => {
+    G.floor++;
+    buildFloor();
+    const L2 = []; heal(5, L2); L2.unshift(tx('昇降のあいだに息を整えた', 'neutral'));
+    pushLog(`第${KANJI[G.floor]}層`, L2);
+    updateHUD();
+    $('fade').classList.remove('on');
+    banner(`第${KANJI[G.floor]}層`, G.floor === 10 ? '最上層 · 頂上の扉を探せ' : `エレベーターは右端か最上段のどこか`);
+    setTimeout(() => { fading = false; }, 400);
+  }, 650);
+}
+function useItem(id) {
+  if (!running || modalOpen || fading || G.over) return;
+  const it = ITEMS[id];
+  if (G.inv[id] <= 0) return;
+  if (it.passive) { pushLog(it.name, [tx(`${it.desc}(自動で使われる)`, 'neutral')]); return; }
+  const L = [];
+  if (id === 'bomb') {
+    const { cx, cy } = G.cell; const d = facingDir(); const jp = DIRS.find(x => x[0] === d)[1];
+    const w = sideWall(cx, cy, d);
+    if (!w) { pushLog(it.name, [tx(`${jp}は外壁。発破筒では崩せない`, 'neutral')]); return; }
+    if (isOpen(w)) { pushLog(it.name, [tx(`${jp}の壁はすでに崩れている`, 'neutral')]); return; }
+    G.inv.bomb--;
+    const r = roll(`${jp}の壁を爆破`, 70); L.push(r);
+    let br = [];
+    if (r.ok) { br = [w]; r.note = '轟音とともに崩れた'; }
+    else { r.note = '導火線が湿っていた'; const r2 = roll('暴発を避ける', 60); L.push(r2); if (!r2.ok) hurt(3, L); }
+    resolveDeath(L); pushLog(it.name, L); breakWalls(br); afterAction(); return;
+  }
+  G.inv[id]--;
+  if (id === 'potion') { const r = roll('小瓶を飲む', 85); L.push(r); if (r.ok) heal(10 + G.floor, L); else r.note = '瓶が手から滑り落ちて割れた'; }
+  if (id === 'coin') { const r = roll('硬貨を弾く', 90, { noBuff: true }); L.push(r); if (r.ok) { G.coin += 3; r.note = '表。次の3回の判定 +15%'; } else r.note = '硬貨は床の隙間に消えた'; }
+  if (id === 'chart') { const r = roll('星図を読む', 80); L.push(r); if (r.ok) { G.elevKnown = true; r.note = `エレベーターは ${roomName(G.elev.cx, G.elev.cy)}`; } else r.note = '星図が破れていて読めない'; }
+  pushLog(it.name, L); afterAction();
+}
+function afterAction() {
+  updateHUD(); drawMini();
+  if (G.over) setTimeout(showEnd, G.over === 'win' ? 300 : 900);
+}
+
+/* ---------- UI ---------- */
+const fmtLuck = () => (G.luck > 0 ? '+' : G.luck < 0 ? '−' : '±') + Math.abs(G.luck) + '%';
+function lineHTML(l) {
+  if (l.roll) {
+    if (l.auto) return `<div class="ln ok"><span class="lbl">${l.label}</span><span class="dice">確定</span><span class="res">成功</span></div>`;
+    return `<div class="ln ${l.ok ? 'ok' : 'ng'}"><span class="lbl">${l.label}</span><span class="dice">d100 <b>${l.d}</b> ${l.ok ? '≤' : '>'} ${l.c}</span><span class="res">${l.ok ? '成功' : '失敗'}</span>${l.tag ? `<span class="tag">${l.tag}</span>` : ''}${l.note ? `<span class="note">${l.note}</span>` : ''}</div>`;
+  }
+  return `<div class="tx ${l.kind}">${l.text}</div>`;
+}
+function pushLog(head, L, quiet) {
+  const ol = $('logList');
+  const add = (html, cls) => { const li = document.createElement('li'); if (cls) li.className = cls; li.innerHTML = html; ol.appendChild(li); };
+  add(head, 'head');
+  const lines = quiet ? L.filter(l => !l.roll || !l.ok || l.note).slice(-4) : L;
+  for (const l of lines) add(lineHTML(l));
+  while (ol.children.length > 40) ol.removeChild(ol.firstChild);
+}
+function updateHUD() {
+  if (!G) return;
+  $('flNum').textContent = KANJI[G.floor];
+  $('pips').innerHTML = Array.from({ length: 10 }, (_, i) => `<i class="${i + 1 < G.floor ? 'done' : i + 1 === G.floor ? 'now' : ''}"></i>`).join('');
+  $('hpFill').style.width = (clamp(G.hp / G.maxHp, 0, 1) * 100) + '%';
+  $('hpTxt').textContent = `${Math.max(0, G.hp)}/${G.maxHp}`;
+  $('luckTxt').textContent = fmtLuck();
+  $('coinChip').hidden = !G.coin; $('coinTxt').textContent = G.coin;
+  $('revChip').hidden = !G.revive; $('revTxt').textContent = G.revive;
+  $('dimChip').hidden = !G.dim;
+  $('items').innerHTML = ITEM_ORDER.map(k => {
+    const it = ITEMS[k], n = G.inv[k];
+    return `<button type="button" class="slot${n ? '' : ' empty'}" data-item="${k}" aria-label="${it.name} ${n}個"><span class="k">${it.key}</span>${it.passive ? '<span class="p">自動</span>' : ''}<span class="g">${it.g}</span><span class="n">×${n}</span></button>`;
+  }).join('');
+}
+$('items').addEventListener('click', e => { const b = e.target.closest('.slot'); if (b) useItem(b.dataset.item); });
+$('items').addEventListener('pointerover', e => {
+  const b = e.target.closest('.slot'); if (!b) return;
+  const it = ITEMS[b.dataset.item];
+  $('tip').innerHTML = `<b>${it.name}</b>${it.desc}`; $('tip').hidden = false;
+});
+$('items').addEventListener('pointerout', () => { $('tip').hidden = true; });
+
+function drawMini() {
+  if (!G || !G.visited) return;
+  const c = $('miniC'), g = c.getContext('2d'), W = c.width, pad = 12, cs = (W - pad * 2) / N;
+  g.clearRect(0, 0, W, W);
+  const X = cx => pad + cx * cs, Y = cy => pad + (N - 1 - cy) * cs;
+  for (let cx = 0; cx < N; cx++) for (let cy = 0; cy < N; cy++) {
+    const vis = G.visited[cx][cy];
+    g.fillStyle = vis ? 'rgba(157,138,236,.28)' : G.revealAll ? 'rgba(157,138,236,.1)' : 'rgba(255,255,255,.04)';
+    g.fillRect(X(cx) + 2, Y(cy) + 2, cs - 4, cs - 4);
+    if (vis && !G.rooms[cx][cy].used) { g.fillStyle = '#e3bb5f'; g.beginPath(); g.arc(X(cx) + cs / 2, Y(cy) + cs / 2, 4, 0, 7); g.fill(); }
+  }
+  // elevator
+  if (G.elevKnown || G.visited[G.elev.cx][G.elev.cy]) {
+    g.fillStyle = G.floor === 10 ? '#e3bb5f' : '#5ccfb9';
+    const ex = X(G.elev.cx) + cs * .78, ey = Y(G.elev.cy) + cs * .22;
+    g.beginPath(); g.arc(ex, ey, 6.5, 0, 7); g.fill();
+    g.strokeStyle = 'rgba(0,0,0,.6)'; g.lineWidth = 2; g.stroke();
+  }
+  // walls
+  g.lineCap = 'round';
+  const known = (a, b) => G.revealAll || G.visited[a.cx][a.cy] || G.visited[b.cx][b.cy];
+  g.strokeStyle = '#d9d0ee'; g.lineWidth = 4;
+  for (let i = 0; i < N - 1; i++) for (let j = 0; j < N; j++) if (!G.v[i][j] && known({ cx: i, cy: j }, { cx: i + 1, cy: j })) {
+    g.beginPath(); g.moveTo(X(i + 1), Y(j)); g.lineTo(X(i + 1), Y(j) + cs); g.stroke();
+  }
+  for (let i = 0; i < N; i++) for (let j = 0; j < N - 1; j++) if (!G.h[i][j] && known({ cx: i, cy: j }, { cx: i, cy: j + 1 })) {
+    g.beginPath(); g.moveTo(X(i), Y(j)); g.lineTo(X(i) + cs, Y(j)); g.stroke();
+  }
+  g.strokeStyle = '#e3bb5f'; g.lineWidth = 3; g.strokeRect(pad, pad, W - pad * 2, W - pad * 2);
+  // edges where the elevator can be
+  g.strokeStyle = 'rgba(92,207,185,.5)'; g.lineWidth = 3; g.setLineDash([6, 6]);
+  g.beginPath(); g.moveTo(pad, pad - 6); g.lineTo(W - pad + 6, pad - 6); g.lineTo(W - pad + 6, W - pad); g.stroke(); g.setLineDash([]);
+  // player
+  const px = pad + (G.px / S) * cs, py = pad + (N - (-G.pz / S)) * cs;
+  g.save(); g.translate(px, py); g.rotate(-G.yaw);
+  g.fillStyle = '#ea5d51'; g.beginPath(); g.moveTo(0, -9); g.lineTo(6.5, 7); g.lineTo(0, 3.5); g.lineTo(-6.5, 7); g.closePath(); g.fill();
+  g.restore();
+}
+
+function showEvent(ev, L, onClose) {
+  modalOpen = true; modalAt = performance.now(); onModalClose = onClose;
+  const { a, up, where } = ev;
+  $('tarot').className = 'tarot' + (up ? '' : ' rev');
+  $('tarot').innerHTML = `<div class="face"><span class="num">${a.num}</span><span class="sym">${a.sym}</span><span class="nm">${a.name}</span><span class="en">${a.en}</span></div>`;
+  $('mEye').textContent = `第${KANJI[G.floor]}層 · 部屋 ${where}`;
+  $('mTitle').innerHTML = `${a.num} ${a.name}<span class="ori ${up ? 'up' : 'rev'}">${up ? '正位置' : '逆位置'}</span>`;
+  $('mDesc').textContent = up ? a.up : a.rev;
+  $('mLines').innerHTML = L.map((l, i) => `<li style="animation-delay:${Math.min(i * 140, 2200) + 350}ms">${lineHTML(l)}</li>`).join('');
+  $('modal').hidden = false;
+  $('mBtn').focus({ preventScroll: true });
+}
+function closeModal() {
+  if (!modalOpen || performance.now() - modalAt < 350) return;
+  modalOpen = false; $('modal').hidden = true;
+  const cb = onModalClose; onModalClose = null; if (cb) cb();
+}
+$('mBtn').addEventListener('click', closeModal);
+
+function banner(big, small) {
+  const b = $('banner'); b.innerHTML = `${big}<small>${small}</small>`;
+  b.classList.remove('show'); void b.offsetWidth; b.classList.add('show');
+}
+let hurtT = 0;
+function flashHurt() { const h = $('hurt'); h.classList.add('on'); clearTimeout(hurtT); hurtT = setTimeout(() => h.classList.remove('on'), 90); }
+
+function showEnd() {
+  running = false;
+  const win = G.over === 'win', s = G.stats;
+  $('endSub').textContent = win ? 'THE TOWER · CONQUERED' : 'THE TOWER · FALLEN';
+  $('endTitle').innerHTML = win ? '塔を<em>踏破</em>した' : `第${KANJI[G.floor]}層で<em>倒れた</em>`;
+  $('endDesc').textContent = win ? '頂上の扉が開く。十層ぶんの出目が、夜空の下でようやく静かになった。' : 'アルカナは気まぐれだ。出目は次の挑戦者を待っている。';
+  const rate = s.rolls ? Math.round(s.succ / s.rolls * 100) : 0;
+  $('endStats').innerHTML = [
+    ['到達層', `${G.floor}/10`], ['引いたカード', s.cards], ['訪れた部屋', s.rooms],
+    ['判定回数', s.rolls], ['成功率', rate + '%'], ['崩した壁', s.walls],
+  ].map(([k, v]) => `<div><span>${k}</span><b>${v}</b></div>`).join('');
+  $('end').hidden = false;
+  $('againBtn').focus({ preventScroll: true });
+}
+
+function newGame() {
+  G = { floor: 1, hp: 30, maxHp: 30, luck: 0, coin: 0, revive: 0, over: false,
+        inv: { potion: 1, bomb: 1, coin: 0, chart: 0, bullet: 1, charm: 0 },
+        stats: { cards: 0, rolls: 0, succ: 0, walls: 0, dmg: 0, rooms: 0 } };
+  $('logList').innerHTML = '';
+  buildFloor();
+  pushLog('第一層', [tx('A1 に降り立った。祭壇のカードに近づいて E で引く', 'neutral')]);
+  $('title').hidden = true; $('end').hidden = true;
+  running = true;
+  banner('第一層', 'エレベーターは右端か最上段のどこか');
+}
+$('startBtn').addEventListener('click', newGame);
+$('againBtn').addEventListener('click', newGame);
+
+/* ---------- input ---------- */
+const keys = {};
+addEventListener('keydown', e => {
+  const k = e.key.toLowerCase();
+  if ([' ', 'arrowup', 'arrowdown', 'arrowleft', 'arrowright'].includes(k)) e.preventDefault();
+  if (!$('title').hidden || !$('end').hidden) { if (k === 'enter' && !e.repeat && !(e.target instanceof HTMLButtonElement)) newGame(); return; }
+  if (modalOpen) { if (!e.repeat && (k === ' ' || k === 'enter' || k === 'e')) closeModal(); return; }
+  keys[k] = true;
+  if (e.repeat) return;
+  if (k === 'e' || k === ' ' || k === 'enter') interact();
+  const n = parseInt(k, 10);
+  if (n >= 1 && n <= 6) useItem(ITEM_ORDER[n - 1]);
+});
+addEventListener('keyup', e => { keys[e.key.toLowerCase()] = false; });
+addEventListener('blur', () => { for (const k in keys) keys[k] = false; });
+
+let drag = null;
+renderer.domElement.addEventListener('pointerdown', e => { drag = { id: e.pointerId, x: e.clientX }; renderer.domElement.setPointerCapture(e.pointerId); });
+renderer.domElement.addEventListener('pointermove', e => {
+  if (!drag || drag.id !== e.pointerId || !running || modalOpen) return;
+  G.yaw -= (e.clientX - drag.x) * 0.0065; drag.x = e.clientX;
+});
+const endDrag = () => { drag = null; };
+renderer.domElement.addEventListener('pointerup', endDrag);
+renderer.domElement.addEventListener('pointercancel', endDrag);
+
+const joy = { x: 0, y: 0, id: null };
+const joyEl = $('joy'), knob = $('knob');
+function joyMove(e) {
+  const r = joyEl.getBoundingClientRect(), R = r.width / 2;
+  let dx = e.clientX - (r.left + R), dy = e.clientY - (r.top + R);
+  const d = Math.hypot(dx, dy); if (d > R * .8) { dx *= R * .8 / d; dy *= R * .8 / d; }
+  knob.style.transform = `translate(${dx}px,${dy}px)`;
+  joy.x = dx / (R * .8); joy.y = dy / (R * .8);
+}
+joyEl.addEventListener('pointerdown', e => { joy.id = e.pointerId; joyEl.setPointerCapture(e.pointerId); joyMove(e); });
+joyEl.addEventListener('pointermove', e => { if (joy.id === e.pointerId) joyMove(e); });
+const joyEnd = () => { joy.id = null; joy.x = joy.y = 0; knob.style.transform = ''; };
+joyEl.addEventListener('pointerup', joyEnd); joyEl.addEventListener('pointercancel', joyEnd);
+$('act').addEventListener('click', () => { if (modalOpen) closeModal(); else interact(); });
+addEventListener('touchstart', () => document.getElementById('app').classList.add('touch'), { once: true, passive: true });
+if (matchMedia('(pointer: coarse)').matches) $('app').classList.add('touch');
+
+/* ---------- loop ---------- */
+const camPos = new THREE.Vector3(6, 4, 4), camLook = new THREE.Vector3();
+const ray = new THREE.Raycaster();
+const tmpO = new THREE.Vector3(), tmpD = new THREE.Vector3(), want = new THREE.Vector3();
+let lastPrompt = '', walkT = 0, time = 0;
+
+function update(dt) {
+  time += dt;
+  const active = running && !modalOpen && !fading && G && !G.over;
+  let moving = 0;
+  if (active) {
+    let f = 0, t = 0;
+    if (keys['w'] || keys['arrowup']) f += 1;
+    if (keys['s'] || keys['arrowdown']) f -= 1;
+    if (keys['a'] || keys['arrowleft']) t += 1;
+    if (keys['d'] || keys['arrowright']) t -= 1;
+    f += -joy.y; t += -joy.x * .9;
+    f = clamp(f, -1, 1); t = clamp(t, -1, 1);
+    G.yaw += t * 2.5 * dt;
+    const sp = (f < 0 ? 4 : 7.5) * f * dt;
+    G.px += -Math.sin(G.yaw) * sp; G.pz += -Math.cos(G.yaw) * sp;
+    resolve();
+    moving = Math.abs(f);
+    const c = cellOf();
+    if (!G.cell || c.cx !== G.cell.cx || c.cy !== G.cell.cy) enterCell(c.cx, c.cy);
+    else if (moving || t) drawMini();
+    // prompt
+    const tg = target();
+    let html = '';
+    if (tg) {
+      if (tg.type === 'card') html = `<kbd>E</kbd> カードを引く <span class="pct">${pct(CARD_BASE())}%</span>`;
+      else if (tg.type === 'altar') html = `<kbd>E</kbd> 祭壇を叩く(HP−1)<span class="pct">${pct(ALTAR_BASE)}%</span>`;
+      else if (tg.type === 'elev') html = `<kbd>E</kbd> ${G.floor === 10 ? '頂上の扉を開く' : 'エレベーターに乗る'} <span class="pct">${pct(ELEV_BASE)}%</span>`;
+      else html = '祭壇は沈黙している · 壁はすべて崩れた';
+    }
+    if (html !== lastPrompt) { lastPrompt = html; $('prompt').innerHTML = html; $('prompt').hidden = !html; }
+  } else if (lastPrompt) { lastPrompt = ''; $('prompt').hidden = true; }
+
+  if (!G || !world) return;
+  // player model
+  walkT += dt * moving * 9;
+  player.position.set(G.px, Math.abs(Math.sin(walkT)) * .06 * (moving ? 1 : 0), G.pz);
+  player.rotation.y = G.yaw;
+  player.userData.legL.rotation.x = Math.sin(walkT) * .5 * moving;
+  player.userData.legR.rotation.x = -Math.sin(walkT) * .5 * moving;
+  lamp.position.set(G.px - Math.sin(G.yaw) * .6, 2.8, G.pz - Math.cos(G.yaw) * .6);
+  lamp.distance = G.dim ? 15 : 28;
+  scene.fog.density += ((G.dim ? .07 : .028) - scene.fog.density) * Math.min(1, dt * 2);
+
+  // cards
+  for (let cx = 0; cx < N; cx++) for (let cy = 0; cy < N; cy++) {
+    const r = G.rooms[cx][cy]; if (!r.card) continue;
+    if (r.fly > 0) {
+      r.fly += dt;
+      r.card.position.y += dt * 4; r.card.rotation.y += dt * 12;
+      r.card.material.opacity = Math.max(0, 1 - r.fly * 1.4); r.glow.material.opacity = Math.max(0, .55 - r.fly);
+      if (r.fly > .8) { world.remove(r.card, r.glow); r.card = null; }
+      continue;
+    }
+    r.card.rotation.y += dt * .8;
+    r.card.position.y = 2.35 + Math.sin(time * 1.6 + r.phase) * .12;
+    r.glow.material.opacity = .45 + Math.sin(time * 2 + r.phase) * .1;
+  }
+  if (G.elevObj) { G.elevObj.ring.position.y = .3 + ((time * .7) % 1) * 3.6; }
+
+  // debris
+  for (const d of debris) {
+    if (d.done) continue;
+    d.vy -= 16 * dt;
+    d.m.position.x += d.vx * dt; d.m.position.y += d.vy * dt; d.m.position.z += d.vz * dt;
+    d.m.rotation.x += d.vx * dt; d.m.rotation.z += d.vz * dt;
+    if (d.m.position.y < .15) { d.m.position.y = .15; if (Math.abs(d.vy) < 2) d.done = true; d.vy *= -.3; d.vx *= .5; d.vz *= .5; }
+  }
+
+  // camera: third person, behind and above
+  const fx = -Math.sin(G.yaw), fz = -Math.cos(G.yaw);
+  tmpO.set(G.px, 2.1, G.pz);
+  want.set(G.px - fx * 6.2, 3.7, G.pz - fz * 6.2);
+  tmpD.subVectors(want, tmpO); const len = tmpD.length(); tmpD.normalize();
+  ray.set(tmpO, tmpD); ray.far = len;
+  const hit = ray.intersectObjects(G.ray, false)[0];
+  if (hit) {
+    const d = Math.max(.8, hit.distance - .45);
+    want.copy(tmpO).addScaledVector(tmpD, d);
+    want.y += (1 - d / len) * 3.2; // blocked behind: rise over the shoulder
+  }
+  const k = 1 - Math.exp(-dt * 10);
+  camPos.lerp(want, hit ? Math.max(k, .5) : k);
+  camera.position.copy(camPos);
+  if (shake > 0 && !reduceMotion) { camera.position.x += (Math.random() - .5) * shake; camera.position.y += (Math.random() - .5) * shake; }
+  shake = Math.max(0, shake - dt * 1.2);
+  camLook.set(G.px + fx * 2.2, 1.7, G.pz + fz * 2.2);
+  camera.lookAt(camLook);
+}
+
+let last = performance.now();
+function frame(now) {
+  const dt = Math.min(.05, (now - last) / 1000); last = now;
+  update(dt);
+  renderer.render(scene, camera);
+  requestAnimationFrame(frame);
+}
+
+/* ---------- boot: a quiet floor behind the title ---------- */
+resize();
+G = { floor: 1, hp: 30, maxHp: 30, luck: 0, coin: 0, revive: 0, over: false, inv: {}, stats: { cards: 0, rolls: 0, succ: 0, walls: 0, dmg: 0, rooms: 0 } };
+ITEM_ORDER.forEach(k => G.inv[k] = 0);
+buildFloor();
+G.yaw = -0.6;
+requestAnimationFrame(frame);
+$('startBtn').focus({ preventScroll: true });
+})();
+</script>
