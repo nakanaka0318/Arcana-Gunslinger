@@ -255,6 +255,51 @@ input[type=range]::-moz-range-thumb{width:24px;height:24px;border-radius:50%;bac
 .popbar i{position:absolute;left:0;top:0;bottom:0;opacity:.5}
 .popbar span{position:relative;font-size:14px;padding-left:8px;line-height:24px;font-weight:700}
 .cdot{display:inline-block;width:12px;height:12px;border-radius:50%;margin-right:8px}
+.bad{color:var(--bad)}
+.hint.bad{color:var(--bad)}
+.btn.danger{background:rgba(227,107,93,.18);border-color:var(--bad);color:#ffb3a9}
+.row.wrapbtn{flex-wrap:wrap;gap:8px}
+.txtarea{font:500 13px/1.4 var(--fm);color:var(--ink);background:rgba(0,0,0,.35);border:1px solid var(--line);border-radius:9px;width:100%;box-sizing:border-box;min-height:120px;padding:10px;resize:vertical;-webkit-user-select:text;user-select:text;word-break:break-all}
+.txtarea:focus{outline:2px solid var(--accent)}
+.rcard{background:rgba(255,255,255,.035);border:1px solid var(--line);border-radius:11px;padding:10px 12px;display:flex;flex-direction:column;gap:4px}
+.rcard .hd{display:flex;justify-content:space-between;align-items:baseline;gap:8px}
+.rcard .hd .num{color:var(--accent)}
+.rcard.done{opacity:.6}
+.rcard.req,.rcard.short{opacity:.85}
+.chipst{font-size:14px;font-weight:700;padding:2px 8px;border-radius:6px;background:var(--raise);color:var(--ink-dim)}
+.chipst.done{background:rgba(124,201,143,.18);color:var(--good)}
+.chipst.ok{background:rgba(226,166,75,.2);color:var(--accent)}
+.qlist{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:8px}
+.qcard{background:rgba(255,255,255,.035);border:1px solid var(--line);border-left:4px solid var(--accent);border-radius:11px;padding:8px 12px;display:flex;flex-direction:column;gap:2px}
+.qcard.invalid{border-left-color:var(--bad)}
+.qcard .chain{font-size:14px;color:var(--accent);font-weight:700}
+.qhd{display:flex;align-items:center;gap:8px}
+.qhd b{flex:1;min-width:0}
+.qn{display:grid;place-items:center;min-width:24px;height:24px;border-radius:6px;background:var(--raise);font-size:14px}
+.qacts{gap:6px}
+.qacts .sb:disabled{opacity:.3}
+.charts{display:grid;grid-template-columns:1fr;gap:12px}
+body.landscape .charts{grid-template-columns:1fr 1fr}
+.chart{margin:0;background:rgba(255,255,255,.03);border:1px solid var(--line);border-radius:11px;padding:8px 8px 4px}
+.chart figcaption{font-weight:700;font-size:14px;padding:0 4px 4px}
+.chart canvas{width:100%;height:150px;display:block;touch-action:pan-y;cursor:crosshair}
+.plc.locked{opacity:.45}
+.plc .lk{color:var(--warn);font-size:14px}
+#stMoney.neg{color:var(--bad)}
+#overlay{position:fixed;inset:0;z-index:40;background:rgba(8,11,14,.72);display:grid;place-items:center;padding:calc(var(--sat) + 16px) 16px calc(var(--sab) + 16px);overflow-y:auto;pointer-events:auto}
+.ovbox{width:min(100%,520px);background:var(--panel-2);border:1px solid var(--line);border-radius:18px;padding:24px 22px;display:flex;flex-direction:column;gap:14px;box-shadow:0 24px 60px rgba(0,0,0,.5)}
+.ov-eyebrow{margin:0;font-weight:700;color:var(--accent);letter-spacing:.08em;font-size:14px}
+.ov-eyebrow.bad{color:var(--bad)}
+.ov-title{margin:0;font-size:26px;line-height:1.25;text-wrap:balance}
+.ov-lead{margin:0;line-height:1.7;color:var(--ink-dim)}
+.ov-h{margin:6px 0 0;font-size:15px}
+.ov-models{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.ov-model{display:flex;flex-direction:column;gap:4px;text-align:left;padding:12px;border-radius:12px;border:2px solid var(--line);background:rgba(255,255,255,.03)}
+.ov-model b{font-size:16px}
+.ov-model span{color:var(--ink-dim);font-size:14px;line-height:1.5}
+.ov-model.on{border-color:var(--accent);background:rgba(226,166,75,.1)}
+.ov-acts{display:flex;gap:10px;justify-content:flex-end;flex-wrap:wrap}
+@media (max-width:420px){.ov-models{grid-template-columns:1fr}}
 .badge{display:inline-block;font:700 14px var(--ff);padding:0 7px;border-radius:6px;background:var(--bad);color:#1b0806;margin-left:6px}
 
 /* ── ミニマップ ── */
@@ -344,6 +389,8 @@ body.landscape.panel-open #fps{right:calc(var(--panel-w) + var(--sar) + 8px)}
 
   <div id="placeBar" class="ebar" hidden></div>
   <div id="areaBar" class="ebar" hidden></div>
+  <div id="pickBar" class="ebar" hidden><div class="pl-hd"><b>目的地を選ぶ</b></div><p class="pl-st">地図(3Dビュー)をタップして、クエストの目的地を決めてください</p>
+    <div class="bb-row pl-acts"><span class="sp"></span><button class="btn" data-pk="cancel">取消</button></div></div>
 
   <div id="log" class="glass" role="log" aria-label="ログ"></div>
 
@@ -359,6 +406,7 @@ body.landscape.panel-open #fps{right:calc(var(--panel-w) + var(--sar) + 8px)}
   <div id="railTip" hidden></div>
   <div id="dialog" hidden><div class="box" role="dialog" aria-modal="true"><p id="dlgMsg"></p><div class="acts" id="dlgActs"></div></div></div>
 </div>
+<div id="overlay" hidden></div>
 <div id="bootErr" hidden><div><p>3D描画ライブラリ(Three.js)を読み込めませんでした。</p><p class="hint">通信環境を確認して再読み込みしてください。</p></div></div>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
@@ -430,13 +478,21 @@ function newGame(seed) {
     money: 10000, subscribers: 20, satisfaction: 70, research: 0,
     terrain: { n: DN, h: new Float32Array(DN * DN), t: new Uint8Array(DN * DN) },
     objects: [], areas: [], monsterTypes: [], monsters: [], classes: [], players: [], nextId: 1, logs: [],
+    quests: [], items: [], unlocked: [], gms: 0, hist: [], today: newToday(), negDays: 0, goalReached: false, model: 'sub',
+    requests: [], effects: { outage: 0, rival: 0, buzz: 0 }, stats: { bans: 0, warns: 0, rescues: 0 },
   };
   generateIsland(g);
   for (const m of DEFAULT_MT) g.monsterTypes.push(newMonsterType(g.nextId++, m));
   for (const c of DEFAULT_CLASSES) g.classes.push(newClass(g.nextId++, c));
   g.objects.push({ id: g.nextId++, type: 'town', name: 'はじまりの町', x: TOWN0.x, z: TOWN0.z, rot: 0 });
-  g.objects.push({ id: g.nextId++, type: 'board', x: TOWN0.x + 17, z: TOWN0.z - 3, rot: -Math.PI / 2 });
+  const board = { id: g.nextId++, type: 'board', name: 'はじまりの掲示板', x: TOWN0.x + 17, z: TOWN0.z - 3, rot: -Math.PI / 2 };
+  g.objects.push(board);
   g.objects.push({ id: g.nextId++, type: 'spawn', x: TOWN0.x + 12, z: TOWN0.z + 40, rot: 0, mt: g.monsterTypes[0].id, max: 10, respawn: 4, radius: 14, timer: 0 });
+  const slime = g.monsterTypes[0].id, Q = (o, i) => Object.assign({ id: g.nextId++, board: board.id, order: i, kind: 'kill', mt: slime, count: 5, item: '', tx: null, tz: null, lv: 1, exp: 80, gold: 30, prev: i > 0, cleared: 0 }, o);
+  [{ name: 'スライム退治', count: 5, lv: 1, exp: 80, gold: 30 },
+   { name: '草原の見回り', kind: 'goto', tx: TOWN0.x + 30, tz: TOWN0.z + 48, lv: 2, exp: 120, gold: 40 },
+   { name: '薬草集め', kind: 'collect', item: '薬草', count: 6, tx: TOWN0.x - 18, tz: TOWN0.z + 30, lv: 2, exp: 150, gold: 50 },
+   { name: 'スライム大掃除', count: 15, lv: 3, exp: 300, gold: 90 }].forEach((o, i) => g.quests.push(Q(o, i)));
   g.areas.push({ id: g.nextId++, name: 'はじまりの草原', x0: TOWN0.x - 24, z0: TOWN0.z + 20, x1: TOWN0.x + 44, z1: TOWN0.z + 56, lvMin: 1, lvMax: 5, color: AREA_COLORS[0] });
   return g;
 }
@@ -653,16 +709,23 @@ const Scenery = {
 const PLACE_DEFS = {
   town:    { name: '町', cost: 2000, r: 13, slope: .45, named: true, desc: '加入者の拠点。死亡した加入者の復活地点になります' },
   village: { name: '村', cost: 800, r: 8, slope: .5, named: true, desc: '小さな拠点。町から遠い場所の復活地点になります' },
-  inn:     { name: '宿屋', cost: 400, r: 4.6, slope: .5, named: true, desc: '加入者が休んで満足度を回復する場所(段階④)' },
-  board:   { name: 'クエスト掲示板', cost: 150, r: 2.2, slope: .6, desc: 'クエストを掲示する場所(段階⑤)' },
+  inn:     { name: '宿屋', cost: 400, r: 4.6, slope: .5, named: true, desc: '近くの町を使う加入者の満足度+1/日' },
+  board:   { name: 'クエスト掲示板', cost: 150, r: 2.2, slope: .6, named: true, desc: 'クエストを掲示する場所。クエストタブで依頼を作る' },
   road:    { name: '道路', cost: 4, line: true, desc: '始点と終点をタップして敷設。上を歩くと移動速度+50%' },
   bridge:  { name: '橋', cost: 25, line: true, desc: '陸地から陸地へ、水の上に架けます' },
   tree:    { name: '木', cost: 10, r: 1.4, slope: .9, minor: true, desc: '景観用。連続配置できます' },
   rock:    { name: '岩', cost: 10, r: 1.6, slope: 1.2, minor: true, desc: '景観用。連続配置できます' },
   spawn:   { name: 'モンスター出現地点', cost: 200, r: 3, slope: .8, desc: '選んだモンスターが周囲に出現して徘徊します' },
-  dungeon: { name: 'ダンジョン入口', cost: 1500, r: 5.6, slope: .6, named: true, desc: '強敵が潜む入口。内部は研究(段階⑦)で拡張' },
+  dungeon: { name: 'ダンジョン入口', cost: 1500, r: 5.6, slope: .6, named: true, desc: 'Lv8以上の加入者が攻略に挑み、大量の経験値を得る' },
 };
 const PLACE_ORDER = ['town', 'village', 'inn', 'board', 'road', 'bridge', 'tree', 'rock', 'spawn', 'dungeon'];
+const PLACE_REQ = { road: 'road', bridge: 'bridge', village: 'village', inn: 'inn', dungeon: 'dungeon' };
+// 未解放なら必要な研究のIDを返す
+function placeLock(k) {
+  if (k === 'town' && G.objects.some(o => o.type === 'town') && !Research.has('town2')) return 'town2';
+  const r = PLACE_REQ[k];
+  return r && !Research.has(r) ? r : null;
+}
 GEO.rock = new THREE.DodecahedronGeometry(1, 0);
 MAT.wood = new THREE.MeshLambertMaterial({ color: 0x8a6a44 });
 MAT.paper = new THREE.MeshLambertMaterial({ color: 0xeee6cf });
@@ -1123,9 +1186,11 @@ const Place = {
     scene.add(this.lineMesh);
   },
   start(type, moveObj) {
+    const lk = !moveObj && placeLock(type);
+    if (lk) { toast(`研究「${Research.def(lk).name}」で解放されます`, 'warn'); return; }
     if (mode === 'place') this.clear();
     this.type = type; this.rot = 0;
-    if (!this.spawnMt || !Monsters.type(this.spawnMt)) this.spawnMt = G.monsterTypes[0]?.id || 0;
+    if (!this.spawnMt || !Monsters.type(this.spawnMt)) this.spawnMt = (G.monsterTypes.find(t => !t.boss) || G.monsterTypes[0])?.id || 0;
     if (moveObj) {
       this.moveId = moveObj.id; this.pos = { x: moveObj.x, z: moveObj.z }; this.rot = moveObj.rot || 0;
       if (moveObj.type === 'spawn') this.spawnMt = moveObj.mt;
@@ -1279,7 +1344,7 @@ const Place = {
       setMode('view'); select({ kind: 'object', obj: o });
       return;
     }
-    G.money -= this.cost;
+    Econ.spend(this.cost, 'build');
     let o;
     if (def.line) {
       const { p0, p1 } = this;
@@ -1316,7 +1381,7 @@ function placeStatusText() {
 function renderPlaceBar() {
   if (!Place.type) return;
   const def = PLACE_DEFS[Place.type], bar = $('#placeBar');
-  const mons = Place.type === 'spawn' ? `<div class="bb-row">${G.monsterTypes.map(t => `<button class="chip ${Place.spawnMt === t.id ? 'on' : ''}" data-pl="mt" data-v="${t.id}"><span class="sw8" style="background:${t.color}"></span>${esc(t.name)}</button>`).join('')}</div>` : '';
+  const mons = Place.type === 'spawn' ? `<div class="bb-row">${G.monsterTypes.map(t => `<button class="chip ${Place.spawnMt === t.id ? 'on' : ''}" data-pl="mt" data-v="${t.id}" ${t.boss && !Research.has('boss') ? 'disabled' : ''}><span class="sw8" style="background:${t.color}"></span>${esc(t.name)}</button>`).join('')}</div>` : '';
   bar.innerHTML = `<div class="pl-hd"><b>${Place.moveId ? '移動:' : ''}${def.name}</b><span class="num" id="plCost"></span></div>
     <p class="pl-st" id="plStatus"></p>${mons}
     <div class="bb-row pl-acts">
@@ -1680,7 +1745,7 @@ const NAME_A = ['アル', 'ベル', 'カイ', 'ミ', 'リ', 'ソラ', 'ユ', '�
 const NAME_B = ['ト', 'ナ', 'ン', 'ヤ', 'ス', 'リ', 'ラ', 'ル', 'マ', 'キ', '', 'ア', 'ロ', 'ノ'];
 const pick = a => a[Math.floor(Math.random() * a.length)];
 function genName() { let n = pick(NAME_A) + pick(NAME_B); if (Math.random() < .35) n += Math.floor(Math.random() * 99 + 1); return n; }
-const ST_LABEL = { idle: '町で待機', waitpath: '経路を探索中', travel: '狩り場へ移動中', hunt: '獲物を探索中', fight: '戦闘中', return: '町へ帰還中', lost: '迷子(道が見つからない)' };
+const ST_LABEL = { gather: '素材を収集中', dungeon: 'ダンジョン攻略中', idle: '町で待機', waitpath: '経路を探索中', travel: '狩り場へ移動中', hunt: '獲物を探索中', fight: '戦闘中', return: '町へ帰還中', lost: '迷子(道が見つからない)' };
 
 function iconTexture(kind) {
   const cv = document.createElement('canvas'); cv.width = cv.height = 64;
@@ -1732,7 +1797,7 @@ const Players = {
   cls(p) { return Classes.byId(p.cls) || G.classes[0]; },
   stats(p) {
     const c = this.cls(p), L = p.lv - 1;
-    return { hp: Math.round(c.hp + c.gHp * L), atk: c.atk + c.gAtk * L, def: c.def + c.gDef * L, spd: c.spd };
+    return { hp: Math.round(c.hp + c.gHp * L), atk: (c.atk + c.gAtk * L) * (1 + (p.atkB || 0)), def: (c.def + c.gDef * L) * (1 + (p.defB || 0)), spd: c.spd };
   },
   towns() { return G.objects.filter(o => o.type === 'town' || o.type === 'village'); },
   nearestTown(x, z) {
@@ -1746,7 +1811,8 @@ const Players = {
     for (const k of cs) { r -= Math.max(1, k.pop); if (r <= 0) { c = k; break; } }
     const tws = this.towns(), tw = tws.length ? pick(tws) : { x: 0, z: 0 };
     const p = {
-      id: G.nextId++, name: genName(), cls: c.id, lv: 1, exp: 0, hp: 1, gold: 50, sat: 70, spent: 0,
+      id: G.nextId++, name: genName(), cls: c.id, lv: 1, exp: 0, hp: 1, gold: 50, sat: 70 + (Research.has('tutorial') ? 10 : 0), spent: 0,
+      done: [], quest: null, owned: [], atkB: 0, defB: 0, boostUntil: 0,
       x: tw.x + (Math.random() - .5) * 10, z: tw.z + (Math.random() - .5) * 10, ry: Math.random() * 6.28,
       st: 'idle', wait: Math.random() * 6, path: null, pi: 0, dest: null, purpose: '', sp: 0, mt: 0, atkCd: 0, sk: [0, 0],
       kills: 0, goal: 0, swing: 0, cheat: Math.random() < .05, troll: Math.random() < .04, warned: 0,
@@ -1766,6 +1832,15 @@ const Players = {
   // 町で次の行動を決める:レベル相応の狩り場を選ぶ(なければ弱めの狩り場)
   decide(p) {
     if (p.troll && Math.random() < .5) { p.st = 'idle'; p.wait = 6 + Math.random() * 8; return; }
+    // クエストを優先(受注中なら続き、なければレベルに合うものを掲示板で受注)
+    if (p.quest) { this.questNext(p); return; }
+    const q = Math.random() < .8 ? Quests.pick(p) : null;
+    if (q) { p.quest = { id: q.id, prog: 0, done: false, acc: false }; this.goBoard(p, q); return; }
+    // Lv8以上はときどきダンジョンに挑む
+    if (p.lv >= 8 && Math.random() < .25) {
+      const pc0 = PG.compAt(p.x, p.z), dg = G.objects.filter(o => o.type === 'dungeon' && PG.compAt(o.x, o.z) === pc0);
+      if (dg.length) { const d = pick(dg); this.goTo(p, d.x + Math.sin(d.rot || 0) * 4, d.z + Math.cos(d.rot || 0) * 4, 'dungeon'); return; }
+    }
     const L = p.lv, pc = PG.compAt(p.x, p.z), good = [];
     let weak = null, weakLv = -1, far = null;
     for (const sp of G.objects) {
@@ -1790,11 +1865,66 @@ const Players = {
   },
   goTo(p, x, z, purpose) {
     p.dest = { x, z }; p.purpose = purpose; p.path = null; p.pi = 0;
-    if (p.vis) PG.request(p); else p.st = purpose === 'hunt' ? 'travel' : 'return';
+    if (p.vis) PG.request(p); else p.st = purpose === 'town' ? 'return' : 'travel';
+  },
+  goBoard(p, q) {
+    const b = q && Quests.board(q);
+    if (!b) { p.quest = null; p.st = 'idle'; p.wait = 1; return; }
+    const r = b.rot || 0;
+    this.goTo(p, b.x + Math.sin(r) * 2.5 + (Math.random() - .5) * 2, b.z + Math.cos(r) * 2.5 + (Math.random() - .5) * 2, 'board');
+  },
+  questNext(p) {
+    const q = Quests.byId(p.quest.id);
+    if (!q || !Quests.valid(q)) { p.quest = null; p.st = 'idle'; p.wait = 1; return; }
+    if (!p.quest.acc || p.quest.done) this.goBoard(p, q); else this.startTarget(p, q);
+  },
+  startTarget(p, q) {
+    if (q.kind === 'kill' || q.kind === 'boss') {
+      const pc = PG.compAt(p.x, p.z);
+      const sps = G.objects.filter(o => o.type === 'spawn' && o.mt === q.mt && PG.compAt(o.x, o.z) === pc);
+      if (!sps.length) { p.quest = null; p.st = 'idle'; p.wait = 2; return; }
+      sps.sort((a, b) => Math.hypot(a.x - p.x, a.z - p.z) - Math.hypot(b.x - p.x, b.z - p.z));
+      const sp = sps[0]; p.sp = sp.id; p.goal = 999; p.kills = 0;
+      const a = Math.random() * 6.28, r = Math.random() * sp.radius * .6;
+      this.goTo(p, sp.x + Math.cos(a) * r, sp.z + Math.sin(a) * r, 'hunt');
+    } else this.goTo(p, q.tx + (Math.random() - .5) * 3, q.tz + (Math.random() - .5) * 3, 'qgo');
+  },
+  // 目的地に着いたときの処理
+  onArrive(p) {
+    const q = p.quest && Quests.byId(p.quest.id);
+    switch (p.purpose) {
+      case 'hunt': p.st = 'hunt'; p.scan = 0; break;
+      case 'board':
+        if (!q) { p.quest = null; this.arriveTown(p); break; }
+        if (p.quest.done) { Quests.complete(p, q); p.st = 'idle'; p.wait = 2 + Math.random() * 3; p.wt = null; }
+        else { p.quest.acc = true; this.startTarget(p, q); }
+        break;
+      case 'qgo':
+        if (!q) { p.quest = null; this.goTown(p); break; }
+        if (q.kind === 'goto') { p.quest.done = true; this.goBoard(p, q); }
+        else { p.st = 'gather'; p.gT = 1.2 * q.count; }
+        break;
+      case 'dungeon': p.st = 'dungeon'; p.dT = 6 + Math.random() * 4; break;
+      default: this.arriveTown(p);
+    }
+  },
+  leaveDungeon(p) {
+    const s = this.stats(p);
+    if (Math.random() < clamp(.12 - p.lv * .002, .03, .12)) { this.die(p); return; }
+    this.gainExp(p, Math.round(25 * Math.pow(p.lv, 1.3)) * (p.cheat ? 8 : 1) * Econ.expMult(p));
+    p.gold += 15 * p.lv; p.sat = Math.min(100, p.sat + 2); p.hp = Math.max(1, s.hp * .4);
+    this.goTown(p);
+  },
+  remove(p) {
+    const i = G.players.indexOf(p); if (i >= 0) G.players.splice(i, 1);
+    this.map.delete(p.id); this.visList = this.visList.filter(q => q !== p);
+    if (this.followId === p.id) setFollow(null);
+    if (selection && selection.kind === 'player' && selection.pl.id === p.id) select(null);
+    for (const m of G.monsters) if (m.tg === p.id) m.tg = 0;
   },
   goTown(p) { const tw = this.nearestTown(p.x, p.z); this.goTo(p, tw.x + (Math.random() - .5) * 8, tw.z + (Math.random() - .5) * 8, 'town'); },
   setPath(p, path) {
-    p.path = path; p.pi = 0; p.st = p.purpose === 'hunt' ? 'travel' : 'return';
+    p.path = path; p.pi = 0; p.st = p.purpose === 'town' ? 'return' : 'travel';
     if (p.lost) this.newFound = (this.newFound || 0) + 1;
     p.lost = false; p.lostCount = 0;
   },
@@ -1825,11 +1955,20 @@ const Players = {
   kill(p, m, t) {
     m.dead = true; Monsters.anyDead = true;
     const c = this.cls(p); c.kills++; c.killTime += this.simT - (p.fightT ?? this.simT);
-    this.gainExp(p, t.exp * (p.cheat ? 8 : 1));
+    this.gainExp(p, t.exp * (p.cheat ? 8 : 1) * Econ.expMult(p));
     p.gold += t.gold; p.kills++; p.totalKills++;
     if (t.boss) { p.sat = Math.min(100, p.sat + 5); log(`${p.name}(${c.name})が${t.name}を討伐しました!`, 'good'); }
+    if (this.questKill(p, t)) return;
     if (p.kills >= p.goal || p.hp < this.stats(p).hp * .35) this.goTown(p);
     else { p.st = 'hunt'; p.scan = .2; p.mt = 0; }
+  },
+  // 討伐クエストの進行。達成したら掲示板へ報告に向かう
+  questKill(p, t) {
+    if (!p.quest || p.quest.done || !p.quest.acc) return false;
+    const q = Quests.byId(p.quest.id);
+    if (!q || (q.kind !== 'kill' && q.kind !== 'boss') || q.mt !== t.id) return false;
+    if (++p.quest.prog < (q.kind === 'boss' ? 1 : q.count)) return false;
+    p.quest.done = true; this.goBoard(p, q); return true;
   },
   hurt(p, dmg, m) {
     p.hp -= dmg;
@@ -1845,7 +1984,7 @@ const Players = {
     const i0 = clamp(Math.floor((x - r + HALF) / 8), 0, 31), i1 = clamp(Math.floor((x + r + HALF) / 8), 0, 31);
     const j0 = clamp(Math.floor((z - r + HALF) / 8), 0, 31), j1 = clamp(Math.floor((z + r + HALF) / 8), 0, 31);
     for (let j = j0; j <= j1; j++) for (let i = i0; i <= i1; i++) for (const p of this.cells[j * 32 + i]) {
-      if (p.st === 'idle' || p.st === 'lost') continue;
+      if (p.st === 'idle' || p.st === 'lost' || p.st === 'dungeon') continue;
       const d = (p.x - x) ** 2 + (p.z - z) ** 2; if (d < bd) { bd = d; best = p; }
     }
     return best;
@@ -1885,7 +2024,7 @@ const Players = {
             const d = Math.hypot(w[0] - p.x, w[1] - p.z);
             if (d <= left) {
               p.x = w[0]; p.z = w[1]; left -= d; p._mv = true;
-              if (p.pi >= p.path.length) { if (p.purpose === 'hunt') { p.st = 'hunt'; p.scan = 0; } else this.arriveTown(p); break; }
+              if (p.pi >= p.path.length) { this.onArrive(p); break; }
               p.pi++;
             } else { p.x += (w[0] - p.x) / d * left; p.z += (w[1] - p.z) / d * left; p.ry = Math.atan2(w[0] - p.x, w[1] - p.z); p._mv = true; left = 0; }
           }
@@ -1926,6 +2065,13 @@ const Players = {
           }
           break;
         }
+        case 'gather': {
+          p.gT -= sdt;
+          if (Math.random() < sdt * 1.2) p.swing = .35;
+          if (p.gT <= 0) { if (p.quest) { p.quest.done = true; this.goBoard(p, Quests.byId(p.quest.id)); } else this.goTown(p); }
+          break;
+        }
+        case 'dungeon': p.dT -= sdt; if (p.dT <= 0) this.leaveDungeon(p); break;
         case 'lost': {
           p.sat = Math.max(0, p.sat - .002 * sdt);
           p.retry -= sdt;
@@ -1941,8 +2087,14 @@ const Players = {
     const s = this.stats(p);
     switch (p.st) {
       case 'idle': p.hp = s.hp; p.wait -= 1; if (p.wait <= 0) this.decide(p); break;
+      case 'gather': p.gT -= 1; if (p.gT <= 0) { if (p.quest) { p.quest.done = true; this.goBoard(p, Quests.byId(p.quest.id)); } else this.teleportTown(p); } break;
+      case 'dungeon': p.dT -= 1; if (p.dT <= 0) this.leaveDungeon(p); break;
       case 'waitpath': case 'travel': case 'hunt': case 'fight': {
         if (p.purpose === 'town') { this.teleportTown(p); break; }
+        if ((p.st === 'travel' || p.st === 'waitpath') && p.purpose !== 'hunt' && p.dest) {
+          if (PG.compAt(p.dest.x, p.dest.z) !== PG.compAt(p.x, p.z)) { this.pathFail(p); break; }
+          p.x = p.dest.x; p.z = p.dest.z; this.onArrive(p); break;
+        }
         const sp = G.objects.find(o => o.id === p.sp), t = sp && Monsters.type(sp.mt);
         if (!t) { this.teleportTown(p); break; }
         if (PG.compAt(sp.x, sp.z) !== PG.compAt(p.x, p.z)) { this.pathFail(p); break; }
@@ -1954,9 +2106,11 @@ const Players = {
         if (p.hp <= 0) { this.die(p); break; }
         while (p.acc >= 1) {
           p.acc -= 1; c.kills++; c.killTime += ttk;
-          this.gainExp(p, t.exp * (p.cheat ? 8 : 1)); p.gold += t.gold; p.kills++; p.totalKills++;
+          this.gainExp(p, t.exp * (p.cheat ? 8 : 1) * Econ.expMult(p)); p.gold += t.gold; p.kills++; p.totalKills++;
           if (t.boss) p.sat = Math.min(100, p.sat + 5);
+          if (this.questKill(p, t)) break;
         }
+        if (p.st !== 'hunt') break;
         if (p.kills >= p.goal || p.hp < s.hp * .35) this.teleportTown(p);
         break;
       }
@@ -2012,7 +2166,7 @@ const Players = {
     let n = 0; const wn = {}, ic = { fight: 0, quest: 0, sad: 0, lost: 0 };
     for (const [w] of WEAPONS) wn[w] = 0;
     for (const p of this.visList) {
-      const c = this.cls(p); if (!c) continue;
+      const c = this.cls(p); if (!c || p.st === 'dungeon') continue;
       const y = PG.groundY(p.x, p.z), bob = p._mv ? Math.abs(Math.sin(this.time * 10 + p.id)) * .08 : 0;
       o.position.set(p.x, y + bob, p.z); o.rotation.set(0, p.ry, 0); o.scale.set(1, 1, 1); o.updateMatrix();
       this.body.setMatrixAt(n, o.matrix); this.body.setColorAt(n, this._c.set(c.color)); this.head.setMatrixAt(n, o.matrix);
@@ -2041,6 +2195,12 @@ const Players = {
     for (const k in this.icons) { this.icons[k].count = ic[k]; this.icons[k].instanceMatrix.needsUpdate = true; }
   },
   actLabel(p) {
+    const q = p.quest && Quests.byId(p.quest.id);
+    if (p.st === 'travel' && p.purpose === 'board') return q && p.quest.done ? `「${q.name}」の報告に向かう` : '掲示板でクエストを受けに行く';
+    if (p.st === 'travel' && p.purpose === 'qgo' && q) return `「${q.name}」の目的地へ移動中`;
+    if (p.st === 'travel' && p.purpose === 'dungeon') return 'ダンジョンへ向かう';
+    if (p.st === 'gather' && q) return `「${q.name}」で${q.item || '素材'}を収集中`;
+    if (p.st === 'hunt' && q && p.quest.acc && !p.quest.done) return `「${q.name}」(${p.quest.prog}/${q.kind === 'boss' ? 1 : q.count})`;
     if (p.st === 'fight') { const m = Monsters.map.get(p.mt), t = m && Monsters.type(m.t); return t ? `${t.name}と戦闘中` : '戦闘中'; }
     if (p.st === 'travel' || p.st === 'hunt') {
       const sp = G.objects.find(o => o.id === p.sp), a = sp && Areas.at(sp.x, sp.z), t = sp && Monsters.type(sp.mt);
@@ -2247,13 +2407,13 @@ function pickGround(sx, sy) {
 /* ════════════════════════════════════════════
    操作モード(段階②以降で編集モードを追加)
    ════════════════════════════════════════════ */
-const MODES = { view: '閲覧モード', terrain: '地形編集中', place: '配置中', area: 'エリア設定中' };
+const MODES = { view: '閲覧モード', terrain: '地形編集中', place: '配置中', area: 'エリア設定中', pick: '目的地を選択中' };
 let mode = 'view';
 // 編集モードの1本指操作をモードごとの処理に振り分ける
 const Edit = {
   down(x, y) { if (mode === 'terrain') Brush.begin(x, y); else if (mode === 'place') Place.down(x, y); else if (mode === 'area') AreaEdit.down(x, y); },
   move(x, y) { if (mode === 'terrain') Brush.moveTo(x, y); else if (mode === 'place') Place.move(x, y); else if (mode === 'area') AreaEdit.move(x, y); },
-  up(x, y, tap) { if (mode === 'terrain') Brush.end(); else if (mode === 'place') Place.up(x, y, tap); else if (mode === 'area') AreaEdit.up(x, y, tap); },
+  up(x, y, tap) { if (mode === 'terrain') Brush.end(); else if (mode === 'place') Place.up(x, y, tap); else if (mode === 'area') AreaEdit.up(x, y, tap); else if (mode === 'pick' && tap) Quests.pickAt(x, y); },
   cancel() { Brush.cancel(); Place.cancelDrag(); AreaEdit.cancelDrag(); },
 };
 function setMode(m) {
@@ -2282,6 +2442,7 @@ const BRUSH_TOOLS = [['raise', '隆起'], ['lower', '沈降'], ['flatten', '平�
 const BRUSH_COL = { raise: 0xe2a64b, lower: 0x5bb8d9, flatten: 0xf2eee2, smooth: 0x7cc98f };
 const TT_HEX = [0x6a9a43, 0x3f6a2f, 0xd8bf7e, 0xe4ebf0, 0x4f5b38];
 const TT_CSS = TT_HEX.map(c => '#' + c.toString(16).padStart(6, '0'));
+const TT_REQ = [null, null, 'desert', 'snow', 'swamp'];
 const TT_EFFECT = ['見通しがよく、ときどき木が生えます', '木が密集して生えます', '砂の大地になり、木は生えません', '一面の雪景色になります', '湿った低木が点在します'];
 const H_MAX = 60;
 const Brush = {
@@ -2402,7 +2563,7 @@ function renderBrushBar() {
     + `<button class="chip undo" data-bb="undo" aria-label="元に戻す" ${Brush.undo.length ? '' : 'disabled'}><svg class="i" viewBox="0 0 24 24"><path d="M9 14L4 9l5-5"/><path d="M4 9h10a6 6 0 010 12h-3"/></svg><span class="lb">元に戻す</span></button>`;
   const pr = $('#bbPaint'), wasHidden = pr.hidden;
   pr.hidden = Brush.tool !== 'paint';
-  pr.innerHTML = TT_NAMES.map((n, i) => `<button class="chip ${Brush.paint === i ? 'on' : ''}" data-paint="${i}"><span class="sw8" style="background:${TT_CSS[i]}"></span>${n}</button>`).join('');
+  pr.innerHTML = TT_NAMES.map((n, i) => `<button class="chip ${Brush.paint === i ? 'on' : ''}" data-paint="${i}" ${Research.has(TT_REQ[i]) ? '' : 'disabled'}><span class="sw8" style="background:${TT_CSS[i]}"></span>${n}${Research.has(TT_REQ[i]) ? '' : '(研究)'}</button>`).join('');
   syncBrushInputs();
   if (wasHidden !== pr.hidden) applyPanelLayout();
 }
@@ -2625,6 +2786,7 @@ function renderSelCard() {
     const ar = Areas.at(o.x, o.z);
     if (ar) rows.push(['エリア', ar.name]);
     if (o.type === 'town' || o.type === 'village') rows.push(['役割', '復活地点・拠点']);
+    if (o.type === 'board') { rows.push(['クエスト', `${Quests.boardQuests(o.id).length}件`]); acts.push('<button class="btn sm" data-sel="quests">クエスト</button>'); }
     if (o.type === 'spawn') {
       const t = Monsters.type(o.mt);
       rows.push(['モンスター', t ? t.name : 'なし'], ['出現数', `${Monsters.count(o.id)} / ${Monsters.effMax(o)}体`], ['再出現', `${o.respawn}時間${Monsters.habitatOk(o) ? '(地形適性で2倍速)' : ''}`]);
@@ -2682,6 +2844,7 @@ $('#selCard').addEventListener('click', e => {
   const b = e.target.closest('[data-sel]'); if (!b || !selection) return;
   const a = b.dataset.sel, s = selection;
   if (a === 'close') select(null);
+  else if (a === 'quests') { select(null); UI.qEdit = null; UI.tab = null; openTab('quest'); }
   else if (a === 'fly') { const p = selectionPos(); if (p) Cam.flyTo(p.x, p.z, { dist: Math.min(Cam.dist, 110) }); }
   else if (a === 'more') { selection.detail = true; renderSelCard(); }
   else if (a === 'follow') {
@@ -2727,11 +2890,20 @@ function tick() {
   G.hour++;
   Monsters.hourly();
   Players.hourly();
+  Econ.hourly();
   if (G.hour >= 24) { G.hour = 0; G.day++; daily(); }
   if (G.hour === 6) log('夜が明けました');
   if (G.hour === 19) log('日が沈み、町に灯りがともりました');
 }
-function daily() { Players.daily(); log(`${G.day}日目が始まりました`); }
+function daily() {
+  log(`${G.day}日目が始まりました`);
+  Players.daily();
+  Admin.daily();
+  Econ.daily();
+  if (G.over) return;
+  Events.daily();
+  if (['biz', 'admin', 'research', 'class', 'quest'].includes(UI.tab) && !pb.contains(document.activeElement)) renderPanel();
+}
 
 /* ════════════════════════════════════════════
    UI:ツール・パネル・ログ・トースト・ダイアログ
@@ -2807,9 +2979,9 @@ function applyPanelLayout() {
   const open = !!UI.tab, bs = document.body.style;
   document.body.classList.toggle('panel-open', open);
   // ブラシバーは地形編集中かつパネルを閉じているときだけ表示
-  const barId = { terrain: 'brushBar', place: 'placeBar', area: 'areaBar' }[mode];
+  const barId = { terrain: 'brushBar', place: 'placeBar', area: 'areaBar', pick: 'pickBar' }[mode];
   let bbH = 0;
-  for (const id of ['brushBar', 'placeBar', 'areaBar']) {
+  for (const id of ['brushBar', 'placeBar', 'areaBar', 'pickBar']) {
     const el = document.getElementById(id);
     el.hidden = !(id === barId && !open);
     if (!el.hidden) bbH = el.getBoundingClientRect().height;
@@ -2873,11 +3045,9 @@ function renderPanel() {
   const t = UI.tab;
   const R = PANELS[t] || PANEL_EXT[t] || PANELS._todo;
   pb.innerHTML = R(t);
+  if (t === 'biz') requestAnimationFrame(() => Charts.drawAll());
 }
 const TODO = {
-  quest: ['⑤', '討伐・収集・移動・ボス討伐クエスト、報酬、クエストチェーン'],
-  admin: ['⑦', '通報リスト(BAN・警告・放置・現地へ移動)、迷子の救助、GM雇用'],
-  research: ['⑦', '研究ポイントによる新地形・ダンジョン・ボス・建物・GMなどの解放'],
 };
 const PANELS = {
   _todo(t) {
@@ -2893,7 +3063,7 @@ const PANELS = {
       <div class="tools5">${BRUSH_TOOLS.map(([k, l]) => `<button class="chip ${Brush.tool === k ? 'on' : ''}" data-act="tool" data-v="${k}" aria-pressed="${Brush.tool === k}">${l}</button>`).join('')}</div>
       <p class="hint">ブラシを選ぶと地形編集モードになり、パネルが閉じます。編集中は1本指ドラッグで地形を変え、2本指でカメラを動かします。海底を隆起させると新しい陸地になります。</p></div>
       <div class="sec"><h4>塗る地形種別</h4>
-      <div class="tools5">${TT_NAMES.map((n, i) => `<button class="chip ${Brush.paint === i ? 'on' : ''}" data-act="paint" data-v="${i}"><span class="sw8" style="background:${TT_CSS[i]}"></span>${n}</button>`).join('')}</div></div>
+      <div class="tools5">${TT_NAMES.map((n, i) => `<button class="chip ${Brush.paint === i ? 'on' : ''}" data-act="paint" data-v="${i}" ${Research.has(TT_REQ[i]) ? '' : 'disabled'}><span class="sw8" style="background:${TT_CSS[i]}"></span>${n}${Research.has(TT_REQ[i]) ? '' : '(研究)'}</button>`).join('')}</div></div>
       <div class="sec"><h4>ブラシの設定</h4>
         <label class="sl"><span class="k">半径</span><input type="range" data-brush="radius" min="3" max="40" step="1" value="${Brush.radius}"><output data-out="radius">${Brush.radius} m</output></label>
         <label class="sl slS ${Brush.tool === 'paint' ? 'off' : ''}"><span class="k">強さ</span><input type="range" data-brush="strength" min="10" max="100" step="5" value="${Math.round(Brush.strength * 100)}"><output data-out="strength">${Math.round(Brush.strength * 100)}%</output></label>
@@ -2907,14 +3077,10 @@ const PANELS = {
       <div class="sec"><h4>地形種別の効果</h4><dl class="keys">${TT_NAMES.map((n, i) => `<dt style="color:${TT_CSS[i] === '#3f6a2f' || TT_CSS[i] === '#4f5b38' ? '#8fbf6a' : TT_CSS[i]}">${n}</dt><dd>${TT_EFFECT[i]}</dd>`).join('')}</dl>
       <p class="hint">モンスターは好む地形にある出現地点で再出現が2倍速になります(モンスタータブで設定)。</p></div>`;
   },
-  biz() {
-    return `<div class="sec"><h4>現在の運営状況</h4><div class="cards">
-      <div class="card"><i>資金</i><b>${fmt(G.money)}G</b></div>
-      <div class="card"><i>加入者</i><b>${fmt(G.subscribers)}人</b></div>
-      <div class="card"><i>平均満足度</i><b>${G.satisfaction}</b></div>
-      <div class="card"><i>経過日数</i><b>${G.day}日</b></div></div></div>
-      <div class="sec"><p class="hint"><span class="stage">段階⑥</span>収益モデル(月額/基本無料)、サーバー費、収支・加入者・満足度のグラフを追加します。</p></div>`;
-  },
+  biz() { return bizPanel(); },
+  quest() { return questPanel(); },
+  research() { return researchPanel(); },
+  admin() { return adminPanel(); },
   other() {
     const q = QUALITY[S.quality], fsOk = fullscreenSupported();
     return `<div class="sec"><h4>画質</h4>
@@ -2942,13 +3108,13 @@ const PANELS = {
         <dt>WASD・矢印</dt><dd>移動</dd><dt>Q / E</dt><dd>回転</dd><dt>R / F</dt><dd>角度</dd>
         <dt>Space・1〜4</dt><dd>一時停止・速度</dd><dt>Esc</dt><dd>追従解除・閲覧モードに戻る</dd><dt>H</dt><dd>初期視点</dd>
         <dt>T</dt><dd>地形編集の開始・終了</dd><dt>[ / ]</dt><dd>ブラシ半径</dd><dt>Ctrl+Z</dt><dd>地形を元に戻す</dd></dl></div>
-      <div class="sec"><h4>開発状況</h4><p class="hint"><span class="stage">段階④</span>AI加入者(移動・経路探索・戦闘・経験値)とクラスエディタ</p></div>`;
+      ${savePanel()}`;
   },
 };
 pb.addEventListener('click', e => {
   const b = e.target.closest('[data-act]'); if (!b || b.disabled) return;
   const a = b.dataset.act;
-  if (panelAction(a, b)) return;
+  if (panelAction(a, b) || questAction(a, b) || adminAction(a, b) || saveAction(a)) return;
   if (a === 'tool' || a === 'edit') {
     if (a === 'tool') Brush.tool = b.dataset.v;
     closePanel(); setMode('terrain');
@@ -2991,6 +3157,9 @@ function setName(key, v) {
   const [kind, id] = key.split(':');
   if (kind === 'mt') { const t = Monsters.type(+id); if (t) t.name = v || '名無し'; }
   else if (kind === 'ar') { const a = G.areas.find(q => q.id === +id); if (a) a.name = v || '名無しのエリア'; }
+  else if (kind === 'q') { const q = Quests.byId(+id); if (q) q.name = v || '名無しのクエスト'; }
+  else if (kind === 'qi') { const q = Quests.byId(+id); if (q) q.item = v || '素材'; }
+  else if (kind === 'it') { const it = G.items.find(x => x.id === +id); if (it) it.name = v || 'アイテム'; }
   else if (kind === 'cl') { const c = Classes.byId(+id); if (c) c.name = v || '名無しのクラス'; }
   else if (kind === 'sk') { const c = Classes.byId(+id), i = +key.split(':')[2]; if (c && c.skills[i]) c.skills[i].name = v || 'スキル'; }
   else if (kind === 'obj') { const o = G.objects.find(q => q.id === +id); if (o) o.name = v || PLACE_DEFS[o.type].name; }
@@ -3047,7 +3216,7 @@ const PANEL_EXT = {
     const cnt = {};
     for (const o of G.objects) cnt[o.type] = (cnt[o.type] || 0) + 1;
     return `<div class="sec"><h4>配置するものを選ぶ</h4><div class="plgrid">
-      ${PLACE_ORDER.map(k => { const d = PLACE_DEFS[k]; return `<button class="plc" data-act="place" data-v="${k}"><b>${d.name}</b><span class="num">${fmt(d.cost)}G${d.line ? '/m' : ''}</span><span class="d">${d.desc}</span></button>`; }).join('')}
+      ${PLACE_ORDER.map(k => { const d = PLACE_DEFS[k], lk = placeLock(k); return `<button class="plc ${lk ? 'locked' : ''}" data-act="place" data-v="${k}" ${lk ? 'aria-disabled="true"' : ''}><b>${d.name}</b><span class="num">${fmt(d.cost)}G${d.line ? '/m' : ''}</span><span class="d">${d.desc}</span>${lk ? `<span class="lk">研究「${Research.def(lk).name}」で解放</span>` : ''}</button>`; }).join('')}
       </div><p class="hint">選ぶと配置モードになります。地面をタップ→ドラッグで調整→確定。急斜面や水の上には置けません(置けない場所は赤く表示)。配置したものをタップすると、移動・削除ができます。</p></div>
       <div class="sec"><h4>設置済み</h4><div class="cards">${PLACE_ORDER.filter(k => cnt[k]).map(k => `<div class="card"><i>${PLACE_DEFS[k].name}</i><b>${cnt[k]}</b></div>`).join('') || '<p class="hint">まだありません</p>'}</div></div>`;
   },
@@ -3080,7 +3249,7 @@ const PANEL_EXT = {
       const t = Monsters.type(sp.mt), ar = Areas.at(sp.x, sp.z), ok = Monsters.habitatOk(sp);
       return `<div class="ecard" id="sp${sp.id}" style="border-left-color:${t ? t.color : 'var(--bad)'}">
         <div class="hd"><b>出現地点 #${sp.id}</b><span class="meta">${ar ? esc(ar.name) : 'エリア外'}</span></div>
-        <div class="bb-row wrap">${G.monsterTypes.map(m => `<button class="chip ${sp.mt === m.id ? 'on' : ''}" data-act="spMt" data-sp="${sp.id}" data-v="${m.id}"><span class="sw8" style="background:${m.color}"></span>${esc(m.name)}</button>`).join('')}</div>
+        <div class="bb-row wrap">${G.monsterTypes.map(m => `<button class="chip ${sp.mt === m.id ? 'on' : ''}" data-act="spMt" data-sp="${sp.id}" data-v="${m.id}" ${m.boss && !Research.has('boss') ? 'disabled' : ''}><span class="sw8" style="background:${m.color}"></span>${esc(m.name)}</button>`).join('')}</div>
         ${stepper(`sp${sp.id}.max`, '最大出現数', sp.max, 1, 20, 1, intf('体'), v => { sp.max = v; })}
         ${stepper(`sp${sp.id}.respawn`, '再出現時間', sp.respawn, 1, 48, 1, intf('時間'), v => { sp.respawn = v; })}
         ${stepper(`sp${sp.id}.radius`, '徘徊範囲', sp.radius, 5, 30, 1, intf('m'), v => { sp.radius = v; })}
@@ -3111,13 +3280,13 @@ function monsterEditor(t) {
       ${stepper(k + 'gold', 'ドロップゴールド', t.gold, 0, 500, 1, intf('G'), v => { t.gold = v; })}</div>
     <div class="sec"><h4>好む地形</h4><div class="bb-row wrap">${[-1, 0, 1, 2, 3, 4].map(h => `<button class="chip ${t.habitat === h ? 'on' : ''}" data-act="mtHab" data-v="${h}">${h < 0 ? 'どこでも' : TT_NAMES[h]}</button>`).join('')}</div>
       <p class="hint">好む地形にある出現地点では、再出現が2倍速になります。</p></div>
-    <div class="sec"><div class="row"><span class="grow">ボスにする<br><span class="hint">出現地点ごとに1体だけ出現します</span></span><button class="sw" role="switch" aria-checked="${!!t.boss}" data-act="mtBoss" aria-label="ボスにする"></button></div>
+    <div class="sec"><div class="row"><span class="grow">ボスにする<br><span class="hint">出現地点ごとに1体だけ出現します</span></span>${Research.has('boss') ? `<button class="sw" role="switch" aria-checked="${!!t.boss}" data-act="mtBoss" aria-label="ボスにする"></button>` : '<span class="meta">研究で解放</span>'}</div>
       <p class="hint">変更はすぐに3Dビューへ反映されます。</p></div>`;
 }
 function panelAction(a, b) {
   const v = b.dataset.v;
   switch (a) {
-    case 'place': closePanel(); Place.start(v); return true;
+    case 'place': if (placeLock(v)) { toast(`研究「${Research.def(placeLock(v)).name}」で解放されます`, 'warn'); return true; } closePanel(); Place.start(v); return true;
     case 'newArea': closePanel(); AreaEdit.start(); return true;
     case 'arFly': { const ar = G.areas.find(q => q.id === +v); if (ar) { Cam.flyTo((ar.x0 + ar.x1) / 2, (ar.z0 + ar.z1) / 2, { dist: clamp(Math.max(ar.x1 - ar.x0, ar.z1 - ar.z0) * 1.6, 40, 300) }); if (UI.layout === 'portrait') closePanel(); } return true; }
     case 'arDel': {
@@ -3193,6 +3362,844 @@ pb.addEventListener('click', e => {
 });
 
 
+/* ════════════════════════════════════════════
+   クエスト・クエストチェーン
+   ════════════════════════════════════════════ */
+const QKINDS = [['kill', '討伐'], ['collect', '収集'], ['goto', '移動'], ['boss', 'ボス討伐']];
+const Quests = {
+  flags: new Map(),
+  byId(id) { return G.quests.find(q => q.id === id); },
+  board(q) { return G.objects.find(o => o.id === q.board && o.type === 'board'); },
+  boardQuests(bid) { return G.quests.filter(q => q.board === bid).sort((a, b) => a.order - b.order); },
+  // 目標が成立しているか(モンスターがどこかに出現する/目的地がある)
+  valid(q) {
+    if (!this.board(q)) return false;
+    if (q.kind === 'kill' || q.kind === 'boss') return !!Monsters.type(q.mt) && G.objects.some(o => o.type === 'spawn' && o.mt === q.mt);
+    return q.tx != null;
+  },
+  prevOk(q, p) {
+    if (!q.prev) return true;
+    const list = this.boardQuests(q.board), i = list.indexOf(q);
+    return i <= 0 || p.done.includes(list[i - 1].id);
+  },
+  fits(q, p) { return p.lv >= q.lv - 2 && p.lv <= q.lv + 6; },
+  available(p) {
+    const out = [];
+    for (const q of G.quests) if (!p.done.includes(q.id) && this.fits(q, p) && this.prevOk(q, p) && this.valid(q)) out.push(q);
+    return out;
+  },
+  pick(p) {
+    const pc = PG.compAt(p.x, p.z);
+    const av = this.available(p).filter(q => { const b = this.board(q); return PG.compAt(b.x, b.z) === pc && (q.kind === 'kill' || q.kind === 'boss' || PG.compAt(q.tx, q.tz) === pc); });
+    if (!av.length) return null;
+    av.sort((a, b) => a.order - b.order || Math.abs(a.lv - p.lv) - Math.abs(b.lv - p.lv));
+    return av[Math.floor(Math.random() * Math.min(2, av.length))];
+  },
+  complete(p, q) {
+    Players.gainExp(p, q.exp); p.gold += q.gold;
+    p.sat = Math.min(100, p.sat + 3);
+    p.done.push(q.id); p.quest = null;
+    q.cleared = (q.cleared || 0) + 1;
+    G.today.quests++;
+    if (q.cleared === 1) log(`クエスト「${q.name}」を${p.name}が初めてクリアしました`, 'good');
+  },
+  summary(q) {
+    const t = Monsters.type(q.mt);
+    if (q.kind === 'kill') return `${t ? t.name : '(未設定)'}を${q.count}体討伐`;
+    if (q.kind === 'boss') return `${t ? t.name : '(未設定)'}を討伐`;
+    if (q.kind === 'collect') return `${q.item || '素材'}を${q.count}個集める`;
+    return '指定地点へ行く';
+  },
+  // 移動・収集クエストの目的地に旗を立てる
+  rebuildFlags() {
+    for (const g of this.flags.values()) scene.remove(g);
+    this.flags.clear();
+    for (const q of G.quests) {
+      if ((q.kind !== 'goto' && q.kind !== 'collect') || q.tx == null) continue;
+      const g = new THREE.Group();
+      g.position.set(q.tx, heightAt(q.tx, q.tz), q.tz);
+      part(g, GEO.cylB, MAT.wood, .12, 3, .12);
+      const cloth = part(g, GEO.box, colorMat(q.kind === 'goto' ? 0x5bb8d9 : 0xe2c04a), 1.1, .7, .05, .58, 0, 2.55);
+      cloth.userData.g = false;
+      g.traverse(m => { if (m.isMesh) m.castShadow = true; });
+      scene.add(g); this.flags.set(q.id, g);
+    }
+  },
+  pickFor: 0,
+  pickAt(x, y) {
+    const q = this.byId(this.pickFor), g = pickGround(x, y);
+    if (!q || !g) return;
+    if (heightAt(g.x, g.z) < .2) { toast('水の上は目的地にできません', 'warn'); return; }
+    q.tx = +g.x.toFixed(1); q.tz = +g.z.toFixed(1);
+    this.rebuildFlags();
+    toast('目的地を設定しました', 'good');
+    setMode('view');
+    UI.qEdit = q.id; UI.tab = null; openTab('quest');
+  },
+};
+
+function questEditor(q) {
+  const k = 'q.', mons = G.monsterTypes.filter(t => q.kind === 'boss' ? t.boss : !t.boss);
+  const bossLocked = !Research.has('boss');
+  return `<div class="row"><button class="btn sm" data-act="qBack"><svg class="i" viewBox="0 0 24 24"><path d="M15 6l-6 6 6 6"/></svg>一覧へ</button><span class="grow"></span>
+      <button class="btn sm" data-act="qDel">削除</button></div>
+    <div class="sec"><h4>クエスト名</h4><input class="txt" data-name="q:${q.id}" maxlength="20" value="${esc(q.name)}" aria-label="クエスト名"></div>
+    <div class="sec"><h4>種類</h4><div class="bb-row wrap">${QKINDS.map(([kk, n]) => `<button class="chip ${q.kind === kk ? 'on' : ''}" data-act="qKind" data-v="${kk}" ${kk === 'boss' && bossLocked ? 'disabled' : ''}>${n}${kk === 'boss' && bossLocked ? '(研究で解放)' : ''}</button>`).join('')}</div></div>
+    ${q.kind === 'kill' || q.kind === 'boss' ? `<div class="sec"><h4>対象モンスター</h4><div class="bb-row wrap">${mons.map(t => `<button class="chip ${q.mt === t.id ? 'on' : ''}" data-act="qMt" data-v="${t.id}"><span class="sw8" style="background:${t.color}"></span>${esc(t.name)}</button>`).join('') || '<p class="hint">該当するモンスターがいません。モンスタータブで作成してください。</p>'}</div>
+      ${q.mt && !G.objects.some(o => o.type === 'spawn' && o.mt === q.mt) ? '<p class="hint bad">このモンスターの出現地点がないため、まだ受注されません。</p>' : ''}</div>` : ''}
+    ${q.kind === 'collect' ? `<div class="sec"><h4>集めるもの</h4><input class="txt" data-name="qi:${q.id}" maxlength="12" value="${esc(q.item || '')}" aria-label="集めるもの"></div>` : ''}
+    ${q.kind === 'goto' || q.kind === 'collect' ? `<div class="sec"><h4>目的地</h4><div class="row"><span class="grow num">${q.tx == null ? '未設定' : `${q.tx.toFixed(0)}, ${q.tz.toFixed(0)}`}</span>
+      ${q.tx != null ? '<button class="btn sm" data-act="qSee">現地を見る</button>' : ''}<button class="btn sm edit" data-act="qPick">地図で選ぶ</button></div></div>` : ''}
+    <div class="sec"><h4>内容と報酬</h4>
+      ${q.kind === 'kill' || q.kind === 'collect' ? stepper(k + 'count', q.kind === 'kill' ? '討伐数' : '個数', q.count, 1, 50, 1, intf(q.kind === 'kill' ? '体' : '個'), v => { q.count = v; }) : ''}
+      ${stepper(k + 'lv', '推奨レベル', q.lv, 1, 50, 1, v => 'Lv' + v, v => { q.lv = v; })}
+      ${stepper(k + 'exp', '報酬 経験値', q.exp, 10, 5000, 10, intf(''), v => { q.exp = v; })}
+      ${stepper(k + 'gold', '報酬 ゴールド', q.gold, 0, 2000, 5, intf('G'), v => { q.gold = v; })}</div>
+    <div class="sec"><div class="row"><span class="grow">前のクエストの完了が必要<br><span class="hint">チェーンの一部にします(一覧の並び順)</span></span><button class="sw" role="switch" aria-checked="${!!q.prev}" data-act="qPrev" aria-label="前のクエストの完了が必要"></button></div>
+      <p class="hint">加入者はレベル(推奨Lv−2〜+6)に合うクエストを優先して受注します。完了すると満足度+3。</p></div>`;
+}
+function questPanel() {
+  if (UI.qEdit) { const q = Quests.byId(UI.qEdit); if (q) return questEditor(q); UI.qEdit = null; }
+  const boards = G.objects.filter(o => o.type === 'board');
+  if (!boards.length) return `<div class="sec"><p class="hint">クエストはクエスト掲示板に紐付けて作ります。まず掲示板を配置してください。</p><button class="btn pri" data-act="place" data-v="board">掲示板を置く</button></div>`;
+  const active = {};
+  for (const p of G.players) if (p.quest) active[p.quest.id] = (active[p.quest.id] || 0) + 1;
+  return boards.map(b => {
+    const list = Quests.boardQuests(b.id);
+    return `<div class="sec"><div class="row"><h4 class="grow">${esc(Objects.label(b))}</h4><button class="btn sm" data-act="qBoardFly" data-v="${b.id}">現地へ</button></div>
+      <ol class="qlist">${list.map((q, i) => `<li class="qcard ${Quests.valid(q) ? '' : 'invalid'}">
+        ${q.prev && i > 0 ? '<span class="chain" aria-label="前のクエストから続く">↓ 前のクエストを完了すると解放</span>' : ''}
+        <div class="qhd"><span class="qn num">${i + 1}</span><b>${esc(q.name)}</b><span class="meta">Lv${q.lv}</span></div>
+        <p class="meta">${QKINDS.find(k => k[0] === q.kind)[1]}:${esc(Quests.summary(q))} · 報酬 ${fmt(q.exp)}EXP / ${fmt(q.gold)}G</p>
+        <p class="meta">受注中 ${active[q.id] || 0}人 · クリア ${fmt(q.cleared || 0)}回${Quests.valid(q) ? '' : ' · <span class="bad">目標が未設定のため受注されません</span>'}</p>
+        <div class="row qacts"><button class="sb" data-act="qUp" data-v="${q.id}" aria-label="上へ" ${i ? '' : 'disabled'}>↑</button><button class="sb" data-act="qDown" data-v="${q.id}" aria-label="下へ" ${i < list.length - 1 ? '' : 'disabled'}>↓</button>
+          <span class="grow"></span><button class="btn sm" data-act="qEdit" data-v="${q.id}">編集</button></div></li>`).join('')}</ol>
+      ${list.length ? '' : '<p class="hint">この掲示板にはまだクエストがありません</p>'}
+      <button class="btn" data-act="qNew" data-v="${b.id}">クエストを追加</button></div>`;
+  }).join('') + `<p class="hint">チェーンは上から順に進みます。↑↓で並べ替えると、前提関係も並び順に合わせて変わります。</p>`;
+}
+function questAction(a, b) {
+  const v = +b.dataset.v;
+  switch (a) {
+    case 'qEdit': UI.qEdit = v; renderPanel(); pb.scrollTop = 0; return true;
+    case 'qBack': UI.qEdit = null; renderPanel(); return true;
+    case 'qNew': {
+      const list = Quests.boardQuests(v), mt = (G.monsterTypes.find(t => !t.boss) || G.monsterTypes[0]).id;
+      const q = { id: G.nextId++, board: v, order: list.length ? list[list.length - 1].order + 1 : 0, name: `新しいクエスト${G.quests.length + 1}`, kind: 'kill', mt, count: 5, item: '薬草', tx: null, tz: null, lv: 1, exp: 80, gold: 30, prev: list.length > 0, cleared: 0 };
+      G.quests.push(q); UI.qEdit = q.id; renderPanel(); pb.scrollTop = 0; return true;
+    }
+    case 'qDel': {
+      const q = Quests.byId(UI.qEdit); if (!q) return true;
+      ask(`クエスト「${q.name}」を削除しますか?受注中の加入者は中断します。`, '削除する').then(ok => {
+        if (!ok) return;
+        G.quests.splice(G.quests.indexOf(q), 1);
+        for (const p of G.players) if (p.quest && p.quest.id === q.id) p.quest = null;
+        UI.qEdit = null; Quests.rebuildFlags(); renderPanel();
+      });
+      return true;
+    }
+    case 'qKind': { const q = Quests.byId(UI.qEdit); q.kind = b.dataset.v; if (q.kind === 'boss') { const t = G.monsterTypes.find(m => m.boss); q.mt = t ? t.id : 0; q.count = 1; } else if (q.kind === 'kill') { const t = Monsters.type(q.mt); if (!t || t.boss) q.mt = (G.monsterTypes.find(m => !m.boss) || {}).id || 0; } Quests.rebuildFlags(); renderPanel(); return true; }
+    case 'qMt': { const q = Quests.byId(UI.qEdit); q.mt = v; renderPanel(); return true; }
+    case 'qPrev': { const q = Quests.byId(UI.qEdit); q.prev = !q.prev; renderPanel(); return true; }
+    case 'qPick': { Quests.pickFor = UI.qEdit; closePanel(); setMode('pick'); return true; }
+    case 'qSee': { const q = Quests.byId(UI.qEdit); if (q && q.tx != null) { Cam.flyTo(q.tx, q.tz, { dist: Math.min(Cam.dist, 90) }); if (UI.layout === 'portrait') closePanel(); } return true; }
+    case 'qBoardFly': { const o = G.objects.find(x => x.id === v); if (o) { Cam.flyTo(o.x, o.z, { dist: Math.min(Cam.dist, 70) }); if (UI.layout === 'portrait') closePanel(); } return true; }
+    case 'qUp': case 'qDown': {
+      const q = Quests.byId(v), list = Quests.boardQuests(q.board), i = list.indexOf(q), j = a === 'qUp' ? i - 1 : i + 1;
+      if (j < 0 || j >= list.length) return true;
+      const o = list[j].order; list[j].order = q.order; q.order = o;
+      renderPanel(); return true;
+    }
+  }
+  return false;
+}
+
+/* ════════════════════════════════════════════
+   研究(アンロック)
+   ════════════════════════════════════════════ */
+const RESEARCH = [
+  { id: 'road', name: '道路建設', cost: 40, desc: '道路を配置できる。道路の上は移動速度+50%' },
+  { id: 'village', name: '村落計画', cost: 60, desc: '村を配置できる。町から遠い場所の復活地点になる' },
+  { id: 'bridge', name: '架橋技術', cost: 100, req: 'road', desc: '橋を配置して水の上を渡れるようにする' },
+  { id: 'inn', name: '宿屋経営', cost: 80, req: 'village', desc: '宿屋を配置できる。近くの町を使う加入者の満足度+1/日' },
+  { id: 'town2', name: '都市計画', cost: 200, req: 'village', desc: '2つ目以降の町を配置できる' },
+  { id: 'desert', name: '砂漠の地形', cost: 50, desc: '地形ブラシで砂漠を塗れる' },
+  { id: 'swamp', name: '沼地の地形', cost: 50, desc: '地形ブラシで沼地を塗れる' },
+  { id: 'snow', name: '雪原の地形', cost: 70, desc: '地形ブラシで雪原を塗れる' },
+  { id: 'boss', name: 'ボスモンスター', cost: 180, desc: 'ボスの設定・ボスの出現・ボス討伐クエストが使える(討伐で満足度+5)' },
+  { id: 'dungeon', name: 'ダンジョン', cost: 250, req: 'village', desc: 'ダンジョン入口を配置できる。Lv8以上の加入者が攻略に挑む' },
+  { id: 'gm', name: 'GM制度', cost: 90, desc: 'GMを雇用できる。毎日、迷子の救助と不正者への警告を自動で行う' },
+  { id: 'automod', name: '不正検知の強化', cost: 160, req: 'gm', desc: '通報リストに正規の加入者が載らなくなり、GMの警告件数が倍になる' },
+  { id: 'shop_weapon', name: '課金アイテム:武器', cost: 70, desc: '攻撃力を上げる課金武器を販売できる' },
+  { id: 'shop_armor', name: '課金アイテム:防具', cost: 70, desc: '防御力を上げる課金防具を販売できる' },
+  { id: 'shop_booster', name: '課金アイテム:経験値ブースター', cost: 110, desc: '24時間経験値1.5倍のアイテムを販売できる' },
+  { id: 'shop_cosmetic', name: '課金アイテム:見た目', cost: 60, desc: '見た目アイテムを販売できる(購入者の満足度+2)' },
+  { id: 'daynight', name: '昼夜イベント', cost: 120, desc: '夜は町で「月夜の宴」が開かれ満足度が上がる。夜の討伐は経験値1.5倍' },
+  { id: 'events', name: '季節イベント運営', cost: 200, req: 'daynight', desc: '良いランダムイベントが起きやすくなる' },
+  { id: 'server', name: 'サーバー最適化', cost: 220, desc: '加入者1人あたりのサーバー費 2G → 1.5G' },
+  { id: 'server2', name: 'クラウド移行', cost: 400, req: 'server', desc: '基本サーバー費 50G → 30G、サーバー障害が半分に' },
+  { id: 'ads', name: '広告キャンペーン', cost: 150, desc: '新規加入者+25%' },
+  { id: 'tutorial', name: 'チュートリアル改善', cost: 90, desc: '新規加入者の初期満足度+10' },
+  { id: 'community', name: '公式コミュニティ', cost: 130, desc: '要望の期限+3日、要望に応えたときの満足度ボーナス+2' },
+];
+const Research = {
+  has(id) { return !id || G.unlocked.includes(id); },
+  def(id) { return RESEARCH.find(r => r.id === id); },
+  state(r) {
+    if (this.has(r.id)) return 'done';
+    if (r.req && !this.has(r.req)) return 'req';
+    return G.research >= r.cost ? 'ok' : 'short';
+  },
+  buy(id) {
+    const r = this.def(id);
+    if (!r || this.state(r) !== 'ok') return;
+    G.research -= r.cost; G.unlocked.push(r.id);
+    log(`研究「${r.name}」が完了しました`, 'good'); toast(`研究完了:${r.name}`, 'good');
+    renderBrushBar();
+  },
+};
+function researchPanel() {
+  const order = { ok: 0, short: 1, req: 2, done: 3 };
+  const list = RESEARCH.slice().sort((a, b) => order[Research.state(a)] - order[Research.state(b)] || a.cost - b.cost);
+  const lbl = { done: '解放済み', ok: '研究できる', short: 'ポイント不足', req: '' };
+  return `<div class="sec"><div class="cards"><div class="card"><i>研究ポイント</i><b>${fmt(Math.floor(G.research))}</b></div>
+      <div class="card"><i>昨日の獲得</i><b>+${fmt(Math.floor((G.hist[G.hist.length - 1] || {}).rp || 0))}</b></div></div>
+      <p class="hint">収益の10%が研究ポイントになります。解放済みでない項目は、配置メニューなどでグレー表示になります。</p></div>
+    <div class="sec"><h4>研究リスト(${G.unlocked.length}/${RESEARCH.length})</h4>${list.map(r => {
+      const st = Research.state(r);
+      return `<div class="rcard ${st}"><div class="hd"><b>${r.name}</b><span class="num">${st === 'done' ? '' : fmt(r.cost) + 'pt'}</span></div>
+        <p class="meta">${r.desc}</p>
+        <div class="row"><span class="chipst ${st}">${st === 'req' ? `前提:${Research.def(r.req).name}` : lbl[st]}</span><span class="grow"></span>
+        ${st === 'done' ? '' : `<button class="btn sm ${st === 'ok' ? 'pri' : ''}" data-act="rBuy" data-v="${r.id}" ${st === 'ok' ? '' : 'disabled'}>研究する</button>`}</div></div>`;
+    }).join('')}</div>`;
+}
+
+/* ════════════════════════════════════════════
+   経営:収益モデル・課金アイテム・サーバー費
+   ════════════════════════════════════════════ */
+const ITEM_KINDS = {
+  potion: { name: 'ポーション', ref: 30, desc: '消耗品。何度でも買われる' },
+  weapon: { name: '武器', ref: 200, req: 'shop_weapon', power: 'atk', once: true, desc: '攻撃力が上がる' },
+  armor: { name: '防具', ref: 180, req: 'shop_armor', power: 'def', once: true, desc: '防御力が上がる' },
+  booster: { name: '経験値ブースター', ref: 120, req: 'shop_booster', desc: '24時間 経験値1.5倍' },
+  cosmetic: { name: '見た目アイテム', ref: 80, req: 'shop_cosmetic', once: true, desc: '購入者の満足度+2' },
+};
+const P2W_LIMIT = 20;
+const newToday = () => ({ rev: 0, revSub: 0, revItem: 0, cost: 0, server: 0, gm: 0, build: 0, event: 0, rp: 0, joins: 0, leaves: 0, quests: 0, bans: 0 });
+const Econ = {
+  serverBase() { return Research.has('server2') ? 30 : 50; },
+  perPlayer() { return Research.has('server') ? 1.5 : 2; },
+  dailyCost() { return this.serverBase() + this.perPlayer() * G.players.length + 30 * G.gms; },
+  night() { return G.hour >= 20 || G.hour < 5; },
+  expMult(p) {
+    let m = 1;
+    if (p.boostUntil && p.boostUntil > G.day * 24 + G.hour) m *= 1.5;
+    if (Research.has('daynight') && this.night()) m *= 1.5;
+    return m;
+  },
+  spend(amount, kind) { G.money -= amount; G.today.cost += amount; G.today[kind] = (G.today[kind] || 0) + amount; },
+  earn(amount, kind) { G.money += amount; G.today.rev += amount; G.today[kind] += amount; G.research += amount * .1; G.today.rp += amount * .1; },
+  buyProb(p, it) {
+    const k = ITEM_KINDS[it.kind];
+    return .1 * clamp(p.sat / 60, .2, 1.6) * clamp(Math.pow(k.ref / Math.max(1, it.price), .7), .15, 2.5) / Math.sqrt(Math.max(1, G.items.length));
+  },
+  buy(p, it) {
+    const k = ITEM_KINDS[it.kind];
+    this.earn(it.price, 'revItem'); p.spent += it.price; it.sold = (it.sold || 0) + 1;
+    if (k.once) p.owned.push(it.id);
+    if (k.power === 'atk') p.atkB = Math.max(p.atkB || 0, it.power / 100);
+    if (k.power === 'def') p.defB = Math.max(p.defB || 0, it.power / 100);
+    if (it.kind === 'booster') p.boostUntil = G.day * 24 + G.hour + 24;
+    if (it.kind === 'cosmetic') p.sat = Math.min(100, p.sat + 2);
+  },
+  hourly() {
+    const N = G.players.length;
+    if (G.model === 'sub') this.earn(15 * N / 24, 'revSub');
+    else for (const it of G.items) {
+      if (!Research.has(ITEM_KINDS[it.kind].req)) continue;
+      for (const p of G.players) {
+        if (ITEM_KINDS[it.kind].once && p.owned.includes(it.id)) continue;
+        if (Math.random() < this.buyProb(p, it) / 24) this.buy(p, it);
+      }
+    }
+    this.spend((this.serverBase() + this.perPlayer() * N) / 24, 'server');
+    if (G.gms) this.spend(30 * G.gms / 24, 'gm');
+    // サーバー障害中は満足度が下がり続ける
+    if (G.effects.outage > G.day * 24 + G.hour) for (const p of G.players) p.sat = Math.max(0, p.sat - .3);
+    // 月夜の宴(昼夜イベントの研究後、20〜23時に町にいる加入者)
+    if (Research.has('daynight') && G.hour >= 20) for (const p of G.players) if (p.st === 'idle') p.sat = Math.min(100, p.sat + .15);
+    if (Research.has('daynight') && G.hour === 20) log('町で「月夜の宴」が始まりました(夜の討伐は経験値1.5倍)');
+    Requests.check();
+  },
+  // 1日ごとの満足度ルール・加入と退会・記録
+  daily() {
+    const N0 = G.players.length;
+    const areaCount = new Map();
+    for (const p of G.players) { const a = Areas.at(p.x, p.z); if (a && p.st !== 'idle') areaCount.set(a.id, (areaCount.get(a.id) || 0) + 1); }
+    const crowded = new Set(G.areas.filter(a => (areaCount.get(a.id) || 0) > Math.max(4, (a.x1 - a.x0) * (a.z1 - a.z0) / 150)).map(a => a.id));
+    const p2w = G.model === 'f2p' && G.items.some(it => ITEM_KINDS[it.kind].power && Research.has(ITEM_KINDS[it.kind].req) && it.power > P2W_LIMIT);
+    const innTowns = new Set(Players.towns().filter(t => G.objects.some(o => o.type === 'inn' && Math.hypot(o.x - t.x, o.z - t.z) < 45)).map(t => t.id));
+    const cnt = { quest: 0, area: 0, crowd: 0 };
+    for (const p of G.players) {
+      let d = 0;
+      if (!Quests.available(p).length) { d -= 2; cnt.quest++; }
+      if (!G.areas.some(a => p.lv >= a.lvMin && p.lv <= a.lvMax)) { d -= 3; cnt.area++; }
+      const a = Areas.at(p.x, p.z);
+      if (a && crowded.has(a.id)) { d -= 1; cnt.crowd++; }
+      if (p2w) d -= 2;
+      if (innTowns.size && innTowns.has(Players.nearestTown(p.x, p.z).id)) d += 1;
+      p.sat = clamp(p.sat + d, 0, 100);
+    }
+    G.lastRules = { ...cnt, p2w, n: G.players.length };
+    // 退会:満足度20未満は1日ごとに10%の確率で離脱
+    const leavers = G.players.filter(p => p.sat < 20 && Math.random() < .1);
+    for (const p of leavers) Players.remove(p);
+    G.today.leaves += leavers.length;
+    if (leavers.length) log(`${leavers.length}人が不満を理由に退会しました`, 'bad');
+    // 新規加入:平均満足度×0.05(口コミ・広告・イベントで増減)
+    const N = G.players.length, avg = N ? G.players.reduce((a, p) => a + p.sat, 0) / N : 60;
+    const now = G.day * 24;
+    let mult = 1 + N / 150;
+    if (G.effects.rival > now) mult *= .5;
+    if (G.effects.buzz > now) mult *= 1.6;
+    if (Research.has('ads')) mult *= 1.25;
+    if (G.effects.outage > now) mult = 0;
+    const joins = N >= 1500 ? 0 : Math.floor(Math.floor(avg * .05) * mult + Math.random());
+    for (let i = 0; i < joins; i++) Players.join();
+    G.today.joins += joins;
+    if (joins) log(`新規加入者が${joins}人ありました`, 'good');
+    // 記録
+    const N2 = G.players.length, sat2 = N2 ? G.players.reduce((a, p) => a + p.sat, 0) / N2 : 0;
+    G.hist.push({ d: G.day - 1, rev: Math.round(G.today.rev), cost: Math.round(G.today.cost), subs: N2, sat: +sat2.toFixed(1), rp: G.today.rp, joins: G.today.joins, leaves: G.today.leaves, quests: G.today.quests });
+    if (G.hist.length > 730) G.hist.shift();
+    G.today = newToday();
+    // 資金がマイナスのまま30日でゲームオーバー
+    if (G.money < 0) {
+      G.negDays++;
+      if ([1, 10, 20, 25, 28].includes(G.negDays)) toast(`資金がマイナスです(${G.negDays}日目 / 30日でサービス終了)`, 'bad');
+      if (G.negDays >= 30) gameOver();
+    } else G.negDays = 0;
+    if (!G.goalReached && N2 >= 1000) { G.goalReached = true; goalReached(); }
+    void N0;
+  },
+};
+function shopSection() {
+  if (G.model !== 'f2p') return '';
+  const kinds = Object.entries(ITEM_KINDS);
+  return `<div class="sec"><h4>課金アイテム</h4>${G.items.map(it => {
+    const k = ITEM_KINDS[it.kind], locked = !Research.has(k.req);
+    return `<div class="ecard" style="border-left-color:${locked ? 'var(--line)' : 'var(--accent)'}">
+      <div class="hd"><input class="txt" data-name="it:${it.id}" maxlength="14" value="${esc(it.name)}" aria-label="アイテム名"><span class="meta" style="white-space:nowrap">${k.name}</span></div>
+      ${stepper(`it${it.id}.price`, '価格', it.price, 1, 2000, 1, intf('G'), v => { it.price = v; })}
+      ${k.power ? stepper(`it${it.id}.power`, k.power === 'atk' ? '攻撃力アップ' : '防御力アップ', it.power, 1, 60, 1, v => '+' + v + '%', v => { it.power = v; renderShopWarn(); }) : ''}
+      <p class="meta">${k.desc} · 販売数 ${fmt(it.sold || 0)} · 購入率の目安 ${(G.players.length ? G.players.reduce((a, p) => a + Econ.buyProb(p, it), 0) / G.players.length * 100 : 0).toFixed(1)}%/日${locked ? ' · <span class="bad">研究で解放されるまで販売停止</span>' : ''}</p>
+      <div class="row"><span class="grow"></span><button class="btn sm" data-act="itDel" data-v="${it.id}">販売終了</button></div></div>`;
+  }).join('')}
+    <p class="hint bad" id="p2wWarn">${G.items.some(it => ITEM_KINDS[it.kind].power && it.power > P2W_LIMIT) ? `強化量が+${P2W_LIMIT}%を超える課金アイテムがあると「課金アイテムが強すぎる」として全員の満足度が毎日2下がります。` : ''}</p>
+    <div class="bb-row wrap">${kinds.map(([id, k]) => `<button class="chip" data-act="itNew" data-v="${id}" ${Research.has(k.req) ? '' : 'disabled'}>+ ${k.name}${Research.has(k.req) ? '' : '(研究)'}</button>`).join('')}</div>
+    <p class="hint">加入者の10%程度が購入します。満足度が高いほど、価格が安いほど買われやすくなります。</p></div>`;
+}
+function renderShopWarn() {
+  const el = document.getElementById('p2wWarn');
+  if (el) el.textContent = G.items.some(it => ITEM_KINDS[it.kind].power && it.power > P2W_LIMIT) ? `強化量が+${P2W_LIMIT}%を超える課金アイテムがあると「課金アイテムが強すぎる」として全員の満足度が毎日2下がります。` : '';
+}
+
+/* ════════════════════════════════════════════
+   経営ダッシュボード(Canvas 2D の自前グラフ)
+   ════════════════════════════════════════════ */
+const CHARTS = [
+  ['rev', '収益(G/日)', v => fmt(v) + 'G'],
+  ['cost', '支出(G/日)', v => fmt(v) + 'G'],
+  ['subs', '加入者数', v => fmt(v) + '人'],
+  ['sat', '平均満足度', v => v.toFixed(1)],
+];
+const Charts = {
+  sel: {},
+  data(key) { return G.hist.slice(-90); },
+  drawAll() { document.querySelectorAll('canvas[data-chart]').forEach(cv => this.draw(cv)); },
+  draw(cv) {
+    const key = cv.dataset.chart, def = CHARTS.find(c => c[0] === key), rows = this.data(key);
+    const dpr = Math.min(2, devicePixelRatio || 1), W = cv.clientWidth, H = cv.clientHeight;
+    if (!W) return;
+    cv.width = Math.round(W * dpr); cv.height = Math.round(H * dpr);
+    const c = cv.getContext('2d'); c.setTransform(dpr, 0, 0, dpr, 0, 0);
+    c.clearRect(0, 0, W, H);
+    const ink = '#a6a192', grid = 'rgba(228,220,198,.12)', acc = '#e2a64b', ff = '14px ' + getComputedStyle(document.body).fontFamily;
+    c.font = ff; c.textBaseline = 'middle';
+    if (rows.length < 2) { c.fillStyle = ink; c.textAlign = 'center'; c.fillText('2日目以降にグラフが表示されます', W / 2, H / 2); return; }
+    const vals = rows.map(r => r[key]);
+    let max = key === 'sat' ? 100 : Math.max(1, ...vals);
+    if (key !== 'sat') { const m = Math.pow(10, Math.floor(Math.log10(max))), s = [1, 2, 2.5, 5, 10].find(k => k * m >= max); max = s * m; }
+    const L = 48, R = 12, T = 12, B = 26, pw = W - L - R, ph = H - T - B;
+    const X = i => L + (rows.length === 1 ? pw / 2 : i / (rows.length - 1) * pw), Y = v => T + ph - v / max * ph;
+    c.strokeStyle = grid; c.lineWidth = 1; c.fillStyle = ink; c.textAlign = 'right';
+    for (let k = 0; k <= 2; k++) {
+      const v = max * k / 2, y = Math.round(Y(v)) + .5;
+      c.beginPath(); c.moveTo(L, y); c.lineTo(W - R, y); c.stroke();
+      c.fillText(v >= 1000 ? (v / 1000).toFixed(v % 1000 ? 1 : 0) + 'k' : String(Math.round(v)), L - 6, y);
+    }
+    c.textAlign = 'left'; c.fillText(`${rows[0].d}日`, L, H - 10);
+    c.textAlign = 'right'; c.fillText(`${rows[rows.length - 1].d}日`, W - R, H - 10);
+    // 面と線
+    c.beginPath(); vals.forEach((v, i) => i ? c.lineTo(X(i), Y(v)) : c.moveTo(X(i), Y(v)));
+    c.lineTo(X(vals.length - 1), Y(0)); c.lineTo(X(0), Y(0)); c.closePath();
+    c.fillStyle = 'rgba(226,166,75,.14)'; c.fill();
+    c.beginPath(); vals.forEach((v, i) => i ? c.lineTo(X(i), Y(v)) : c.moveTo(X(i), Y(v)));
+    c.strokeStyle = acc; c.lineWidth = 2; c.lineJoin = 'round'; c.stroke();
+    const dot = (i, r) => { c.beginPath(); c.arc(X(i), Y(vals[i]), r, 0, 7); c.fillStyle = acc; c.fill(); c.lineWidth = 2; c.strokeStyle = '#161c23'; c.stroke(); };
+    dot(vals.length - 1, 4);
+    // タップした位置の数値
+    const si = this.sel[key];
+    if (si != null && si < vals.length) {
+      const x = X(si);
+      c.strokeStyle = 'rgba(236,230,214,.5)'; c.lineWidth = 1; c.beginPath(); c.moveTo(x + .5, T); c.lineTo(x + .5, T + ph); c.stroke();
+      dot(si, 5);
+      const txt = `${rows[si].d}日目 ${def[2](vals[si])}`;
+      c.font = '600 ' + ff; const tw = c.measureText(txt).width + 16;
+      const bx = clamp(x - tw / 2, L, W - R - tw), by = clamp(Y(vals[si]) - 36, 2, H - 30);
+      c.fillStyle = '#252e38'; c.strokeStyle = 'rgba(228,220,198,.25)';
+      c.beginPath(); c.roundRect ? c.roundRect(bx, by, tw, 26, 6) : c.rect(bx, by, tw, 26); c.fill(); c.stroke();
+      c.fillStyle = '#ece6d6'; c.textAlign = 'left'; c.fillText(txt, bx + 8, by + 13);
+    }
+  },
+  tap(cv, clientX) {
+    const key = cv.dataset.chart, rows = this.data(key), r = cv.getBoundingClientRect();
+    if (rows.length < 2) return;
+    const pw = r.width - 60, i = Math.round(clamp((clientX - r.left - 48) / pw, 0, 1) * (rows.length - 1));
+    this.sel[key] = i; this.draw(cv);
+  },
+};
+pb.addEventListener('pointerdown', e => { const cv = e.target.closest('canvas[data-chart]'); if (cv) Charts.tap(cv, e.clientX); });
+pb.addEventListener('pointermove', e => { if (e.pointerType !== 'mouse') return; const cv = e.target.closest('canvas[data-chart]'); if (cv) Charts.tap(cv, e.clientX); });
+
+function bizPanel() {
+  const N = G.players.length, T = G.today, y = G.hist[G.hist.length - 1];
+  const revDay = G.model === 'sub' ? 15 * N : (y ? y.rev : 0);
+  const est = revDay - Econ.dailyCost();
+  return `<div class="sec"><h4>収益モデル</h4>
+      <div class="seg" role="radiogroup" aria-label="収益モデル">
+        <button role="radio" aria-checked="${G.model === 'sub'}" class="${G.model === 'sub' ? 'on' : ''}" data-act="model" data-v="sub">月額課金</button>
+        <button role="radio" aria-checked="${G.model === 'f2p'}" class="${G.model === 'f2p' ? 'on' : ''}" data-act="model" data-v="f2p">基本無料</button></div>
+      <p class="hint">${G.model === 'sub' ? '月額課金:加入者1人につき15G/日の安定収入です。' : '基本無料:課金アイテムの売上が収入です。アイテムを作り、価格を設定してください。'}途中で変更すると、加入者の満足度が一度だけ5下がります。</p></div>
+    <div class="sec"><h4>今日の収支(${pad2(Math.floor(G.hour))}時まで)</h4><div class="cards">
+      <div class="card"><i>収益</i><b>${fmt(T.rev)}G</b></div>
+      <div class="card"><i>支出</i><b>${fmt(T.cost)}G</b></div>
+      <div class="card"><i>1日の見込み</i><b class="${est < 0 ? 'bad' : ''}">${est >= 0 ? '+' : ''}${fmt(est)}G</b></div>
+      <div class="card"><i>資金</i><b class="${G.money < 0 ? 'bad' : ''}">${fmt(G.money)}G</b></div></div>
+      <dl class="keys"><dt>サーバー費</dt><dd>${Econ.serverBase()}G + ${Econ.perPlayer()}G × ${fmt(N)}人 = ${fmt(Econ.serverBase() + Econ.perPlayer() * N)}G/日</dd>
+        <dt>GM給料</dt><dd>30G × ${G.gms}人 = ${fmt(30 * G.gms)}G/日</dd>
+        <dt>建設・修理</dt><dd>今日 ${fmt(T.build + T.event)}G</dd>
+        <dt>赤字日数</dt><dd>${G.negDays ? `<span class="bad">${G.negDays}日連続(30日でサービス終了)</span>` : 'なし'}</dd></dl></div>
+    ${shopSection()}
+    <div class="sec"><h4>推移(タップで数値を表示)</h4><div class="charts">${CHARTS.map(([k, n]) => `<figure class="chart"><figcaption>${n}</figcaption><canvas data-chart="${k}" aria-label="${n}の推移グラフ"></canvas></figure>`).join('')}</div>
+      ${G.lastRules ? `<p class="hint">昨日の満足度の減点:レベルに合うクエストなし ${G.lastRules.quest}人(−2)、合うエリアなし ${G.lastRules.area}人(−3)、混雑 ${G.lastRules.crowd}人(−1)${G.lastRules.p2w ? '、課金アイテムが強すぎる(全員−2)' : ''}</p>` : ''}
+      <p class="hint">新規加入者/日 = 平均満足度×0.05 ×(口コミ 1+加入者数/150)${Research.has('ads') ? '×広告1.25' : ''}。満足度20未満の加入者は毎日10%の確率で退会します。</p></div>`;
+}
+
+/* ════════════════════════════════════════════
+   ランダムイベントと要望
+   ════════════════════════════════════════════ */
+const Requests = {
+  make() {
+    const opts = [], N = G.players.length;
+    const lvs = G.players.map(p => p.lv).sort((a, b) => a - b), med = lvs[Math.floor(lvs.length / 2)] || 1;
+    const snap = G.nextId;
+    opts.push(() => ({ kind: 'area', lv: med, text: `Lv${med}〜${med + 4}向けの新しいエリアがほしい`, snap }));
+    if (G.classes.length > 1) {
+      const byP = G.classes.slice().sort((a, b) => classPower(a) - classPower(b));
+      opts.push(() => ({ kind: 'weak', cls: byP[0].id, base: classPower(byP[0]), text: `${byP[0].name}が弱い。強くしてほしい` }));
+      opts.push(() => ({ kind: 'strong', cls: byP[byP.length - 1].id, base: classPower(byP[byP.length - 1]), text: `${byP[byP.length - 1].name}が強すぎる。調整してほしい` }));
+    }
+    opts.push(() => ({ kind: 'monster', snap, text: '新しいモンスターと戦いたい' }));
+    opts.push(() => ({ kind: 'quest', base: G.quests.length, text: 'クエストをもっと増やしてほしい' }));
+    opts.push(() => ({ kind: 'boss', text: 'ボスと戦いたい' }));
+    opts.push(() => ({ kind: 'road', base: G.objects.filter(o => o.type === 'road').length, text: '町と狩り場を結ぶ道がほしい' }));
+    if (N > 30) opts.push(() => ({ kind: 'town', base: Players.towns().length, text: '町が混雑している。新しい拠点がほしい' }));
+    opts.push(() => ({ kind: 'inn', base: G.objects.filter(o => o.type === 'inn').length, text: '休める宿屋がほしい' }));
+    if (med >= 5) opts.push(() => ({ kind: 'dungeon', base: G.objects.filter(o => o.type === 'dungeon').length, text: 'ダンジョンに挑戦したい' }));
+    const active = new Set(G.requests.filter(r => !r.state).map(r => r.kind));
+    const cand = opts.map(f => f()).filter(r => !active.has(r.kind));
+    if (!cand.length) return;
+    const r = pick(cand);
+    r.id = G.nextId++; r.day = G.day; r.deadline = G.day + 7 + (Research.has('community') ? 3 : 0); r.state = '';
+    G.requests.push(r);
+    log(`要望:「${r.text}」(期限 ${r.deadline}日目)`, 'warn');
+    toast(`加入者からの要望:${r.text}`, 'warn');
+  },
+  met(r) {
+    switch (r.kind) {
+      case 'area': return G.areas.some(a => a.id > r.snap && a.lvMin <= r.lv + 2 && a.lvMax >= r.lv + 1);
+      case 'weak': { const c = Classes.byId(r.cls); return !c || classPower(c) >= r.base * 1.1; }
+      case 'strong': { const c = Classes.byId(r.cls); return !c || classPower(c) <= r.base * .92; }
+      case 'monster': return G.monsterTypes.some(t => t.id > r.snap && G.objects.some(o => o.type === 'spawn' && o.mt === t.id));
+      case 'quest': return G.quests.length >= r.base + 2;
+      case 'boss': return G.objects.some(o => o.type === 'spawn' && Monsters.type(o.mt)?.boss);
+      case 'road': return G.objects.filter(o => o.type === 'road').length > r.base;
+      case 'town': return Players.towns().length > r.base;
+      case 'inn': return G.objects.filter(o => o.type === 'inn').length > r.base;
+      case 'dungeon': return G.objects.filter(o => o.type === 'dungeon').length > r.base;
+    }
+    return false;
+  },
+  check() {
+    for (const r of G.requests) {
+      if (r.state) continue;
+      if (this.met(r)) {
+        r.state = 'done';
+        const bonus = 6 + (Research.has('community') ? 2 : 0);
+        for (const p of G.players) p.sat = Math.min(100, p.sat + bonus);
+        G.research += 30;
+        log(`要望「${r.text}」に応えました(全員の満足度+${bonus}、研究+30)`, 'good');
+        toast(`要望に応えました:満足度+${bonus}`, 'good');
+      } else if (G.day > r.deadline) {
+        r.state = 'failed';
+        for (const p of G.players) p.sat = Math.max(0, p.sat - 3);
+        log(`要望「${r.text}」の期限が過ぎました(全員の満足度−3)`, 'bad');
+      }
+    }
+    if (G.requests.length > 40) G.requests = G.requests.filter(r => !r.state).concat(G.requests.filter(r => r.state).slice(-20));
+  },
+};
+const EVENTS = [
+  { id: 'outage', w: 6, bad: true, run() {
+    if (Research.has('server2') && Math.random() < .5) return false;
+    const cost = Math.round(200 + Math.random() * 400 + G.players.length * .5);
+    Econ.spend(cost, 'event');
+    G.effects.outage = G.day * 24 + G.hour + 12;
+    for (const p of G.players) p.sat = Math.max(0, p.sat - 4);
+    log(`サーバー障害が発生しました(修理費 ${fmt(cost)}G、12時間は満足度が下がり新規加入が止まります)`, 'bad');
+    toast(`サーバー障害!修理費 ${fmt(cost)}G`, 'bad');
+  } },
+  { id: 'rival', w: 4, bad: true, run() {
+    G.effects.rival = (G.day + 7) * 24;
+    log('ライバルゲーム「ネオ・クロニクル」が発売されました(7日間 新規加入が半減)', 'bad');
+    toast('ライバルゲーム発売:7日間 新規加入が半減', 'bad');
+  } },
+  { id: 'request', w: 12, run() { if (G.requests.filter(r => !r.state).length >= 3) return false; Requests.make(); } },
+  { id: 'buzz', w: 4, good: true, run() {
+    G.effects.buzz = (G.day + 3) * 24;
+    log('SNSで話題になっています(3日間 新規加入+60%)', 'good'); toast('SNSで話題に!3日間 新規加入+60%', 'good');
+  } },
+  { id: 'festival', w: 3, good: true, run() {
+    for (const p of G.players) p.sat = Math.min(100, p.sat + 4);
+    log('プレイヤー主催のお祭りが開かれました(全員の満足度+4)', 'good'); toast('お祭り開催:満足度+4', 'good');
+  } },
+  { id: 'influencer', w: 2, good: true, run() {
+    const n = 5 + Math.floor(Math.random() * 11);
+    for (let i = 0; i < n; i++) Players.join();
+    G.today.joins += n;
+    log(`人気配信者が実況プレイし、${n}人が加入しました`, 'good'); toast(`配信効果で${n}人が加入`, 'good');
+  } },
+  { id: 'cheattool', w: 3, bad: true, run() {
+    const list = G.players.filter(p => !p.cheat && Math.random() < .03);
+    if (!list.length) return false;
+    for (const p of list) p.cheat = true;
+    log(`不正ツールが出回っています(${list.length}人が不正を始めた疑い)`, 'bad'); toast('不正ツールが出回っています', 'bad');
+  } },
+  { id: 'raid', w: 3, bad: true, run() {
+    for (let i = 0; i < 3; i++) { const p = Players.join(); p.troll = true; p.sat = 50; }
+    log('迷惑行為を目的とした集団(3人)が加入しました', 'bad'); toast('迷惑プレイヤーの集団が加入', 'bad');
+  } },
+  { id: 'donation', w: 2, good: true, run() {
+    const g = 300 + Math.floor(Math.random() * 500);
+    G.money += g; G.today.rev += g;
+    log(`ファンから応援の寄付がありました(+${fmt(g)}G)`, 'good'); toast(`寄付 +${fmt(g)}G`, 'good');
+  } },
+];
+const Events = {
+  daily() {
+    if (G.day < 3 || Math.random() > .38) return;
+    const goodW = Research.has('events') ? 2 : 1;
+    const pool = EVENTS.map(e => ({ e, w: e.w * (e.good ? goodW : 1) }));
+    let r = Math.random() * pool.reduce((a, x) => a + x.w, 0);
+    for (const x of pool) { r -= x.w; if (r <= 0) { x.e.run(); return; } }
+  },
+};
+
+/* ════════════════════════════════════════════
+   コミュニティ管理・GM
+   ════════════════════════════════════════════ */
+const Admin = {
+  avgExp() { const a = G.players.filter(p => p.expYesterday > 0); return a.length ? a.reduce((s, p) => s + p.expYesterday, 0) / a.length : 0; },
+  // 経験値の伸びが平均の3倍以上の加入者
+  suspects() {
+    const avg = this.avgExp();
+    if (!avg) return [];
+    return G.players.filter(p => p.expYesterday >= avg * 3 && p.expYesterday > 40 && !(p.ignoreUntil > G.day) && (!Research.has('automod') || p.cheat))
+      .sort((a, b) => b.expYesterday - a.expYesterday);
+  },
+  trolls() { return G.players.filter(p => p.reported && p.troll && !(p.ignoreUntil > G.day)); },
+  troubled() { return G.players.filter(p => p.lost || p.sat < 20).sort((a, b) => (b.lost - a.lost) || a.sat - b.sat); },
+  ban(p) {
+    const wasBad = p.cheat || p.troll;
+    Players.remove(p);
+    G.stats.bans++; G.today.bans++;
+    if (wasBad) { for (const q of G.players) if (Math.hypot(q.x - p.x, q.z - p.z) < 25) q.sat = Math.min(100, q.sat + 1); log(`${p.name}をBANしました`, 'good'); }
+    else { for (const q of G.players) q.sat = Math.max(0, q.sat - 2); log(`${p.name}をBANしました。不正の証拠がなく「誤BANでは」と騒ぎになっています(全員−2)`, 'bad'); toast('誤BANの疑いで炎上(満足度−2)', 'bad'); }
+  },
+  warn(p, byGM) {
+    p.warned = (p.warned || 0) + 1; G.stats.warns++;
+    if (p.cheat && Math.random() < .6) p.cheat = false;
+    if (p.troll && Math.random() < .6) { p.troll = false; p.reported = false; }
+    p.ignoreUntil = G.day + 2;
+    if (!byGM) log(`${p.name}に警告しました`);
+  },
+  ignore(p) { p.ignoreUntil = G.day + 3; },
+  rescue(p) {
+    Players.teleportTown(p); p.lost = false; p.lostCount = 0; p.sat = Math.min(100, p.sat + 2); p.path = null;
+    G.stats.rescues++;
+  },
+  daily() {
+    // 迷惑行為者は町で周囲から通報される
+    for (const p of G.players) if (p.troll && Math.random() < .35) p.reported = true;
+    // GMの自動対応
+    if (G.gms > 0) {
+      let rescued = 0, warned = 0;
+      const lost = G.players.filter(p => p.lost);
+      for (const p of lost.slice(0, G.gms * 6)) { this.rescue(p); rescued++; }
+      const cap = G.gms * (Research.has('automod') ? 4 : 2);
+      for (const p of this.suspects().concat(this.trolls()).slice(0, cap)) { this.warn(p, true); warned++; }
+      G.gmLog = { day: G.day, rescued, warned };
+      if (rescued || warned) log(`GMが${rescued}人を救助し、${warned}人に警告しました`);
+    }
+  },
+};
+function playerCard(p, kind) {
+  const c = Players.cls(p), avg = Admin.avgExp();
+  const detail = kind === 'cheat' ? `昨日の経験値 ${fmt(p.expYesterday)}(平均の${avg ? (p.expYesterday / avg).toFixed(1) : '—'}倍)`
+    : kind === 'troll' ? '町での迷惑行為が通報されています' : p.lost ? '迷子:道が見つからず困っています' : `満足度 ${Math.round(p.sat)}:退会しそうです`;
+  const btns = kind === 'help' ? `${p.lost ? `<button class="btn sm pri" data-act="adRescue" data-v="${p.id}">救助</button>` : ''}<button class="btn sm" data-act="adGo" data-v="${p.id}">現地へ移動</button>`
+    : `<button class="btn sm danger" data-act="adBan" data-v="${p.id}">BAN</button><button class="btn sm" data-act="adWarn" data-v="${p.id}">警告</button><button class="btn sm" data-act="adIgnore" data-v="${p.id}">放置</button><button class="btn sm" data-act="adGo" data-v="${p.id}">現地へ移動</button>`;
+  return `<div class="ecard" style="border-left-color:${kind === 'help' ? 'var(--edit)' : 'var(--bad)'}">
+    <div class="hd"><b><span class="cdot" style="background:${c.color}"></span>${esc(p.name)}</b><span class="meta">${esc(c.name)} Lv${p.lv}${p.warned ? ' · 警告済み' : ''}</span></div>
+    <p class="meta">${detail}</p><div class="row wrapbtn">${btns}</div></div>`;
+}
+function adminPanel() {
+  const reqs = G.requests.filter(r => !r.state), sus = Admin.suspects(), tr = Admin.trolls(), help = Admin.troubled();
+  const lostN = G.players.filter(p => p.lost).length;
+  return `<div class="sec"><h4>要望(${reqs.length})</h4>${reqs.map(r => `<div class="ecard" style="border-left-color:var(--warn)"><b>「${esc(r.text)}」</b>
+      <p class="meta">期限 ${r.deadline}日目(あと${Math.max(0, r.deadline - G.day)}日)· 応えると全員の満足度+${6 + (Research.has('community') ? 2 : 0)}、期限切れで−3</p></div>`).join('') || '<p class="hint">いまは要望はありません。ときどき加入者から届きます。</p>'}
+      ${G.requests.some(r => r.state) ? `<p class="meta">これまで:応えた要望 ${G.requests.filter(r => r.state === 'done').length}件 · 期限切れ ${G.requests.filter(r => r.state === 'failed').length}件</p>` : ''}</div>
+    <div class="sec"><h4>通報リスト:不正の疑い(${sus.length})</h4>
+      <p class="hint">昨日の経験値の伸びが平均の3倍以上の加入者です${Research.has('automod') ? '(不正検知の強化で精度向上済み)' : '。正規の上級者が混ざることもあります'}。BANは即退会で収益を失い、警告は再犯率を下げ、放置すると周囲の満足度が下がり続けます。</p>
+      ${sus.slice(0, 20).map(p => playerCard(p, 'cheat')).join('') || '<p class="hint">該当者はいません</p>'}</div>
+    <div class="sec"><h4>迷惑行為の通報(${tr.length})</h4>${tr.slice(0, 20).map(p => playerCard(p, 'troll')).join('') || '<p class="hint">通報はありません</p>'}</div>
+    <div class="sec"><div class="row"><h4 class="grow">困っている加入者(${help.length})</h4>${lostN ? `<button class="btn sm pri" data-act="adRescueAll">迷子を全員救助(${lostN})</button>` : ''}</div>
+      ${help.slice(0, 20).map(p => playerCard(p, 'help')).join('') || '<p class="hint">困っている加入者はいません</p>'}</div>
+    <div class="sec"><h4>GM(ゲームマスター)</h4>
+      ${Research.has('gm') ? `${stepper('gm.n', '雇用人数', G.gms, 0, 20, 1, intf('人'), v => { G.gms = v; })}
+        <p class="hint">給料30G/日/人。GM1人につき毎日、迷子6人を救助し、不正の疑い・迷惑行為者${Research.has('automod') ? '4' : '2'}人に警告します。</p>
+        ${G.gmLog ? `<p class="meta">${G.gmLog.day}日目:救助 ${G.gmLog.rescued}人 · 警告 ${G.gmLog.warned}人</p>` : ''}`
+        : '<p class="hint">研究「GM制度」で雇用できるようになります。</p><button class="btn sm" data-act="goResearch">研究タブを開く</button>'}</div>
+    <div class="sec"><div class="cards"><div class="card"><i>BAN</i><b>${G.stats.bans}</b></div><div class="card"><i>警告</i><b>${G.stats.warns}</b></div><div class="card"><i>救助</i><b>${G.stats.rescues}</b></div></div></div>`;
+}
+function adminAction(a, b) {
+  const p = Players.map.get(+b.dataset.v);
+  switch (a) {
+    case 'adBan': if (p) ask(`${p.name}をBANしますか?即時退会となり、この加入者からの収益はなくなります。`, 'BANする').then(ok => { if (ok) { Admin.ban(p); renderPanel(); } }); return true;
+    case 'adWarn': if (p) { Admin.warn(p); toast(`${p.name}に警告しました`); renderPanel(); } return true;
+    case 'adIgnore': if (p) { Admin.ignore(p); renderPanel(); } return true;
+    case 'adRescue': if (p) { Admin.rescue(p); toast(`${p.name}を町へ送りました`, 'good'); renderPanel(); } return true;
+    case 'adRescueAll': { const l = G.players.filter(q => q.lost); l.forEach(q => Admin.rescue(q)); toast(`${l.length}人を救助しました`, 'good'); log(`迷子${l.length}人を町へ送りました`); renderPanel(); return true; }
+    case 'adGo': if (p) { Cam.flyTo(p.x, p.z, { dist: Math.min(Cam.dist, 45) }); if (UI.layout === 'portrait') closePanel(); select({ kind: 'player', pl: p }); } return true;
+    case 'goResearch': UI.tab = null; openTab('research'); return true;
+    case 'rBuy': Research.buy(b.dataset.v); renderPanel(); return true;
+    case 'model': {
+      const m = b.dataset.v; if (m === G.model) return true;
+      ask(`収益モデルを「${m === 'sub' ? '月額課金' : '基本無料'}」に変更しますか?加入者の満足度が一度だけ5下がります。`, '変更する').then(ok => {
+        if (!ok) return;
+        G.model = m; for (const q of G.players) q.sat = Math.max(0, q.sat - 5);
+        if (m === 'f2p' && !G.items.length) G.items.push({ id: G.nextId++, kind: 'potion', name: '回復ポーション', price: 30, power: 0, sold: 0 });
+        log(`収益モデルを${m === 'sub' ? '月額課金' : '基本無料'}に変更しました`, 'warn'); renderPanel();
+      });
+      return true;
+    }
+    case 'itNew': {
+      const k = ITEM_KINDS[b.dataset.v];
+      G.items.push({ id: G.nextId++, kind: b.dataset.v, name: k.name, price: k.ref, power: k.power ? 10 : 0, sold: 0 });
+      renderPanel(); return true;
+    }
+    case 'itDel': { const i = G.items.findIndex(x => x.id === +b.dataset.v); if (i >= 0) G.items.splice(i, 1); renderPanel(); return true; }
+  }
+  return false;
+}
+
+/* ════════════════════════════════════════════
+   開始・ゲームオーバー・目標達成の画面
+   ════════════════════════════════════════════ */
+function showOverlay(html) { const o = $('#overlay'); o.innerHTML = `<div class="ovbox">${html}</div>`; o.hidden = false; }
+function hideOverlay() { $('#overlay').hidden = true; }
+function startScreen(first) {
+  setSpeed(0);
+  showOverlay(`<p class="ov-eyebrow">MMORPG運営シミュレーション</p><h1 class="ov-title">Arcana Online 運営室</h1>
+    <p class="ov-lead">あなたは仮想MMORPGの運営者です。地形・町・モンスター・クラス・クエストを作り、自動でプレイする加入者を満足させて収益を上げましょう。資金がマイナスのまま30日続くとサービス終了、加入者1000人で目標達成です。</p>
+    <h2 class="ov-h">収益モデルを選ぶ(あとで変更できます)</h2>
+    <div class="ov-models">
+      <button class="ov-model on" data-model="sub"><b>月額課金</b><span>加入者1人15G/日。安定した収入で始めやすい</span></button>
+      <button class="ov-model" data-model="f2p"><b>基本無料</b><span>課金アイテムの売上が収入。価格と満足度しだいで大きく伸びる</span></button></div>
+    <div class="ov-acts">${first ? '' : '<button class="btn" data-ov="cancel">戻る</button>'}<button class="btn" data-ov="load">セーブデータを読み込む</button><button class="btn pri" data-ov="start">運営を始める</button></div>`);
+  let model = 'sub';
+  $('#overlay').onclick = e => {
+    const mb = e.target.closest('[data-model]');
+    if (mb) { model = mb.dataset.model; $('#overlay').querySelectorAll('[data-model]').forEach(x => x.classList.toggle('on', x === mb)); return; }
+    const b = e.target.closest('[data-ov]'); if (!b) return;
+    if (b.dataset.ov === 'start') { if (!first) newWorld(model); else { G.model = model; if (model === 'f2p' && !G.items.length) G.items.push({ id: G.nextId++, kind: 'potion', name: '回復ポーション', price: 30, power: 0, sold: 0 }); } hideOverlay(); setSpeed(1); toast(`${model === 'sub' ? '月額課金' : '基本無料'}で運営を開始しました`, 'good'); }
+    else if (b.dataset.ov === 'cancel') { hideOverlay(); setSpeed(1); }
+    else if (b.dataset.ov === 'load') { hideOverlay(); UI.tab = null; openTab('other'); UI.sheet = 'full'; applyPanelLayout(); setTimeout(() => { const t = $('#loadText'); if (t) t.scrollIntoView({ block: 'center' }); }, 300); }
+  };
+}
+function gameOver() {
+  setSpeed(0); G.over = true;
+  const peak = Math.max(0, ...G.hist.map(h => h.subs));
+  showOverlay(`<p class="ov-eyebrow bad">サービス終了</p><h1 class="ov-title">資金が30日間マイナスでした</h1>
+    <p class="ov-lead">運営${G.day}日目、「Arcana Online」はサービスを終了しました。</p>
+    <div class="cards"><div class="card"><i>最大加入者数</i><b>${fmt(peak)}人</b></div><div class="card"><i>最終資金</i><b>${fmt(G.money)}G</b></div>
+      <div class="card"><i>クリアされたクエスト</i><b>${fmt(G.quests.reduce((a, q) => a + (q.cleared || 0), 0))}回</b></div><div class="card"><i>BAN</i><b>${G.stats.bans}人</b></div></div>
+    <div class="ov-acts"><button class="btn" data-ov="load">セーブデータを読み込む</button><button class="btn pri" data-ov="new">新しく始める</button></div>`);
+  $('#overlay').onclick = e => {
+    const b = e.target.closest('[data-ov]'); if (!b) return;
+    if (b.dataset.ov === 'new') startScreen(false);
+    else { hideOverlay(); UI.tab = null; openTab('other'); }
+  };
+}
+function goalReached() {
+  toast('加入者1000人を達成しました!', 'good');
+  log(`加入者1000人を達成しました(運営${G.day}日目)`, 'good');
+  const wasSpeed = speedIdx; setSpeed(0);
+  showOverlay(`<p class="ov-eyebrow">目標達成</p><h1 class="ov-title">加入者 1,000人</h1>
+    <p class="ov-lead">運営${G.day}日目で目標を達成しました。このまま運営を続けられます。</p>
+    <div class="ov-acts"><button class="btn pri" data-ov="go">運営を続ける</button></div>`);
+  $('#overlay').onclick = e => { if (e.target.closest('[data-ov]')) { hideOverlay(); setSpeed(wasSpeed || 1); } };
+}
+
+/* ════════════════════════════════════════════
+   セーブ/ロード(JSON)
+   ════════════════════════════════════════════ */
+function bytesToB64(u8) { let s = ''; for (let i = 0; i < u8.length; i += 0x8000) s += String.fromCharCode.apply(null, u8.subarray(i, i + 0x8000)); return btoa(s); }
+function b64ToBytes(b) { const s = atob(b), u = new Uint8Array(s.length); for (let i = 0; i < s.length; i++) u[i] = s.charCodeAt(i); return u; }
+const TRANSIENT = ['path', 'pi', 'queued', 'vis', '_d', '_mv', 'wt', '_annoy', 'swing', 'scan', 'huntT', 'fightT', 'mt', 'atkCd'];
+function serialize() {
+  const h16 = new Int16Array(DN * DN);
+  G.terrain.h.forEach((v, i) => { h16[i] = Math.round(v * 100); });
+  const players = G.players.map(p => { const o = { ...p }; for (const k of TRANSIENT) delete o[k]; if (o.st === 'fight' || o.st === 'waitpath') o.st = o.purpose === 'town' ? 'return' : 'travel'; return o; });
+  const out = {
+    format: 'arcana-online-save', v: 2, savedAt: new Date().toISOString(),
+    seed: G.seed, day: G.day, hour: G.hour, money: Math.round(G.money), research: G.research, model: G.model,
+    terrain: { n: DN, h: bytesToB64(new Uint8Array(h16.buffer)), t: bytesToB64(G.terrain.t) },
+    objects: G.objects, areas: G.areas, monsterTypes: G.monsterTypes,
+    monsters: G.monsters.map(m => ({ id: m.id, sp: m.sp, t: m.t, x: +m.x.toFixed(2), z: +m.z.toFixed(2), hp: Math.round(m.hp), tx: m.tx, tz: m.tz, wait: 1, ry: m.ry, ph: m.ph })),
+    classes: G.classes, players, quests: G.quests, items: G.items, unlocked: G.unlocked, gms: G.gms,
+    hist: G.hist, today: G.today, negDays: G.negDays, goalReached: G.goalReached, requests: G.requests, effects: G.effects, stats: G.stats,
+    nextId: G.nextId, logs: G.logs.slice(-60),
+    camera: { x: Cam.target.x, z: Cam.target.z, yaw: Cam.yaw, pitch: Cam.pitch, dist: Cam.dist },
+  };
+  return JSON.stringify(out);
+}
+// 形式を検査してから新しい状態を組み立てる(不正なら例外。現在の状態は変更しない)
+function deserialize(text) {
+  let d;
+  try { d = JSON.parse(text); } catch (e) { throw new Error('JSONとして読み取れませんでした'); }
+  if (!d || d.format !== 'arcana-online-save') throw new Error('このゲームのセーブデータではありません');
+  if (d.v !== 2) throw new Error(`対応していないバージョンです(v${d.v})`);
+  const num = (v, k) => { if (typeof v !== 'number' || !isFinite(v)) throw new Error(`${k} が数値ではありません`); return v; };
+  const arr = (v, k) => { if (!Array.isArray(v)) throw new Error(`${k} がありません`); return v; };
+  num(d.day, 'day'); num(d.hour, 'hour'); num(d.money, 'money'); num(d.nextId, 'nextId');
+  if (!d.terrain || d.terrain.n !== DN) throw new Error('地形データの大きさが合いません');
+  let hb, tb;
+  try { hb = b64ToBytes(d.terrain.h); tb = b64ToBytes(d.terrain.t); } catch (e) { throw new Error('地形データが壊れています'); }
+  if (hb.length !== DN * DN * 2 || tb.length !== DN * DN) throw new Error('地形データの長さが合いません');
+  const h16 = new Int16Array(hb.buffer), h = new Float32Array(DN * DN);
+  for (let i = 0; i < h.length; i++) h[i] = clamp(h16[i] / 100, SEA_FLOOR, H_MAX);
+  for (const k of ['objects', 'areas', 'monsterTypes', 'monsters', 'classes', 'players', 'quests', 'items', 'unlocked', 'hist', 'requests']) arr(d[k], k);
+  if (!d.classes.length) throw new Error('クラスが1つもありません');
+  if (!d.monsterTypes.length) throw new Error('モンスターの種類が1つもありません');
+  for (const o of d.objects) { if (!PLACE_DEFS[o.type]) throw new Error(`不明な配置物 ${o.type}`); num(o.x, 'objects.x'); num(o.z, 'objects.z'); }
+  for (const p of d.players) { num(p.x, 'players.x'); num(p.z, 'players.z'); num(p.lv, 'players.lv'); if (!Array.isArray(p.done)) p.done = []; if (!Array.isArray(p.owned)) p.owned = []; p.sk = [0, 0]; p.vis = false; p.path = null; }
+  for (const c of d.classes) { if (!Array.isArray(c.skills) || c.skills.length < 2) throw new Error('クラスのスキル情報が壊れています'); }
+  return {
+    version: 2, seed: d.seed || 1, day: d.day, hour: d.hour, money: d.money, research: +d.research || 0, model: d.model === 'f2p' ? 'f2p' : 'sub',
+    subscribers: d.players.length, satisfaction: 0,
+    terrain: { n: DN, h, t: new Uint8Array(tb) },
+    objects: d.objects, areas: d.areas, monsterTypes: d.monsterTypes, monsters: d.monsters, classes: d.classes, players: d.players,
+    quests: d.quests, items: d.items, unlocked: d.unlocked, gms: +d.gms || 0, hist: d.hist, today: Object.assign(newToday(), d.today || {}),
+    negDays: +d.negDays || 0, goalReached: !!d.goalReached, requests: d.requests, effects: Object.assign({ outage: 0, rival: 0, buzz: 0 }, d.effects || {}),
+    stats: Object.assign({ bans: 0, warns: 0, rescues: 0 }, d.stats || {}), nextId: d.nextId, logs: Array.isArray(d.logs) ? d.logs : [],
+    _camera: d.camera,
+  };
+}
+// 世界を差し替えて、描画・経路・索引をすべて作り直す
+function applyWorld(ng) {
+  const old = G;
+  try {
+    G = ng;
+    Terrain.refresh(); Scenery.rebuild(); Objects.rebuildAll(); Areas.rebuildAll(); Quests.rebuildFlags();
+    PG.dirty = true; PG.queue.length = 0;
+    Players.reindex(); Players.visList = []; Monsters.index();
+    Minimap.redrawBase();
+    select(null); setFollow(null); if (mode !== 'view') setMode('view');
+    UI.mtEdit = UI.clEdit = UI.qEdit = null;
+    const c = ng._camera; delete ng._camera;
+    if (c) { Cam.target.x = c.x; Cam.target.z = c.z; Cam.yaw = c.yaw; Cam.pitch = c.pitch; Cam.dist = c.dist; } else Cam.home();
+    Players.updateVis(); tickAcc = 0; renderLog(); uiUpdate(); renderBrushBar();
+    if (UI.tab) renderPanel();
+  } catch (e) {
+    G = old;
+    Terrain.refresh(); Scenery.rebuild(); Objects.rebuildAll(); Areas.rebuildAll(); Quests.rebuildFlags(); PG.dirty = true; Players.reindex(); Monsters.index(); Minimap.redrawBase();
+    throw e;
+  }
+}
+function newWorld(model) {
+  const g = newGame((Math.random() * 1e9) | 0);
+  g.model = model;
+  if (model === 'f2p') g.items.push({ id: g.nextId++, kind: 'potion', name: '回復ポーション', price: 30, power: 0, sold: 0 });
+  applyWorld(g);
+  initWorldContent();
+  log('新しいサーバーで運営を開始しました', 'good');
+}
+function savePanel() {
+  return `<div class="sec"><h4>セーブ</h4>
+      <p class="hint">ゲームの状態をJSONの文字列にします。コピーしてメモなどに保存してください(ブラウザには保存しません)。</p>
+      <div class="row"><button class="btn pri" data-act="save">セーブデータを作る</button><button class="btn" data-act="copy" id="copyBtn" disabled>コピー</button></div>
+      <textarea class="txtarea" id="saveText" readonly placeholder="ここにセーブデータが表示されます" aria-label="セーブデータ"></textarea></div>
+    <div class="sec"><h4>ロード</h4>
+      <p class="hint">保存しておいたJSONを貼り付けて読み込みます。形式が正しくない場合は、今の状態のまま変わりません。</p>
+      <textarea class="txtarea" id="loadText" placeholder="ここにセーブデータを貼り付け" aria-label="読み込むセーブデータ"></textarea>
+      <p class="pl-st bad" id="loadErr" role="alert"></p>
+      <div class="row"><button class="btn pri" data-act="load">読み込む</button><span class="grow"></span><button class="btn" data-act="newGame">新しく始める</button></div></div>`;
+}
+function saveAction(a) {
+  if (a === 'save') {
+    const t = $('#saveText'); t.value = serialize();
+    $('#copyBtn').disabled = false;
+    toast(`セーブデータを作りました(${(t.value.length / 1024).toFixed(0)}KB)`, 'good');
+    return true;
+  }
+  if (a === 'copy') {
+    const t = $('#saveText');
+    const fallback = () => { t.focus(); t.select(); t.setSelectionRange(0, t.value.length); toast('自動コピーできませんでした。選択状態の文字をコピーしてください', 'warn'); };
+    try {
+      if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(t.value).then(() => toast('クリップボードにコピーしました', 'good'), fallback);
+      else fallback();
+    } catch (e) { fallback(); }
+    return true;
+  }
+  if (a === 'load') {
+    const err = $('#loadErr'); err.textContent = '';
+    const text = $('#loadText').value.trim();
+    if (!text) { err.textContent = 'セーブデータを貼り付けてください'; return true; }
+    try {
+      const ng = deserialize(text);
+      applyWorld(ng);
+      hideOverlay();
+      log(`セーブデータを読み込みました(${G.day}日目)`, 'good'); toast('ロードしました', 'good');
+      if (!speedIdx) setSpeed(1);
+    } catch (e) { err.textContent = '読み込めませんでした:' + e.message; }
+    return true;
+  }
+  if (a === 'newGame') { startScreen(false); return true; }
+  return false;
+}
+
 /* ステータス詳細の展開 */
 $('#status').addEventListener('click', () => {
   const d = $('#statusDetail'), open = d.hidden;
@@ -3202,7 +4209,9 @@ $('#status').addEventListener('click', () => {
 function renderStatusDetail() {
   $('#statusDetail').innerHTML = [
     ['資金', fmt(G.money) + 'G'], ['加入者', fmt(G.subscribers) + '人'], ['平均満足度', G.satisfaction],
-    ['日付', `${G.day}日目`], ['時刻', `${pad2(Math.floor(G.hour))}:00`], ['研究ポイント', fmt(G.research)],
+    ['日付', `${G.day}日目`], ['時刻', `${pad2(Math.floor(G.hour))}:00`], ['研究ポイント', fmt(Math.floor(G.research))],
+    ['昨日の収支', G.hist.length ? `${fmt(G.hist[G.hist.length - 1].rev - G.hist[G.hist.length - 1].cost)}G` : '—'],
+    ['収益モデル', G.model === 'sub' ? '月額課金' : '基本無料'], ['赤字日数', G.negDays ? `${G.negDays}/30日` : 'なし'], ['目標', G.goalReached ? '達成済み' : `${fmt(G.players.length)}/1,000人`],
     ['速度', ['停止', '1倍', '4倍', '16倍'][speedIdx]], ['画質', QUALITY[S.quality].label],
   ].map(([k, v]) => `<div><i>${k}</i><b>${v}</b></div>`).join('');
 }
@@ -3336,6 +4345,7 @@ function uiUpdate() {
   G.subscribers = G.players.length;
   G.satisfaction = G.players.length ? Math.round(G.players.reduce((a, p) => a + p.sat, 0) / G.players.length) : 0;
   $('#stMoney').textContent = fmt(G.money) + 'G';
+  $('#stMoney').classList.toggle('neg', G.money < 0);
   $('#stSubs').textContent = fmt(G.subscribers);
   $('#stSat').textContent = G.satisfaction;
   $('#stDate').textContent = gameTimeStr();
@@ -3527,15 +4537,13 @@ function boot() {
   AreaEdit.init();
   Players.init();
   Players.reindex();
-  if (!G.players.length) for (let i = 0; i < 20; i++) Players.join();
-  Classes.updatePopularity();
   Scenery.init();
   Minimap.init();
   Objects.rebuildAll();
   Areas.rebuildAll();
-  Players.updateVis();
-  for (const sp of G.objects) if (sp.type === 'spawn' && !Monsters.count(sp.id)) Monsters.fill(sp, 4);
-  setSpeed(1);
+  Quests.rebuildFlags();
+  initWorldContent();
+  setSpeed(0);
   setMode('view');
   setFollow(null);
   log('サーバー「Arcana Online」を開設しました', 'good');
@@ -3545,11 +4553,19 @@ function boot() {
   uiUpdate();
   Cam.update(0);
   requestAnimationFrame(frame);
-  toast(`画質「${QUALITY[S.quality].label}」で開始しました(その他タブで変更可)`);
+  startScreen(true);
 }
+// 新しい世界の初期加入者とモンスター
+function initWorldContent() {
+  if (!G.players.length) for (let i = 0; i < 20; i++) Players.join();
+  Classes.updatePopularity();
+  for (const sp of G.objects) if (sp.type === 'spawn' && !Monsters.count(sp.id)) Monsters.fill(sp, 4);
+  Players.updateVis();
+}
+$('#pickBar').addEventListener('click', e => { if (e.target.closest('[data-pk]')) { const id = Quests.pickFor; setMode('view'); UI.qEdit = id; UI.tab = null; openTab('quest'); } });
 boot();
 
 // デバッグ・後続段階用に参照を公開
-window.__arcana = { get G() { return G; }, Cam, Terrain, Brush, Minimap, Objects, Monsters, Place, AreaEdit, Areas, Players, PG, Classes, setMode, applyQuality, toast, heightAt, slopeAt };
+window.__arcana = { get G() { return G; }, Cam, Terrain, Brush, Minimap, Objects, Monsters, Place, AreaEdit, Areas, Players, PG, Classes, Quests, Econ, Research, Admin, Requests, serialize, deserialize, setMode, setSpeed, applyQuality, toast, heightAt, slopeAt };
 })();
 </script>
