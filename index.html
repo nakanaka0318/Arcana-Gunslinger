@@ -251,6 +251,10 @@ input[type=range]::-moz-range-thumb{width:24px;height:24px;border-radius:50%;bac
 .mcard .dot{width:28px;height:28px;border-radius:50%;flex:none;border:2px solid rgba(0,0,0,.35)}
 .mcard .t{flex:1;min-width:0;display:flex;flex-direction:column}
 .mcard svg{color:var(--ink-dim)}
+.popbar{position:relative;height:24px;border-radius:6px;background:rgba(0,0,0,.3);overflow:hidden}
+.popbar i{position:absolute;left:0;top:0;bottom:0;opacity:.5}
+.popbar span{position:relative;font-size:14px;padding-left:8px;line-height:24px;font-weight:700}
+.cdot{display:inline-block;width:12px;height:12px;border-radius:50%;margin-right:8px}
 .badge{display:inline-block;font:700 14px var(--ff);padding:0 7px;border-radius:6px;background:var(--bad);color:#1b0806;margin-left:6px}
 
 /* ── ミニマップ ── */
@@ -425,13 +429,14 @@ function newGame(seed) {
     version: 1, seed, day: 1, hour: 8,
     money: 10000, subscribers: 20, satisfaction: 70, research: 0,
     terrain: { n: DN, h: new Float32Array(DN * DN), t: new Uint8Array(DN * DN) },
-    objects: [], areas: [], monsterTypes: [], monsters: [], nextId: 1, logs: [],
+    objects: [], areas: [], monsterTypes: [], monsters: [], classes: [], players: [], nextId: 1, logs: [],
   };
   generateIsland(g);
   for (const m of DEFAULT_MT) g.monsterTypes.push(newMonsterType(g.nextId++, m));
+  for (const c of DEFAULT_CLASSES) g.classes.push(newClass(g.nextId++, c));
   g.objects.push({ id: g.nextId++, type: 'town', name: 'はじまりの町', x: TOWN0.x, z: TOWN0.z, rot: 0 });
   g.objects.push({ id: g.nextId++, type: 'board', x: TOWN0.x + 17, z: TOWN0.z - 3, rot: -Math.PI / 2 });
-  g.objects.push({ id: g.nextId++, type: 'spawn', x: TOWN0.x + 12, z: TOWN0.z + 40, rot: 0, mt: g.monsterTypes[0].id, max: 6, respawn: 4, radius: 12, timer: 0 });
+  g.objects.push({ id: g.nextId++, type: 'spawn', x: TOWN0.x + 12, z: TOWN0.z + 40, rot: 0, mt: g.monsterTypes[0].id, max: 10, respawn: 4, radius: 14, timer: 0 });
   g.areas.push({ id: g.nextId++, name: 'はじまりの草原', x0: TOWN0.x - 24, z0: TOWN0.z + 20, x1: TOWN0.x + 44, z1: TOWN0.z + 56, lvMin: 1, lvMax: 5, color: AREA_COLORS[0] });
   return g;
 }
@@ -877,17 +882,17 @@ const Objects = {
     if (this.tCanopy.instanceColor) this.tCanopy.instanceColor.needsUpdate = true;
   },
   add(o) {
-    G.objects.push(o); this.build(o);
+    G.objects.push(o); this.build(o); PG.dirty = true;
     if (PLACE_DEFS[o.type].minor) this.rebuildInstances(); else Scenery.rebuild();
   },
   remove(o) {
     const i = G.objects.indexOf(o);
     if (i < 0) return;
-    G.objects.splice(i, 1); this.removeView(o.id);
+    G.objects.splice(i, 1); this.removeView(o.id); PG.dirty = true;
     if (o.type === 'spawn') Monsters.removeSpawn(o.id);
     if (PLACE_DEFS[o.type].minor) this.rebuildInstances(); else Scenery.rebuild();
   },
-  refresh(o) { this.removeView(o.id); this.build(o); if (PLACE_DEFS[o.type].minor) this.rebuildInstances(); },
+  refresh(o) { this.removeView(o.id); this.build(o); PG.dirty = true; if (PLACE_DEFS[o.type].minor) this.rebuildInstances(); },
   pick(x, z) {
     let best = null, bs = 1;
     for (const o of G.objects) {
@@ -944,12 +949,12 @@ const Areas = {
 const SHAPES = [['slime', 'スライム'], ['beast', '獣'], ['golem', 'ゴーレム'], ['wisp', '精霊'], ['plant', 'キノコ']];
 const MON_COLORS = ['#6cc24a', '#3f8fd6', '#e0574a', '#9b6ad6', '#e2a64b', '#a09a8a', '#f2eee2', '#3a4150', '#d67fb0', '#4fc2b4'];
 const DEFAULT_MT = [
-  { name: 'スライム', color: '#6cc24a', shape: 'slime', size: 1, hp: 30, atk: 6, def: 1, spd: 2, exp: 8, gold: 3, habitat: 0 },
-  { name: '森オオカミ', color: '#a09a8a', shape: 'beast', size: 1.1, hp: 60, atk: 12, def: 3, spd: 4.5, exp: 18, gold: 6, habitat: 1 },
-  { name: '毒キノコ', color: '#d67fb0', shape: 'plant', size: 1, hp: 45, atk: 10, def: 2, spd: 1.5, exp: 12, gold: 5, habitat: 4 },
-  { name: '砂の精霊', color: '#e2a64b', shape: 'wisp', size: 1, hp: 50, atk: 16, def: 2, spd: 3, exp: 22, gold: 8, habitat: 2 },
-  { name: '岩ゴーレム', color: '#8c877d', shape: 'golem', size: 1.3, hp: 160, atk: 20, def: 10, spd: 1.5, exp: 45, gold: 20, habitat: -1 },
-  { name: '古代竜', color: '#e0574a', shape: 'beast', size: 3, hp: 1500, atk: 60, def: 25, spd: 3, exp: 600, gold: 300, habitat: -1, boss: true },
+  { name: 'スライム', color: '#6cc24a', shape: 'slime', size: 1, hp: 30, atk: 6, def: 1, spd: 2, exp: 15, gold: 3, habitat: 0 },
+  { name: '森オオカミ', color: '#a09a8a', shape: 'beast', size: 1.1, hp: 60, atk: 12, def: 3, spd: 4.5, exp: 35, gold: 6, habitat: 1 },
+  { name: '毒キノコ', color: '#d67fb0', shape: 'plant', size: 1, hp: 45, atk: 10, def: 2, spd: 1.5, exp: 25, gold: 5, habitat: 4 },
+  { name: '砂の精霊', color: '#e2a64b', shape: 'wisp', size: 1, hp: 50, atk: 16, def: 2, spd: 3, exp: 45, gold: 8, habitat: 2 },
+  { name: '岩ゴーレム', color: '#8c877d', shape: 'golem', size: 1.3, hp: 160, atk: 20, def: 10, spd: 1.5, exp: 90, gold: 20, habitat: -1 },
+  { name: '古代竜', color: '#e0574a', shape: 'beast', size: 3, hp: 1500, atk: 60, def: 25, spd: 3, exp: 1500, gold: 300, habitat: -1, boss: true },
 ];
 function newMonsterType(id, o) {
   return Object.assign({ id, name: '新しいモンスター', color: '#6cc24a', shape: 'slime', size: 1, hp: 40, atk: 8, def: 2, spd: 2.5, exp: 10, gold: 4, boss: false, habitat: -1 }, o);
@@ -1012,7 +1017,7 @@ const Monsters = {
   fill(sp, n) { for (let i = 0; i < n && this.count(sp.id) < this.effMax(sp); i++) this.spawnOne(sp); },
   resetSpawn(sp) { this.removeSpawn(sp.id); sp.timer = 0; this.fill(sp, 3); },
   removeSpawn(id) { G.monsters = G.monsters.filter(m => m.sp !== id); },
-  // 1ティック(1時間)ごと:不足分を再出現時間に従って補充。生息地に合う地形なら2倍速
+  // 1ティック(1時間)ごと:再出現時間が経つたびに不足分をまとめて補充。生息地に合う地形なら2倍速
   hourly() {
     for (const sp of G.objects) {
       if (sp.type !== 'spawn') continue;
@@ -1021,18 +1026,41 @@ const Monsters = {
       G.monsters = G.monsters.filter(m => { if (m.sp !== sp.id) return true; if (m.t !== sp.mt || n >= mx) return false; n++; return true; });
       if (n >= mx) { sp.timer = 0; continue; }
       sp.timer = (sp.timer || 0) + 1;
-      if (sp.timer >= sp.respawn * (this.habitatOk(sp) ? .5 : 1)) { this.spawnOne(sp); sp.timer = 0; }
+      if (sp.timer >= sp.respawn * (this.habitatOk(sp) ? .5 : 1)) { for (let k = n; k < mx; k++) this.spawnOne(sp); sp.timer = 0; }
     }
   },
-  // 徘徊(ゲーム速度に比例)。加入者への攻撃は段階④で追加
-  update(gdt, dt) {
-    this.time += dt;
-    const spById = new Map();
-    for (const o of G.objects) if (o.type === 'spawn') spById.set(o.id, o);
-    let steps = Math.min(8, Math.ceil(gdt / .25)); const sdt = steps ? gdt / steps : 0;
-    for (; steps > 0; steps--) for (const m of G.monsters) {
+  map: new Map(), anyDead: false,
+  index() { this.map.clear(); for (const m of G.monsters) this.map.set(m.id, m); },
+  nearestOf(spId, x, z, r) {
+    let best = null, bd = r * r;
+    for (const m of G.monsters) { if (m.sp !== spId || m.dead) continue; const d = (m.x - x) ** 2 + (m.z - z) ** 2; if (d < bd) { bd = d; best = m; } }
+    return best;
+  },
+  // 徘徊と戦闘(ゲーム速度に比例)。近くの加入者を見つけると追いかけて攻撃する
+  step(sdt, spById) {
+    for (const m of G.monsters) {
+      if (m.dead) continue;
       const t = this.type(m.t), sp = spById.get(m.sp);
       if (!t || !sp) continue;
+      if (m.tg) {
+        const p = Players.map.get(m.tg);
+        if (!p || !p.vis || p.st === 'idle' || Math.hypot(m.x - sp.x, m.z - sp.z) > sp.radius + 14) { m.tg = 0; m.tx = sp.x; m.tz = sp.z; m.wait = 0; }
+        else {
+          const dx = p.x - m.x, dz = p.z - m.z, d = Math.hypot(dx, dz), reach = .9 + t.size * .45;
+          m.ry = Math.atan2(dx, dz); m.wait = 0;
+          if (d > reach) {
+            const st = Math.min(t.spd * 1.15 * sdt, d - reach * .9), nx = m.x + dx / d * st, nz = m.z + dz / d * st;
+            if (PG.walkAt(nx, nz)) { m.x = nx; m.z = nz; }
+          } else {
+            m.atkCd = (m.atkCd || 0) - sdt;
+            if (m.atkCd <= 0) { m.atkCd = 1.2; Players.hurt(p, calcDmg(t.atk, Players.stats(p).def), m); }
+          }
+          continue;
+        }
+      }
+      if (m.hp < t.hp) m.hp = Math.min(t.hp, m.hp + t.hp * .04 * sdt);
+      m.scan = (m.scan || 0) - sdt;
+      if (m.scan <= 0) { m.scan = .7; const p = Players.nearest(m.x, m.z, 3.5 + t.size); if (p) { m.tg = p.id; continue; } }
       if (m.wait > 0) { m.wait -= sdt; continue; }
       const dx = m.tx - m.x, dz = m.tz - m.z, d = Math.hypot(dx, dz), st = t.spd * sdt;
       if (d <= st) {
@@ -1044,11 +1072,13 @@ const Monsters = {
         m.x = nx; m.z = nz; m.ry = Math.atan2(dx, dz);
       }
     }
-    // 描画
+  },
+  render(dt) {
+    this.time += dt;
     const cnt = {}, o = this._o;
     for (const [s] of SHAPES) cnt[s] = 0;
     for (const m of G.monsters) {
-      const t = this.type(m.t); if (!t) continue;
+      const t = this.type(m.t); if (!t || m.dead) continue;
       const mesh = this.meshes[t.shape] || this.meshes.slime, i = cnt[t.shape]++;
       const moving = m.wait <= 0, bob = Math.sin(this.time * 7 + m.ph);
       const sq = t.shape === 'slime' && moving ? 1 + bob * .12 : 1;
@@ -1063,7 +1093,7 @@ const Monsters = {
       mesh.instanceMatrix.needsUpdate = true; if (mesh.instanceColor) mesh.instanceColor.needsUpdate = true;
     }
   },
-  byId(id) { return G.monsters.find(m => m.id === id); },
+  byId(id) { return this.map.get(id); },
 };
 const _pv = new THREE.Vector3();
 function pickMonster(sx, sy, rad = 30) {
@@ -1419,6 +1449,635 @@ $('#areaBar').addEventListener('click', e => {
 });
 $('#areaBar').addEventListener('input', e => { if (e.target.id === 'arName') AreaEdit.name = e.target.value; });
 
+/* ════════════════════════════════════════════
+   クラス(職業)
+   ════════════════════════════════════════════ */
+const WEAPONS = [['sword', '剣'], ['staff', '杖'], ['bow', '弓'], ['axe', '斧'], ['dagger', '短剣']];
+const WEAPON_RANGE = { sword: 1.3, staff: 6, bow: 7, axe: 1.3, dagger: 1.1 };
+const CLASS_COLORS = ['#d9534a', '#4a7fd9', '#4fae5a', '#c27f35', '#8e5bc4', '#e2c04a', '#3fb7b0', '#e07cae', '#dcdcd0', '#4a4f5c'];
+const DEFAULT_CLASSES = [
+  { name: '剣士', color: '#d9534a', weapon: 'sword', hp: 120, atk: 14, def: 6, spd: 5, gHp: 14, gAtk: 2.2, gDef: 1.2, skills: [{ name: '強打', mult: 1.8, cd: 4 }, { name: '回転斬り', mult: 2.6, cd: 9 }] },
+  { name: '魔法使い', color: '#4a7fd9', weapon: 'staff', hp: 80, atk: 19, def: 3, spd: 4.5, gHp: 9, gAtk: 3, gDef: .6, skills: [{ name: 'ファイア', mult: 2.2, cd: 5 }, { name: 'メテオ', mult: 4, cd: 14 }] },
+  { name: '弓使い', color: '#4fae5a', weapon: 'bow', hp: 95, atk: 16, def: 4, spd: 6, gHp: 11, gAtk: 2.5, gDef: .8, skills: [{ name: '狙い撃ち', mult: 2, cd: 5 }, { name: '連射', mult: 3, cd: 11 }] },
+  { name: '重戦士', color: '#c27f35', weapon: 'axe', hp: 160, atk: 11, def: 10, spd: 4, gHp: 18, gAtk: 1.6, gDef: 2, skills: [{ name: '盾打ち', mult: 1.5, cd: 3 }, { name: '大地割り', mult: 3.2, cd: 12 }] },
+];
+function newClass(id, o = {}) {
+  const c = Object.assign({ id, name: '新しいクラス', color: '#dcdcd0', weapon: 'sword', hp: 100, atk: 14, def: 5, spd: 5, gHp: 12, gAtk: 2, gDef: 1, pop: 50, kills: 0, killTime: 0 }, o);
+  c.skills = (o.skills || [{ name: 'スキル1', mult: 1.8, cd: 5 }, { name: 'スキル2', mult: 3, cd: 12 }]).map(s => ({ ...s }));
+  c.basePower = classPower(c);
+  return c;
+}
+// Lv10時点の耐久×火力を強さの目安にする(バフ/ナーフの判定用)
+function classPower(c) {
+  const L = 9, hp = c.hp + c.gHp * L, atk = c.atk + c.gAtk * L, def = c.def + c.gDef * L;
+  const sk = c.skills.reduce((a, s) => a + (s.mult - 1) / Math.max(1, s.cd), 0);
+  return hp * (1 + def * .03) * atk * (1 + sk) * Math.pow(c.spd / 5, .3) / 1000;
+}
+const expNeed = lv => Math.round(100 * Math.pow(lv, 1.5));
+const calcDmg = (atk, def) => Math.max(1, Math.round(atk * (.8 + Math.random() * .4) - def));
+const Classes = {
+  byId(id) { return G.classes.find(c => c.id === id); },
+  avgPower() { return G.classes.reduce((a, c) => a + classPower(c), 0) / Math.max(1, G.classes.length); },
+  stats(c) {
+    let n = 0, lv = 0, sat = 0;
+    for (const p of G.players) if (p.cls === c.id) { n++; lv += p.lv; sat += p.sat; }
+    return { n, avgLv: n ? lv / n : 0, sat: n ? sat / n : 0, kill: c.kills ? c.killTime / c.kills : 0 };
+  },
+  updatePopularity() {
+    const avg = this.avgPower();
+    for (const c of G.classes) {
+      const s = this.stats(c);
+      const target = clamp(50 + (classPower(c) / avg - 1) * 60 + ((s.n ? s.sat : 60) - 60) * .6, 5, 100);
+      c.pop = Math.round(lerp(c.pop ?? 50, target, .5));
+    }
+  },
+  timers: new Map(),
+  scheduleCheck(c) {
+    clearTimeout(this.timers.get(c.id));
+    this.timers.set(c.id, setTimeout(() => this.checkBalance(c), 900));
+  },
+  // 大幅なナーフはそのクラスの加入者の満足度を下げる(バフは少し上げる)。
+  // 比較の基準はその日の開始時点の強さ(小刻みなナーフも1日の合計で判定する)
+  checkBalance(c) {
+    if (!G.classes.includes(c)) return;
+    const pw = classPower(c), d = pw / (c.basePower || pw) - 1;
+    const members = G.players.filter(p => p.cls === c.id);
+    if (d < -.15) {
+      const loss = Math.min(20, -d * 40);
+      for (const p of members) p.sat = Math.max(0, p.sat - loss);
+      log(`${c.name}の大幅な弱体化で、${members.length}人の満足度が${loss.toFixed(0)}下がりました`, 'warn');
+      toast(`${c.name}の大幅ナーフに不満の声(満足度−${loss.toFixed(0)})`, 'warn');
+    } else if (d > .15) {
+      const gain = Math.min(5, d * 10);
+      for (const p of members) p.sat = Math.min(100, p.sat + gain);
+      log(`${c.name}の強化で、${members.length}人の満足度が${gain.toFixed(0)}上がりました`, 'good');
+    }
+    if (Math.abs(d) > .15) c.basePower = pw;
+    this.updatePopularity();
+    if (UI.tab === 'class') { const el = document.getElementById('clPower'); if (el) el.textContent = powerText(c); }
+  },
+};
+function powerText(c) { return `平均比 ${Math.round(classPower(c) / Classes.avgPower() * 100)}%`; }
+
+/* ════════════════════════════════════════════
+   経路探索(4mグリッドのA*、経路はキャッシュ)
+   ════════════════════════════════════════════ */
+const PG = {
+  N: 64, C: 4, dirty: true,
+  walk: new Uint8Array(4096), road: new Uint8Array(4096), deck: new Float32Array(4096), comp: new Int32Array(4096),
+  cache: new Map(), queue: [],
+  g: new Float32Array(4096), came: new Int32Array(4096), stamp: new Int32Array(4096), closed: new Int32Array(4096), gen: 0,
+  hI: new Int32Array(40000), hF: new Float32Array(40000), hn: 0,
+  idx(x, z) { return clamp(Math.floor((z + HALF) / 4), 0, 63) * 64 + clamp(Math.floor((x + HALF) / 4), 0, 63); },
+  cx(i) { return -HALF + (i % 64) * 4 + 2; },
+  cz(i) { return -HALF + Math.floor(i / 64) * 4 + 2; },
+  ensure() { if (this.dirty) this.rebuild(); },
+  rebuild() {
+    const W = this.walk, Rd = this.road, D = this.deck;
+    for (let i = 0; i < 4096; i++) {
+      const x = this.cx(i), z = this.cz(i), h = heightAt(x, z);
+      W[i] = h >= .2 && slopeAt(x, z) <= .95 && Math.abs(x) < HALF - 3 && Math.abs(z) < HALF - 3 ? 1 : 0;
+      Rd[i] = 0; D[i] = -99;
+    }
+    // 道路・橋のセルを線分に沿って塗る(橋の上は水上でも通れる)
+    for (const o of G.objects) {
+      if (o.type !== 'road' && o.type !== 'bridge') continue;
+      const deckY = o.type === 'bridge' ? bridgeDeckY(o.x0, o.z0, o.x1, o.z1) : 0;
+      for (const [x, z] of sampleLine(o.x0, o.z0, o.x1, o.z1, 1)) {
+        const i = this.idx(x, z);
+        Rd[i] = 1;
+        if (o.type === 'bridge') { W[i] = 1; D[i] = deckY; }
+      }
+    }
+    // 連結成分(到達できるかの即時判定用)
+    const C = this.comp; C.fill(0);
+    let label = 0; const stack = [];
+    for (let s = 0; s < 4096; s++) {
+      if (!W[s] || C[s]) continue;
+      C[s] = ++label; stack.push(s);
+      while (stack.length) {
+        const c = stack.pop(), ci = c % 64, cj = (c / 64) | 0;
+        for (let dj = -1; dj <= 1; dj++) for (let di = -1; di <= 1; di++) {
+          if (!di && !dj) continue;
+          const ni = ci + di, nj = cj + dj; if (ni < 0 || nj < 0 || ni > 63 || nj > 63) continue;
+          const n = nj * 64 + ni;
+          if (!W[n] || C[n]) continue;
+          if (di && dj && (!W[cj * 64 + ni] || !W[nj * 64 + ci])) continue;
+          C[n] = label; stack.push(n);
+        }
+      }
+    }
+    this.cache.clear(); this.dirty = false;
+  },
+  nearestWalkable(i) {
+    this.ensure();
+    if (this.walk[i]) return i;
+    const ci = i % 64, cj = (i / 64) | 0;
+    for (let r = 1; r <= 3; r++) for (let dj = -r; dj <= r; dj++) for (let di = -r; di <= r; di++) {
+      const ni = ci + di, nj = cj + dj; if (ni < 0 || nj < 0 || ni > 63 || nj > 63) continue;
+      if (this.walk[nj * 64 + ni]) return nj * 64 + ni;
+    }
+    return -1;
+  },
+  compAt(x, z) { const i = this.nearestWalkable(this.idx(x, z)); return i < 0 ? 0 : this.comp[i]; },
+  walkAt(x, z) { this.ensure(); return this.walk[this.idx(x, z)] === 1; },
+  roadAt(x, z) { return this.road[this.idx(x, z)] === 1; },
+  groundY(x, z) { const h = heightAt(x, z), d = this.deck[this.idx(x, z)]; return h < .2 && d > -99 ? d + .2 : Math.max(h, 0); },
+  push(i, f) {
+    let k = this.hn++; const I = this.hI, F = this.hF;
+    while (k > 0) { const p = (k - 1) >> 1; if (F[p] <= f) break; I[k] = I[p]; F[k] = F[p]; k = p; }
+    I[k] = i; F[k] = f;
+  },
+  pop() {
+    const I = this.hI, F = this.hF, top = I[0], n = --this.hn, li = I[n], lf = F[n];
+    let k = 0;
+    while (true) { let c = 2 * k + 1; if (c >= n) break; if (c + 1 < n && F[c + 1] < F[c]) c++; if (F[c] >= lf) break; I[k] = I[c]; F[k] = F[c]; k = c; }
+    I[k] = li; F[k] = lf;
+    return top;
+  },
+  astar(s, t) {
+    const W = this.walk, Rd = this.road, G2 = this.g, st = this.stamp, cl = this.closed, came = this.came;
+    const gen = ++this.gen, ti = t % 64, tj = (t / 64) | 0;
+    const h = i => { const dx = Math.abs(i % 64 - ti), dz = Math.abs(((i / 64) | 0) - tj); return (dx + dz + (1.414 - 2) * Math.min(dx, dz)) * .66; };
+    this.hn = 0; G2[s] = 0; st[s] = gen; came[s] = -1; this.push(s, h(s));
+    while (this.hn) {
+      const c = this.pop();
+      if (c === t) break;
+      if (cl[c] === gen) continue;
+      cl[c] = gen;
+      const ci = c % 64, cj = (c / 64) | 0;
+      for (let dj = -1; dj <= 1; dj++) for (let di = -1; di <= 1; di++) {
+        if (!di && !dj) continue;
+        const ni = ci + di, nj = cj + dj; if (ni < 0 || nj < 0 || ni > 63 || nj > 63) continue;
+        const n = nj * 64 + ni;
+        if (!W[n] || cl[n] === gen) continue;
+        if (di && dj && (!W[cj * 64 + ni] || !W[nj * 64 + ci])) continue;
+        const ng = G2[c] + (di && dj ? 1.414 : 1) * (Rd[n] ? .66 : 1);
+        if (st[n] !== gen || ng < G2[n]) { st[n] = gen; G2[n] = ng; came[n] = c; if (this.hn < 39990) this.push(n, ng + h(n)); }
+      }
+    }
+    if (st[t] !== gen) return null;
+    const cells = []; for (let c = t; c !== -1; c = came[c]) cells.push(c);
+    cells.reverse();
+    // 見通しの良い区間を間引いて滑らかにする
+    const pts = cells.map(c => [this.cx(c), this.cz(c)]), out = [];
+    let a = 0;
+    while (a < pts.length - 1) {
+      let b = pts.length - 1;
+      while (b > a + 1 && !this.los(pts[a], pts[b])) b--;
+      out.push(pts[b]); a = b;
+    }
+    return out;
+  },
+  los(a, b) {
+    const L = Math.hypot(b[0] - a[0], b[1] - a[1]), n = Math.ceil(L / 1.5);
+    let onRoadAll = true;
+    for (let k = 1; k < n; k++) {
+      const x = lerp(a[0], b[0], k / n), z = lerp(a[1], b[1], k / n), i = this.idx(x, z);
+      if (!this.walk[i]) return false;
+      if (!this.road[i]) onRoadAll = false;
+    }
+    // 道路から外れる近道はしない(道路の速度ボーナスを活かす)
+    return onRoadAll || !(this.road[this.idx(a[0], a[1])] && this.road[this.idx(b[0], b[1])]) || L < 8;
+  },
+  // 経路要求。キャッシュにあれば即時、なければ待ち行列へ(1ティック最大20件)
+  request(p) {
+    this.ensure();
+    const s = this.nearestWalkable(this.idx(p.x, p.z)), t = this.nearestWalkable(this.idx(p.dest.x, p.dest.z));
+    if (s < 0 || t < 0 || this.comp[s] !== this.comp[t]) { Players.pathFail(p); return; }
+    if (s === t) { Players.setPath(p, []); return; }
+    const c = this.cache.get(s * 4096 + t);
+    if (c) { Players.setPath(p, c); return; }
+    p.st = 'waitpath';
+    if (!p.queued) { p.queued = true; this.queue.push(p.id); }
+  },
+  processQueue() {
+    this.ensure();
+    let n = 0;
+    while (n < 20 && this.queue.length) {
+      const p = Players.map.get(this.queue.shift());
+      if (!p) continue;
+      p.queued = false;
+      if (p.st !== 'waitpath' || !p.dest) continue;
+      const s = this.nearestWalkable(this.idx(p.x, p.z)), t = this.nearestWalkable(this.idx(p.dest.x, p.dest.z));
+      n++;
+      if (s < 0 || t < 0) { Players.pathFail(p); continue; }
+      const key = s * 4096 + t;
+      let path = this.cache.get(key);
+      if (!path) {
+        path = this.astar(s, t);
+        if (path) { this.cache.set(key, path); if (this.cache.size > 800) this.cache.delete(this.cache.keys().next().value); }
+      }
+      if (path) Players.setPath(p, path); else Players.pathFail(p);
+    }
+  },
+};
+
+/* ════════════════════════════════════════════
+   AI加入者
+   ════════════════════════════════════════════ */
+const NAME_A = ['アル', 'ベル', 'カイ', 'ミ', 'リ', 'ソラ', 'ユ', 'ハル', 'ナギ', 'レイ', 'ルナ', 'ジン', 'セツ', 'トモ', 'シオ', 'カナ', 'ロイ', 'エマ', 'ノア', 'ヒナ', 'タク', 'ユウ', 'レン', 'サク', 'メイ', 'リオ', 'ケン', 'アヤ', 'クロ', 'シロ'];
+const NAME_B = ['ト', 'ナ', 'ン', 'ヤ', 'ス', 'リ', 'ラ', 'ル', 'マ', 'キ', '', 'ア', 'ロ', 'ノ'];
+const pick = a => a[Math.floor(Math.random() * a.length)];
+function genName() { let n = pick(NAME_A) + pick(NAME_B); if (Math.random() < .35) n += Math.floor(Math.random() * 99 + 1); return n; }
+const ST_LABEL = { idle: '町で待機', waitpath: '経路を探索中', travel: '狩り場へ移動中', hunt: '獲物を探索中', fight: '戦闘中', return: '町へ帰還中', lost: '迷子(道が見つからない)' };
+
+function iconTexture(kind) {
+  const cv = document.createElement('canvas'); cv.width = cv.height = 64;
+  const c = cv.getContext('2d');
+  const bg = { fight: '#e0574a', quest: '#e2c04a', sad: '#7a4fb0', lost: '#3f8fd6' }[kind];
+  c.beginPath(); c.arc(32, 32, 28, 0, Math.PI * 2); c.fillStyle = bg; c.fill();
+  c.lineWidth = 4; c.strokeStyle = '#1b1b1b'; c.stroke();
+  c.strokeStyle = c.fillStyle = kind === 'quest' ? '#1c1406' : '#ffffff'; c.lineCap = 'round';
+  if (kind === 'fight') { c.lineWidth = 6; c.beginPath(); c.moveTo(18, 18); c.lineTo(46, 46); c.moveTo(46, 18); c.lineTo(18, 46); c.stroke(); }
+  else if (kind === 'sad') { c.lineWidth = 5; c.beginPath(); c.arc(32, 48, 12, Math.PI * 1.15, Math.PI * 1.85); c.stroke(); c.beginPath(); c.arc(23, 26, 4, 0, 7); c.arc(41, 26, 4, 0, 7); c.fill(); }
+  else { c.font = '900 42px system-ui, sans-serif'; c.textAlign = 'center'; c.textBaseline = 'middle'; c.fillText(kind === 'quest' ? '!' : '?', 32, 35); }
+  const t = new THREE.CanvasTexture(cv); return t;
+}
+
+const Players = {
+  map: new Map(), visList: [], crowd: new Map(), simT: 0, time: 0, followId: 0, _o: new THREE.Object3D(), _c: new THREE.Color(),
+  cells: Array.from({ length: 32 * 32 }, () => []),
+  init() {
+    const B = GEO.box, cap = 300;
+    const body = mergeParts([[B, M4(.11, .3, 0, .17, .6, .2)], [B, M4(-.11, .3, 0, .17, .6, .2)], [B, M4(0, .9, 0, .46, .58, .3)], [B, M4(.31, .92, 0, .13, .52, .15)], [B, M4(-.31, .92, 0, .13, .52, .15)]]);
+    const head = mergeParts([[new THREE.SphereGeometry(.19, 10, 8), M4(0, 1.4, 0)], [B, M4(0, 1.5, -.03, .36, .14, .34)]]);
+    const cyl = new THREE.CylinderGeometry(.5, .5, 1, 6);
+    const R = (x, y, z, sx, sy, sz, rx = 0, ry = 0, rz = 0) => new THREE.Matrix4().compose(new THREE.Vector3(x, y, z), new THREE.Quaternion().setFromEuler(new THREE.Euler(rx, ry, rz)), new THREE.Vector3(sx, sy, sz));
+    const wg = {
+      sword: mergeParts([[B, M4(0, .52, 0, .07, .8, .14)], [B, M4(0, .1, 0, .3, .06, .1)], [B, M4(0, -.02, 0, .05, .18, .05)]]),
+      staff: mergeParts([[cyl, M4(0, .35, 0, .07, 1.5, .07)], [new THREE.OctahedronGeometry(.12), M4(0, 1.15, 0)]]),
+      bow: mergeParts([[new THREE.TorusGeometry(.45, .03, 4, 12, Math.PI), R(0, .1, 0, 1, 1, 1, 0, -Math.PI / 2, -Math.PI / 2)], [B, M4(0, .1, 0, .015, .9, .015)]]),
+      axe: mergeParts([[cyl, M4(0, .3, 0, .07, 1, .07)], [B, M4(.15, .7, 0, .3, .3, .06)]]),
+      dagger: mergeParts([[B, M4(0, .3, 0, .05, .42, .09)], [B, M4(0, .07, 0, .18, .04, .07)]]),
+    };
+    const mk = (geo, mat, colored) => {
+      const m = new THREE.InstancedMesh(geo, mat, cap);
+      if (colored) m.setColorAt(0, this._c.set(0xffffff));
+      m.count = 0; m.frustumCulled = false; m.castShadow = true; scene.add(m); return m;
+    };
+    this.body = mk(body, new THREE.MeshLambertMaterial({ color: 0xffffff }), true);
+    this.head = mk(head, new THREE.MeshLambertMaterial({ color: 0xf0cfa8 }));
+    const wm = new THREE.MeshLambertMaterial({ color: 0xb8b4aa });
+    this.weapons = {};
+    for (const [w] of WEAPONS) this.weapons[w] = mk(wg[w], w === 'staff' || w === 'bow' ? MAT.wood : wm);
+    this.icons = {};
+    const plane = new THREE.PlaneGeometry(1, 1);
+    for (const k of ['fight', 'quest', 'sad', 'lost']) {
+      const m = new THREE.InstancedMesh(plane, new THREE.MeshBasicMaterial({ map: iconTexture(k), transparent: true, depthWrite: false }), 80);
+      m.count = 0; m.frustumCulled = false; m.renderOrder = 20; scene.add(m); this.icons[k] = m;
+    }
+  },
+  reindex() { this.map.clear(); for (const p of G.players) this.map.set(p.id, p); },
+  cls(p) { return Classes.byId(p.cls) || G.classes[0]; },
+  stats(p) {
+    const c = this.cls(p), L = p.lv - 1;
+    return { hp: Math.round(c.hp + c.gHp * L), atk: c.atk + c.gAtk * L, def: c.def + c.gDef * L, spd: c.spd };
+  },
+  towns() { return G.objects.filter(o => o.type === 'town' || o.type === 'village'); },
+  nearestTown(x, z) {
+    let best = null, bd = Infinity;
+    for (const t of this.towns()) { const d = Math.hypot(t.x - x, t.z - z) + (PG.compAt(t.x, t.z) === PG.compAt(x, z) ? 0 : 10000); if (d < bd) { bd = d; best = t; } }
+    return best || { x: 0, z: 0 };
+  },
+  join() {
+    const cs = G.classes, tot = cs.reduce((a, c) => a + Math.max(1, c.pop), 0);
+    let r = Math.random() * tot, c = cs[0];
+    for (const k of cs) { r -= Math.max(1, k.pop); if (r <= 0) { c = k; break; } }
+    const tws = this.towns(), tw = tws.length ? pick(tws) : { x: 0, z: 0 };
+    const p = {
+      id: G.nextId++, name: genName(), cls: c.id, lv: 1, exp: 0, hp: 1, gold: 50, sat: 70, spent: 0,
+      x: tw.x + (Math.random() - .5) * 10, z: tw.z + (Math.random() - .5) * 10, ry: Math.random() * 6.28,
+      st: 'idle', wait: Math.random() * 6, path: null, pi: 0, dest: null, purpose: '', sp: 0, mt: 0, atkCd: 0, sk: [0, 0],
+      kills: 0, goal: 0, swing: 0, cheat: Math.random() < .05, troll: Math.random() < .04, warned: 0,
+      lost: false, lostCount: 0, deaths: 0, totalKills: 0, expToday: 0, expYesterday: 0, vis: false, noArea: false, joined: G.day,
+    };
+    p.hp = this.stats(p).hp;
+    G.players.push(p); this.map.set(p.id, p);
+    return p;
+  },
+  spawnLevel(sp) {
+    const a = Areas.at(sp.x, sp.z);
+    if (a) return [a.lvMin, a.lvMax];
+    const t = Monsters.type(sp.mt); if (!t) return [1, 50];
+    const lv = clamp(Math.round(Math.sqrt(t.hp * t.atk) / 6), 1, 50);
+    return [Math.max(1, lv - 2), lv + 2];
+  },
+  // 町で次の行動を決める:レベル相応の狩り場を選ぶ(なければ弱めの狩り場)
+  decide(p) {
+    if (p.troll && Math.random() < .5) { p.st = 'idle'; p.wait = 6 + Math.random() * 8; return; }
+    const L = p.lv, pc = PG.compAt(p.x, p.z), good = [];
+    let weak = null, weakLv = -1, far = null;
+    for (const sp of G.objects) {
+      if (sp.type !== 'spawn' || !Monsters.effMax(sp)) continue;
+      if (PG.compAt(sp.x, sp.z) !== pc) { far = far || sp; continue; }
+      const [lo, hi] = this.spawnLevel(sp);
+      if (L >= lo - 1 && L <= hi + 2) good.push(sp);
+      else if (hi < L && hi > weakLv) { weak = sp; weakLv = hi; }
+    }
+    let sp = null;
+    if (good.length) {
+      p.noArea = false;
+      let tot = 0; const w = good.map(s => { const v = 1 / (1 + (this.crowd.get(s.id) || 0) * .3); tot += v; return v; });
+      let r = Math.random() * tot; sp = good[good.length - 1];
+      for (let i = 0; i < good.length; i++) { r -= w[i]; if (r <= 0) { sp = good[i]; break; } }
+    } else if (weak) { p.noArea = true; sp = weak; }
+    else if (far) { p.noArea = true; sp = far; }
+    else { p.noArea = true; p.st = 'idle'; p.wait = 6 + Math.random() * 6; return; }
+    p.sp = sp.id; p.goal = 3 + Math.floor(Math.random() * 6); p.kills = 0;
+    const a = Math.random() * Math.PI * 2, r = Math.random() * sp.radius * .6;
+    this.goTo(p, sp.x + Math.cos(a) * r, sp.z + Math.sin(a) * r, 'hunt');
+  },
+  goTo(p, x, z, purpose) {
+    p.dest = { x, z }; p.purpose = purpose; p.path = null; p.pi = 0;
+    if (p.vis) PG.request(p); else p.st = purpose === 'hunt' ? 'travel' : 'return';
+  },
+  goTown(p) { const tw = this.nearestTown(p.x, p.z); this.goTo(p, tw.x + (Math.random() - .5) * 8, tw.z + (Math.random() - .5) * 8, 'town'); },
+  setPath(p, path) {
+    p.path = path; p.pi = 0; p.st = p.purpose === 'hunt' ? 'travel' : 'return';
+    if (p.lost) this.newFound = (this.newFound || 0) + 1;
+    p.lost = false; p.lostCount = 0;
+  },
+  // 経路が見つからない状態が続くと迷子になる
+  pathFail(p) {
+    p.lostCount = (p.lostCount || 0) + 1;
+    if (p.lostCount >= 2) {
+      if (!p.lost) this.newLost = (this.newLost || 0) + 1;
+      p.lost = true; p.st = 'lost'; p.retry = 8 + Math.random() * 4; p.path = null;
+    } else { p.st = 'idle'; p.wait = 2; }
+  },
+  arriveTown(p) { p.hp = this.stats(p).hp; p.st = 'idle'; p.wait = 2 + Math.random() * 4 + (p.troll ? 8 : 0); p.kills = 0; p.path = null; p.wt = null; },
+  teleportTown(p) { const tw = this.nearestTown(p.x, p.z); p.x = tw.x + (Math.random() - .5) * 10; p.z = tw.z + (Math.random() - .5) * 10; this.arriveTown(p); },
+  die(p) {
+    p.deaths++; p.sat = Math.max(0, p.sat - 5);
+    const tw = this.nearestTown(p.x, p.z);
+    p.x = tw.x + (Math.random() - .5) * 6; p.z = tw.z + (Math.random() - .5) * 6;
+    p.hp = this.stats(p).hp; p.st = 'idle'; p.wait = 3 + Math.random() * 3; p.path = null; p.mt = 0; p.kills = 0; p.wt = null;
+  },
+  gainExp(p, a) {
+    p.exp += a; p.expToday += a;
+    while (p.lv < 50 && p.exp >= expNeed(p.lv)) {
+      p.exp -= expNeed(p.lv); p.lv++;
+      p.sat = Math.min(100, p.sat + 2); p.hp = this.stats(p).hp;
+    }
+    if (p.lv >= 50) p.exp = Math.min(p.exp, expNeed(50));
+  },
+  kill(p, m, t) {
+    m.dead = true; Monsters.anyDead = true;
+    const c = this.cls(p); c.kills++; c.killTime += this.simT - (p.fightT ?? this.simT);
+    this.gainExp(p, t.exp * (p.cheat ? 8 : 1));
+    p.gold += t.gold; p.kills++; p.totalKills++;
+    if (t.boss) { p.sat = Math.min(100, p.sat + 5); log(`${p.name}(${c.name})が${t.name}を討伐しました!`, 'good'); }
+    if (p.kills >= p.goal || p.hp < this.stats(p).hp * .35) this.goTown(p);
+    else { p.st = 'hunt'; p.scan = .2; p.mt = 0; }
+  },
+  hurt(p, dmg, m) {
+    p.hp -= dmg;
+    if (p.st !== 'fight') { p.st = 'fight'; p.mt = m.id; p.fightT = this.simT; p.path = null; }
+    if (p.hp <= 0) { m.tg = 0; this.die(p); }
+  },
+  rebuildGrid() {
+    for (const c of this.cells) c.length = 0;
+    for (const p of this.visList) this.cells[clamp(Math.floor((p.z + HALF) / 8), 0, 31) * 32 + clamp(Math.floor((p.x + HALF) / 8), 0, 31)].push(p);
+  },
+  nearest(x, z, r) {
+    let best = null, bd = r * r;
+    const i0 = clamp(Math.floor((x - r + HALF) / 8), 0, 31), i1 = clamp(Math.floor((x + r + HALF) / 8), 0, 31);
+    const j0 = clamp(Math.floor((z - r + HALF) / 8), 0, 31), j1 = clamp(Math.floor((z + r + HALF) / 8), 0, 31);
+    for (let j = j0; j <= j1; j++) for (let i = i0; i <= i1; i++) for (const p of this.cells[j * 32 + i]) {
+      if (p.st === 'idle' || p.st === 'lost') continue;
+      const d = (p.x - x) ** 2 + (p.z - z) ** 2; if (d < bd) { bd = d; best = p; }
+    }
+    return best;
+  },
+  // 直線移動(水・急斜面の手前で止まる)。到達したら true
+  moveToward(p, tx, tz, sp, stopAt = 0) {
+    const dx = tx - p.x, dz = tz - p.z, d = Math.hypot(dx, dz);
+    if (d <= stopAt + 1e-3) return true;
+    const st = Math.min(sp, d - stopAt), nx = p.x + dx / d * st, nz = p.z + dz / d * st;
+    p.ry = Math.atan2(dx, dz);
+    if (!PG.walkAt(nx, nz) && PG.walkAt(p.x, p.z)) return null;
+    p.x = nx; p.z = nz; p._mv = true;
+    return d - st <= stopAt + 1e-3;
+  },
+  step(sdt) {
+    this.simT += sdt;
+    this.rebuildGrid();
+    for (const p of this.visList) {
+      p._mv = false;
+      const s = this.stats(p);
+      const spd = s.spd * (PG.roadAt(p.x, p.z) ? 1.5 : 1) * sdt;
+      switch (p.st) {
+        case 'idle': {
+          if (p.hp < s.hp) p.hp = Math.min(s.hp, p.hp + s.hp * .2 * sdt);
+          p.wait -= sdt;
+          if (p.wait <= 0) { this.decide(p); break; }
+          if (!p.wt || this.moveToward(p, p.wt.x, p.wt.z, spd * .35) !== false) {
+            if (!p.wt || Math.random() < .02) { const tw = this.nearestTown(p.x, p.z); p.wt = { x: tw.x + (Math.random() - .5) * 12, z: tw.z + (Math.random() - .5) * 12 }; }
+          }
+          break;
+        }
+        case 'travel': case 'return': {
+          if (!p.path) { PG.request(p); break; }
+          let left = spd;
+          while (left > 0) {
+            const w = p.pi < p.path.length ? p.path[p.pi] : [p.dest.x, p.dest.z];
+            const d = Math.hypot(w[0] - p.x, w[1] - p.z);
+            if (d <= left) {
+              p.x = w[0]; p.z = w[1]; left -= d; p._mv = true;
+              if (p.pi >= p.path.length) { if (p.purpose === 'hunt') { p.st = 'hunt'; p.scan = 0; } else this.arriveTown(p); break; }
+              p.pi++;
+            } else { p.x += (w[0] - p.x) / d * left; p.z += (w[1] - p.z) / d * left; p.ry = Math.atan2(w[0] - p.x, w[1] - p.z); p._mv = true; left = 0; }
+          }
+          break;
+        }
+        case 'hunt': {
+          const sp = G.objects.find(o => o.id === p.sp);
+          if (!sp) { this.goTown(p); break; }
+          p.scan = (p.scan || 0) - sdt;
+          if (p.scan <= 0) {
+            p.scan = .5;
+            const m = Monsters.nearestOf(sp.id, p.x, p.z, sp.radius + 12);
+            if (m) { p.mt = m.id; p.st = 'fight'; p.fightT = this.simT; break; }
+            p.huntT = (p.huntT || 0) + .5;
+            if (p.huntT > 25) { p.huntT = 0; this.goTown(p); break; }
+          }
+          if (!p.wt || this.moveToward(p, p.wt.x, p.wt.z, spd * .6) !== false) {
+            const a = Math.random() * Math.PI * 2, r = Math.random() * sp.radius; p.wt = { x: sp.x + Math.cos(a) * r, z: sp.z + Math.sin(a) * r };
+          }
+          break;
+        }
+        case 'fight': {
+          const m = Monsters.map.get(p.mt), t = m && Monsters.type(m.t);
+          if (!m || m.dead || !t) { p.st = 'hunt'; p.scan = 0; p.mt = 0; break; }
+          p.huntT = 0;
+          const c = this.cls(p), reach = WEAPON_RANGE[c.weapon] + t.size * .4;
+          const r = this.moveToward(p, m.x, m.z, spd, reach);
+          if (r === null) { p.st = 'hunt'; p.mt = 0; p.scan = 1; break; }
+          p.atkCd -= sdt; p.sk[0] -= sdt; p.sk[1] -= sdt;
+          if (r && p.atkCd <= 0) {
+            let mult = 1, used = -1;
+            for (let k = 0; k < 2; k++) if (p.sk[k] <= 0 && c.skills[k] && c.skills[k].mult > mult) { mult = c.skills[k].mult; used = k; }
+            if (used >= 0) p.sk[used] = c.skills[used].cd;
+            p.ry = Math.atan2(m.x - p.x, m.z - p.z);
+            m.hp -= calcDmg(s.atk * mult, t.def); p.atkCd = 1; p.swing = .35;
+            if (!m.tg) m.tg = p.id;
+            if (m.hp <= 0) this.kill(p, m, t);
+          }
+          break;
+        }
+        case 'lost': {
+          p.sat = Math.max(0, p.sat - .002 * sdt);
+          p.retry -= sdt;
+          if (p.retry <= 0) { p.retry = 8; if (p.purpose === 'town') this.goTown(p); else this.decide(p); break; }
+          if (!p.wt || this.moveToward(p, p.wt.x, p.wt.z, spd * .4) !== false) p.wt = { x: p.x + (Math.random() - .5) * 10, z: p.z + (Math.random() - .5) * 10 };
+          break;
+        }
+      }
+    }
+  },
+  // 描画対象外の加入者は1時間ごとに数値だけで狩りの結果を計算する
+  abstractHour(p) {
+    const s = this.stats(p);
+    switch (p.st) {
+      case 'idle': p.hp = s.hp; p.wait -= 1; if (p.wait <= 0) this.decide(p); break;
+      case 'waitpath': case 'travel': case 'hunt': case 'fight': {
+        if (p.purpose === 'town') { this.teleportTown(p); break; }
+        const sp = G.objects.find(o => o.id === p.sp), t = sp && Monsters.type(sp.mt);
+        if (!t) { this.teleportTown(p); break; }
+        if (PG.compAt(sp.x, sp.z) !== PG.compAt(p.x, p.z)) { this.pathFail(p); break; }
+        if (p.st !== 'hunt') { const a = Math.random() * 6.28, r = Math.random() * sp.radius; p.x = sp.x + Math.cos(a) * r; p.z = sp.z + Math.sin(a) * r; p.st = 'hunt'; break; }
+        const c = this.cls(p), sk = 1 + c.skills.reduce((a, k) => a + (k.mult - 1) / Math.max(1, k.cd), 0);
+        const dmg = Math.max(1, s.atk * sk - t.def), ttk = Math.ceil(t.hp / dmg) + 1.5;
+        p.acc = (p.acc || 0) + 1 / ttk * (Monsters.count(sp.id) ? 1 : .3);
+        p.hp -= Math.max(1, t.atk - s.def) / 1.2 * .8 * (ttk - 1.5) / ttk;
+        if (p.hp <= 0) { this.die(p); break; }
+        while (p.acc >= 1) {
+          p.acc -= 1; c.kills++; c.killTime += ttk;
+          this.gainExp(p, t.exp * (p.cheat ? 8 : 1)); p.gold += t.gold; p.kills++; p.totalKills++;
+          if (t.boss) p.sat = Math.min(100, p.sat + 5);
+        }
+        if (p.kills >= p.goal || p.hp < s.hp * .35) this.teleportTown(p);
+        break;
+      }
+      case 'return': this.teleportTown(p); break;
+      case 'lost': p.retry -= 1; if (p.retry <= 0) { p.retry = 8; if (p.purpose === 'town') this.goTown(p); else this.decide(p); } break;
+    }
+  },
+  hourly() {
+    PG.processQueue();
+    // 迷子の発生・解消はまとめてログに出す
+    if (this.newLost) { log(`${this.newLost}人が迷子になりました(道がつながっていない狩り場・町があります)`, 'warn'); if (this.newLost >= 5) toast(`${this.newLost}人が迷子になっています`, 'warn'); }
+    if (this.newFound) log(`迷子だった${this.newFound}人が道を見つけました`, 'good');
+    this.newLost = this.newFound = 0;
+    for (const p of G.players) {
+      if (!p.vis) this.abstractHour(p);
+      if (p.lost) p.sat = Math.max(0, p.sat - .15);
+    }
+    // 不正者は周囲の、迷惑行為者は町にいる周囲の加入者の満足度を下げる
+    // (1人が1時間に受ける悪影響は最大0.08まで。約−2/日)
+    for (const q of G.players) q._annoy = 0;
+    for (const b of G.players) {
+      if (!(b.cheat || b.troll)) continue;
+      if (!b.cheat && b.st !== 'idle') continue;
+      const r = b.cheat ? 15 : 12, loss = (b.cheat ? .05 : .06) * (b.warned ? .4 : 1);
+      for (const q of G.players) if (q !== b && Math.abs(q.x - b.x) < r && Math.abs(q.z - b.z) < r) q._annoy = Math.min(.08, q._annoy + loss);
+    }
+    for (const q of G.players) if (q._annoy) q.sat = Math.max(0, q.sat - q._annoy);
+  },
+  daily() {
+    for (const c of G.classes) { c.kills *= .7; c.killTime *= .7; c.basePower = classPower(c); }
+    for (const p of G.players) { p.expYesterday = p.expToday; p.expToday = 0; }
+    Classes.updatePopularity();
+  },
+  // カメラに近い順に描画上限まで3D表示し、残りは数値のみのシミュレーションにする
+  updateVis() {
+    const cap = QUALITY[S.quality].npc, cp = camera.position;
+    const arr = G.players.slice();
+    for (const p of arr) p._d = (p.x - cp.x) ** 2 + (p.z - cp.z) ** 2 + (p.id === this.followId ? -1e9 : 0);
+    arr.sort((a, b) => a._d - b._d);
+    this.crowd.clear();
+    arr.forEach((p, i) => {
+      const v = i < cap;
+      if (v && !p.vis && (p.st === 'travel' || p.st === 'return' || p.st === 'waitpath') && p.dest) { p.vis = true; p.path = null; PG.request(p); }
+      p.vis = v;
+      if (p.sp && (p.st === 'travel' || p.st === 'hunt' || p.st === 'fight')) this.crowd.set(p.sp, (this.crowd.get(p.sp) || 0) + 1);
+    });
+    this.visList = arr.slice(0, cap);
+  },
+  render(dt) {
+    this.time += dt;
+    const o = this._o, cp = camera.position, hand = [.36, .72, .12];
+    o.rotation.order = 'YXZ';
+    let n = 0; const wn = {}, ic = { fight: 0, quest: 0, sad: 0, lost: 0 };
+    for (const [w] of WEAPONS) wn[w] = 0;
+    for (const p of this.visList) {
+      const c = this.cls(p); if (!c) continue;
+      const y = PG.groundY(p.x, p.z), bob = p._mv ? Math.abs(Math.sin(this.time * 10 + p.id)) * .08 : 0;
+      o.position.set(p.x, y + bob, p.z); o.rotation.set(0, p.ry, 0); o.scale.set(1, 1, 1); o.updateMatrix();
+      this.body.setMatrixAt(n, o.matrix); this.body.setColorAt(n, this._c.set(c.color)); this.head.setMatrixAt(n, o.matrix);
+      n++;
+      const W = this.weapons[c.weapon] || this.weapons.sword, cs = Math.cos(p.ry), sn = Math.sin(p.ry);
+      p.swing = Math.max(0, p.swing - dt * Math.max(1, SPEEDS[speedIdx]));
+      const sw = p.swing > 0 ? Math.sin((1 - p.swing / .35) * Math.PI) * 1.3 : 0;
+      o.position.set(p.x + hand[0] * cs + hand[2] * sn, y + bob + hand[1], p.z - hand[0] * sn + hand[2] * cs);
+      o.rotation.set(.35 + sw, p.ry, 0); o.updateMatrix();
+      W.setMatrixAt(wn[c.weapon] = (wn[c.weapon] || 0), o.matrix); wn[c.weapon]++;
+      // 頭上の状態アイコン(カメラに近い加入者のみ)
+      const k = p.lost ? 'lost' : p.sat < 30 ? 'sad' : p.st === 'fight' ? 'fight' : p.quest ? 'quest' : null;
+      if (k && ic[k] < 80) {
+        const d = Math.hypot(p.x - cp.x, y - cp.y, p.z - cp.z);
+        if (d < 90) {
+          o.position.set(p.x, y + 2.25, p.z); o.quaternion.copy(camera.quaternion);
+          const sc = clamp(d * .022, .7, 1.8); o.scale.set(sc, sc, sc); o.updateMatrix();
+          this.icons[k].setMatrixAt(ic[k]++, o.matrix);
+        }
+      }
+    }
+    this.body.count = this.head.count = n;
+    for (const m of [this.body, this.head]) m.instanceMatrix.needsUpdate = true;
+    if (this.body.instanceColor) this.body.instanceColor.needsUpdate = true;
+    for (const [w] of WEAPONS) { const m = this.weapons[w]; m.count = wn[w]; m.instanceMatrix.needsUpdate = true; }
+    for (const k in this.icons) { this.icons[k].count = ic[k]; this.icons[k].instanceMatrix.needsUpdate = true; }
+  },
+  actLabel(p) {
+    if (p.st === 'fight') { const m = Monsters.map.get(p.mt), t = m && Monsters.type(m.t); return t ? `${t.name}と戦闘中` : '戦闘中'; }
+    if (p.st === 'travel' || p.st === 'hunt') {
+      const sp = G.objects.find(o => o.id === p.sp), a = sp && Areas.at(sp.x, sp.z), t = sp && Monsters.type(sp.mt);
+      if (p.st === 'travel') return `${a ? a.name : '狩り場'}へ移動中`;
+      return `${t ? t.name : '獲物'}を探索中`;
+    }
+    return ST_LABEL[p.st] || p.st;
+  },
+};
+function pickPlayer(sx, sy, rad = 30) {
+  let best = null, bd = rad * rad;
+  for (const p of Players.visList) {
+    _pv.set(p.x, PG.groundY(p.x, p.z) + .9, p.z).project(camera);
+    if (_pv.z > 1) continue;
+    const px = (_pv.x + 1) / 2 * innerWidth, py = (1 - _pv.y) / 2 * innerHeight, d2 = (px - sx) ** 2 + (py - sy) ** 2;
+    if (d2 < bd) { bd = d2; best = p; }
+  }
+  return best;
+}
+function followPlayer(p) {
+  const id = p.id;
+  setFollow({ pid: id, getPos: () => Players.map.get(id) || null });
+  toast(`${p.name}を追従中(Escまたは右端のボタンで解除)`);
+}
+// ユニット(加入者・モンスター)の更新。大きな時間刻みは分割して処理する
+function simulateUnits(gdt, dt) {
+  Monsters.index();
+  const spById = new Map();
+  for (const o of G.objects) if (o.type === 'spawn') spById.set(o.id, o);
+  let steps = Math.min(8, Math.ceil(gdt / .25));
+  const sdt = steps ? gdt / steps : 0;
+  for (; steps > 0; steps--) { Players.step(sdt); Monsters.step(sdt, spById); }
+  if (Monsters.anyDead) { G.monsters = G.monsters.filter(m => !m.dead); Monsters.anyDead = false; Monsters.index(); }
+  Monsters.render(dt);
+  Players.render(dt);
+}
+
 // 選択リング
 const selRing = new THREE.Mesh(GEO.ring, MAT.sel);
 selRing.renderOrder = 10; selRing.visible = false;
@@ -1563,6 +2222,7 @@ const Cam = {
 
 function setFollow(f) {
   Cam.follow = f;
+  if (typeof Players !== 'undefined') Players.followId = f && f.pid ? f.pid : 0;
   const b = $('#btnUnfollow');
   b.classList.toggle('dim', !f); b.classList.toggle('act', !!f);
 }
@@ -1727,6 +2387,7 @@ const Brush = {
 Brush.initRing();
 
 function afterTerrainChange() {
+  PG.dirty = true;
   Scenery.rebuild();
   Objects.rebuildAll();
   Areas.rebuildAll();
@@ -1891,6 +2552,8 @@ function hitTest(x, y) {
   const g = pickGround(x, y);
   if (!g) return null;
   // 小さくタップしにくい対象は、タップ位置から一定半径内で最も近いものを選ぶ
+  const pl = pickPlayer(x, y);
+  if (pl) return { kind: 'player', pl, ground: g };
   const mon = pickMonster(x, y);
   if (mon) return { kind: 'monster', mon, ground: g };
   const obj = Objects.pick(g.x, g.z);
@@ -1901,6 +2564,7 @@ function doubleTap(x, y) {
   const h = hitTest(x, y);
   if (!h) return;
   if (h.kind === 'monster') { select(h, false); followMonster(h.mon); return; }
+  if (h.kind === 'player') { select(h, false); followPlayer(h.pl); return; }
   const p = h.kind === 'object' ? h.obj : h.ground;
   Cam.flyTo(p.x, p.z);
 }
@@ -1940,6 +2604,7 @@ function selectionPos() {
   if (!selection) return null;
   if (selection.kind === 'object') return selection.obj;
   if (selection.kind === 'monster') return Monsters.byId(selection.mon.id) || null;
+  if (selection.kind === 'player') return Players.map.get(selection.pl.id) || null;
   return selection.ground;
 }
 function followMonster(m) {
@@ -1968,6 +2633,15 @@ function renderSelCard() {
     if (s.detail && !def.line) rows.push(['標高', `${heightAt(o.x, o.z).toFixed(1)} m`], ['地形', TT_NAMES[typeAt(o.x, o.z)]]);
     if (!def.line) acts.push('<button class="btn sm" data-sel="move">移動</button>');
     acts.push('<button class="btn sm" data-sel="del">削除</button>');
+  } else if (s.kind === 'player') {
+    const p = Players.map.get(s.pl.id);
+    if (!p) { selection = null; el.hidden = true; selRing.visible = false; return; }
+    const c = Players.cls(p), st = Players.stats(p);
+    title = p.name; kind = c.name;
+    rows.push(['レベル', `Lv${p.lv}(EXP ${fmt(p.exp)} / ${fmt(expNeed(p.lv))})`], ['HP', `${fmt(Math.max(0, p.hp))} / ${fmt(st.hp)}`],
+      ['満足度', `${Math.round(p.sat)}`], ['所持金', `${fmt(p.gold)}G`], ['行動', Players.actLabel(p)], ['課金額', `${fmt(p.spent)}G`]);
+    if (s.detail) rows.push(['攻撃 / 防御', `${st.atk.toFixed(0)} / ${st.def.toFixed(0)}`], ['討伐数', fmt(p.totalKills)], ['死亡回数', `${p.deaths}`], ['加入', `${p.joined}日目`]);
+    acts.push('<button class="btn sm" data-sel="follow">追従</button>');
   } else if (s.kind === 'monster') {
     const m = Monsters.byId(s.mon.id), t = m && Monsters.type(m.t);
     if (!m || !t) { selection = null; el.hidden = true; selRing.visible = false; return; }
@@ -2001,6 +2675,7 @@ function placeSelRing() {
   let r = 1.6;
   if (s.kind === 'object') r = PLACE_DEFS[s.obj.type].line ? 3 : Math.max(2, PLACE_DEFS[s.obj.type].r);
   else if (s.kind === 'monster') { const t = Monsters.type(p.t); r = t ? .9 * t.size + .4 : 1; }
+  else if (s.kind === 'player') r = .9;
   selRing.position.set(p.x, Math.max(0, heightAt(p.x, p.z)) + .4, p.z); selRing.scale.setScalar(r); selRing.visible = true;
 }
 $('#selCard').addEventListener('click', e => {
@@ -2009,7 +2684,10 @@ $('#selCard').addEventListener('click', e => {
   if (a === 'close') select(null);
   else if (a === 'fly') { const p = selectionPos(); if (p) Cam.flyTo(p.x, p.z, { dist: Math.min(Cam.dist, 110) }); }
   else if (a === 'more') { selection.detail = true; renderSelCard(); }
-  else if (a === 'follow') { const m = Monsters.byId(s.mon.id); if (m) followMonster(m); }
+  else if (a === 'follow') {
+    if (s.kind === 'player') { const p = Players.map.get(s.pl.id); if (p) followPlayer(p); }
+    else { const m = Monsters.byId(s.mon.id); if (m) followMonster(m); }
+  }
   else if (a === 'area') { select(null); UI.tab = null; openTab('area'); }
   else if (a === 'spawn') { const id = s.obj.id; select(null); UI.mtEdit = null; if (UI.tab !== 'monster') openTab('monster'); else renderPanel(); const c = document.getElementById('sp' + id); if (c) c.scrollIntoView({ block: 'start' }); }
   else if (a === 'move') { const o = s.obj; select(null); Place.start(o.type, o); }
@@ -2048,11 +2726,12 @@ function simUpdate(dt) {
 function tick() {
   G.hour++;
   Monsters.hourly();
+  Players.hourly();
   if (G.hour >= 24) { G.hour = 0; G.day++; daily(); }
   if (G.hour === 6) log('夜が明けました');
   if (G.hour === 19) log('日が沈み、町に灯りがともりました');
 }
-function daily() { log(`${G.day}日目が始まりました`); }
+function daily() { Players.daily(); log(`${G.day}日目が始まりました`); }
 
 /* ════════════════════════════════════════════
    UI:ツール・パネル・ログ・トースト・ダイアログ
@@ -2196,7 +2875,6 @@ function renderPanel() {
   pb.innerHTML = R(t);
 }
 const TODO = {
-  class: ['④', 'クラスエディタ(能力値・成長率・スキル)、人気度、バフ/ナーフ、クラス別統計カード'],
   quest: ['⑤', '討伐・収集・移動・ボス討伐クエスト、報酬、クエストチェーン'],
   admin: ['⑦', '通報リスト(BAN・警告・放置・現地へ移動)、迷子の救助、GM雇用'],
   research: ['⑦', '研究ポイントによる新地形・ダンジョン・ボス・建物・GMなどの解放'],
@@ -2257,13 +2935,14 @@ const PANELS = {
         <dt>2本指ひねり</dt><dd>回転</dd><dt>2本指を上下</dt><dd>見下ろす角度</dd>
         <dt>タップ</dt><dd>選択</dd><dt>ダブルタップ</dt><dd>その地点へ移動(NPCは追従)</dd><dt>長押し</dt><dd>詳細表示</dd>
         <dt>編集モード</dt><dd>1本指=編集、2本指=カメラ操作。上部の水色のボタンで閲覧に戻る</dd>
-        <dt>ミニマップ</dt><dd>タップで拡大・縮小、ドラッグで視点移動</dd></dl></div>
+        <dt>ミニマップ</dt><dd>タップで拡大・縮小、ドラッグで視点移動</dd>
+        <dt>加入者</dt><dd>タップで詳細、ダブルタップで追従(近くをタップすれば選べます)</dd></dl></div>
       <div class="sec"><h4>マウス・キーボード</h4><dl class="keys">
         <dt>左/中ドラッグ</dt><dd>移動</dd><dt>右ドラッグ</dt><dd>回転・角度</dd><dt>ホイール</dt><dd>ズーム</dd>
         <dt>WASD・矢印</dt><dd>移動</dd><dt>Q / E</dt><dd>回転</dd><dt>R / F</dt><dd>角度</dd>
         <dt>Space・1〜4</dt><dd>一時停止・速度</dd><dt>Esc</dt><dd>追従解除・閲覧モードに戻る</dd><dt>H</dt><dd>初期視点</dd>
         <dt>T</dt><dd>地形編集の開始・終了</dd><dt>[ / ]</dt><dd>ブラシ半径</dd><dt>Ctrl+Z</dt><dd>地形を元に戻す</dd></dl></div>
-      <div class="sec"><h4>開発状況</h4><p class="hint"><span class="stage">段階③</span>配置物・エリア設定・モンスター出現と徘徊</p></div>`;
+      <div class="sec"><h4>開発状況</h4><p class="hint"><span class="stage">段階④</span>AI加入者(移動・経路探索・戦闘・経験値)とクラスエディタ</p></div>`;
   },
 };
 pb.addEventListener('click', e => {
@@ -2295,6 +2974,7 @@ function fieldChange(key, v) {
   v = +clamp(Math.round(v / F.step) * F.step, F.min, F.max).toFixed(2);
   F.set(v);
   syncField(key, v);
+  if (key.startsWith('cl.')) { const c = Classes.byId(UI.clEdit); if (c) { Classes.scheduleCheck(c); const el = document.getElementById('clPower'); if (el) el.textContent = powerText(c); } }
 }
 function syncField(key, v) {
   const F = FIELDS[key]; if (!F) return;
@@ -2311,12 +2991,58 @@ function setName(key, v) {
   const [kind, id] = key.split(':');
   if (kind === 'mt') { const t = Monsters.type(+id); if (t) t.name = v || '名無し'; }
   else if (kind === 'ar') { const a = G.areas.find(q => q.id === +id); if (a) a.name = v || '名無しのエリア'; }
+  else if (kind === 'cl') { const c = Classes.byId(+id); if (c) c.name = v || '名無しのクラス'; }
+  else if (kind === 'sk') { const c = Classes.byId(+id), i = +key.split(':')[2]; if (c && c.skills[i]) c.skills[i].name = v || 'スキル'; }
   else if (kind === 'obj') { const o = G.objects.find(q => q.id === +id); if (o) o.name = v || PLACE_DEFS[o.type].name; }
 }
 function refreshSpawnViews() { for (const o of G.objects) if (o.type === 'spawn') Objects.refresh(o); }
 
 const intf = u => v => `${fmt(v)}${u}`;
+function classEditor(c) {
+  const sk = i => {
+    const s = c.skills[i];
+    return `<div class="ecard" style="border-left-color:${c.color}"><input class="txt" data-name="sk:${c.id}:${i}" maxlength="12" value="${esc(s.name)}" aria-label="スキル${i + 1}の名前">
+      ${stepper(`cl.s${i}m`, `スキル${i + 1}の倍率`, s.mult, 1, 6, .1, v => '×' + v.toFixed(1), v => { s.mult = v; })}
+      ${stepper(`cl.s${i}c`, `スキル${i + 1}のクールダウン`, s.cd, 1, 30, 1, intf('秒'), v => { s.cd = v; })}</div>`;
+  };
+  return `<div class="row"><button class="btn sm" data-act="clBack"><svg class="i" viewBox="0 0 24 24"><path d="M15 6l-6 6 6 6"/></svg>一覧へ</button><span class="grow"></span>
+      <button class="btn sm" data-act="clCopy">複製</button><button class="btn sm" data-act="clDel">削除</button></div>
+    <div class="sec"><h4>名前</h4><input class="txt" data-name="cl:${c.id}" maxlength="12" value="${esc(c.name)}" aria-label="クラス名"></div>
+    <div class="sec"><h4>体の色</h4><div class="swatches">${CLASS_COLORS.map(k => `<button class="swc ${c.color === k ? 'on' : ''}" style="background:${k}" data-act="clColor" data-v="${k}" aria-label="色 ${k}"></button>`).join('')}</div></div>
+    <div class="sec"><h4>武器</h4><div class="bb-row wrap">${WEAPONS.map(([w, n]) => `<button class="chip ${c.weapon === w ? 'on' : ''}" data-act="clWeapon" data-v="${w}">${n}</button>`).join('')}</div>
+      <p class="hint">杖と弓は離れた位置から攻撃します。</p></div>
+    <div class="sec"><h4>基礎能力(Lv1)</h4>
+      ${stepper('cl.hp', 'HP', c.hp, 20, 500, 5, intf(''), v => { c.hp = v; })}
+      ${stepper('cl.atk', '攻撃力', c.atk, 1, 100, 1, intf(''), v => { c.atk = v; })}
+      ${stepper('cl.def', '防御力', c.def, 0, 60, 1, intf(''), v => { c.def = v; })}
+      ${stepper('cl.spd', '移動速度', c.spd, 2, 10, .5, v => v.toFixed(1) + 'm/秒', v => { c.spd = v; })}</div>
+    <div class="sec"><h4>レベルごとの成長</h4>
+      ${stepper('cl.gHp', 'HP', c.gHp, 0, 50, 1, v => '+' + v, v => { c.gHp = v; })}
+      ${stepper('cl.gAtk', '攻撃力', c.gAtk, 0, 10, .1, v => '+' + v.toFixed(1), v => { c.gAtk = v; })}
+      ${stepper('cl.gDef', '防御力', c.gDef, 0, 5, .1, v => '+' + v.toFixed(1), v => { c.gDef = v; })}</div>
+    <div class="sec"><h4>スキル</h4>${sk(0)}${sk(1)}</div>
+    <div class="sec"><div class="card"><i>強さ(Lv10時点・全クラス平均との比較)</i><b id="clPower">${powerText(c)}</b></div>
+      <p class="hint">変更はすぐに全加入者へ反映されます。強さが15%以上下がる調整(大幅なナーフ)をすると、このクラスの加入者の満足度が下がります。15%以上の強化では少し上がります。</p></div>`;
+}
 const PANEL_EXT = {
+  class() {
+    if (UI.clEdit) { const c = Classes.byId(UI.clEdit); if (c) return classEditor(c); UI.clEdit = null; }
+    const avg = Classes.avgPower();
+    return `<div class="sec"><h4>クラス(${G.classes.length})</h4>${G.classes.map(c => {
+      const s = Classes.stats(c);
+      return `<div class="ecard" style="border-left-color:${c.color}">
+        <div class="hd"><b><span class="cdot" style="background:${c.color}"></span>${esc(c.name)}</b><span class="meta">${WEAPONS.find(w => w[0] === c.weapon)[1]} · 強さ${Math.round(classPower(c) / avg * 100)}%</span></div>
+        <div class="popbar"><i style="width:${c.pop}%;background:${c.color}"></i><span>人気度 ${c.pop}</span></div>
+        <div class="cards">
+          <div class="card"><i>人数</i><b>${s.n}人</b></div>
+          <div class="card"><i>平均レベル</i><b>${s.n ? s.avgLv.toFixed(1) : '—'}</b></div>
+          <div class="card"><i>平均討伐時間</i><b>${s.kill ? s.kill.toFixed(1) + '秒' : '—'}</b></div>
+          <div class="card"><i>満足度</i><b>${s.n ? s.sat.toFixed(0) : '—'}</b></div></div>
+        <button class="btn sm" data-act="clEdit" data-v="${c.id}">調整する(バフ/ナーフ)</button></div>`;
+    }).join('')}
+      <button class="btn" data-act="clNew">新しいクラスを作る</button>
+      <p class="hint">新規加入者は人気度の高いクラスを選びやすくなります。人気度は、クラスの強さとそのクラスの加入者の満足度で毎日変わります。平均討伐時間は1倍速での秒数です。</p></div>`;
+  },
   place() {
     const cnt = {};
     for (const o of G.objects) cnt[o.type] = (cnt[o.type] || 0) + 1;
@@ -2365,7 +3091,7 @@ const PANEL_EXT = {
       <button class="btn" data-act="mtNew">新しいモンスターを作る</button></div>
       <div class="sec"><h4>出現地点</h4>${spawns || '<p class="hint">出現地点はまだありません</p>'}
       <button class="btn" data-act="place" data-v="spawn">出現地点を置く</button>
-      <p class="hint">加入者への攻撃は段階④(AI加入者)で追加します。</p></div>`;
+      <p class="hint">モンスターは近づいた加入者を追いかけて攻撃します。徘徊範囲から離れすぎると引き返します。</p></div>`;
   },
 };
 function monsterEditor(t) {
@@ -2402,6 +3128,32 @@ function panelAction(a, b) {
       return true;
     }
     case 'mtEdit': UI.mtEdit = +v; renderPanel(); pb.scrollTop = 0; return true;
+    case 'clEdit': UI.clEdit = +v; renderPanel(); pb.scrollTop = 0; return true;
+    case 'clBack': UI.clEdit = null; renderPanel(); return true;
+    case 'clNew': {
+      const n = G.classes.length, c = newClass(G.nextId++, { name: `クラス${n + 1}`, color: CLASS_COLORS[n % CLASS_COLORS.length] });
+      G.classes.push(c); Classes.updatePopularity(); UI.clEdit = c.id; renderPanel(); pb.scrollTop = 0;
+      log(`新クラス「${c.name}」を追加しました`); return true;
+    }
+    case 'clCopy': {
+      const s0 = Classes.byId(UI.clEdit); if (!s0) return true;
+      const c = newClass(G.nextId++, { ...s0, name: s0.name + '改', kills: 0, killTime: 0 });
+      G.classes.push(c); Classes.updatePopularity(); UI.clEdit = c.id; renderPanel(); toast('複製しました'); return true;
+    }
+    case 'clDel': {
+      const c = Classes.byId(UI.clEdit); if (!c) return true;
+      if (G.classes.length <= 1) { toast('クラスは1つ以上必要です', 'warn'); return true; }
+      const n = G.players.filter(p => p.cls === c.id).length;
+      ask(`「${c.name}」を削除しますか?${n ? `このクラスの加入者${n}人は別のクラスに移り、満足度が10下がります。` : ''}`, '削除する').then(ok => {
+        if (!ok) return;
+        G.classes.splice(G.classes.indexOf(c), 1);
+        for (const p of G.players) if (p.cls === c.id) { p.cls = G.classes[0].id; p.sat = Math.max(0, p.sat - 10); p.hp = Math.min(p.hp, Players.stats(p).hp); }
+        UI.clEdit = null; Classes.updatePopularity(); log(`クラス「${c.name}」を削除しました`, 'warn'); renderPanel();
+      });
+      return true;
+    }
+    case 'clColor': { const c = Classes.byId(UI.clEdit); if (c) { c.color = v; renderPanel(); } return true; }
+    case 'clWeapon': { const c = Classes.byId(UI.clEdit); if (c) { c.weapon = v; renderPanel(); } return true; }
     case 'mtBack': UI.mtEdit = null; renderPanel(); return true;
     case 'mtNew': {
       const t = newMonsterType(G.nextId++, { name: `モンスター${G.monsterTypes.length + 1}`, color: MON_COLORS[G.monsterTypes.length % MON_COLORS.length] });
@@ -2580,12 +3332,15 @@ function fpsSample(now) {
    UIの数値更新(0.5秒ごと)
    ════════════════════════════════════════════ */
 function uiUpdate() {
+  Players.updateVis();
+  G.subscribers = G.players.length;
+  G.satisfaction = G.players.length ? Math.round(G.players.reduce((a, p) => a + p.sat, 0) / G.players.length) : 0;
   $('#stMoney').textContent = fmt(G.money) + 'G';
   $('#stSubs').textContent = fmt(G.subscribers);
   $('#stSat').textContent = G.satisfaction;
   $('#stDate').textContent = gameTimeStr();
   if (!$('#statusDetail').hidden) renderStatusDetail();
-  if (selection && selection.kind === 'monster') renderSelCard();
+  if (selection && (selection.kind === 'monster' || selection.kind === 'player')) renderSelCard();
 }
 
 /* ════════════════════════════════════════════
@@ -2658,6 +3413,9 @@ const Minimap = {
     c.fillStyle = '#ff6a58';
     const ms = Math.max(1.5, u * .55);
     for (const m of G.monsters) { const [mx, my] = this.toMap(m.x, m.z, W); c.fillRect(mx - ms / 2, my - ms / 2, ms, ms); }
+    // 加入者
+    const ps = Math.max(1.5, u * .6);
+    for (const p of G.players) { const [mx, my] = this.toMap(p.x, p.z, W); c.fillStyle = p.lost ? '#5bb8ff' : '#f8f4e8'; c.fillRect(mx - ps / 2, my - ps / 2, ps, ps); }
     // 建物・出現地点
     c.strokeStyle = '#1c1406'; c.lineWidth = Math.max(1, u * .6);
     for (const o of G.objects) {
@@ -2746,8 +3504,8 @@ function frame(now) {
   Cam.update(dt);
   Sky.update((G.hour + (SPEEDS[speedIdx] ? clamp(tickAcc, 0, .999) : 0)) % 24);
   Brush.apply(dt);
-  Monsters.update(dt * SPEEDS[speedIdx], dt);
-  if (selection && selection.kind === 'monster') placeSelRing();
+  simulateUnits(dt * SPEEDS[speedIdx], dt);
+  if (selection && (selection.kind === 'monster' || selection.kind === 'player')) placeSelRing();
   if (Brush.ring.visible) Brush.updateRing();
   if (selRing.visible) selRing.material.opacity = .7 + Math.sin(now / 250) * .25;
   if (now - Minimap.last > 100) { Minimap.last = now; Minimap.draw(); }
@@ -2767,10 +3525,15 @@ function boot() {
   Monsters.init();
   Place.init();
   AreaEdit.init();
+  Players.init();
+  Players.reindex();
+  if (!G.players.length) for (let i = 0; i < 20; i++) Players.join();
+  Classes.updatePopularity();
   Scenery.init();
   Minimap.init();
   Objects.rebuildAll();
   Areas.rebuildAll();
+  Players.updateVis();
   for (const sp of G.objects) if (sp.type === 'spawn' && !Monsters.count(sp.id)) Monsters.fill(sp, 4);
   setSpeed(1);
   setMode('view');
@@ -2778,6 +3541,7 @@ function boot() {
   log('サーバー「Arcana Online」を開設しました', 'good');
   log('はじまりの町を中央の島に設置しました');
   log('エリア「はじまりの草原」(Lv1〜5)にスライムが出現しています');
+  log(`初期加入者${G.players.length}人がログインしました`, 'good');
   uiUpdate();
   Cam.update(0);
   requestAnimationFrame(frame);
@@ -2786,6 +3550,6 @@ function boot() {
 boot();
 
 // デバッグ・後続段階用に参照を公開
-window.__arcana = { get G() { return G; }, Cam, Terrain, Brush, Minimap, Objects, Monsters, Place, AreaEdit, Areas, setMode, applyQuality, toast, heightAt, slopeAt };
+window.__arcana = { get G() { return G; }, Cam, Terrain, Brush, Minimap, Objects, Monsters, Place, AreaEdit, Areas, Players, PG, Classes, setMode, applyQuality, toast, heightAt, slopeAt };
 })();
 </script>
