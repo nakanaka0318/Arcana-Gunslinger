@@ -67,7 +67,7 @@ svg.i{width:24px;height:24px;fill:none;stroke:currentColor;stroke-width:1.8;stro
 #speed button svg{width:16px;height:16px}
 #mode{pointer-events:auto;display:flex;align-items:center;gap:8px;height:44px;padding:0 12px;border-radius:12px;min-width:0;text-align:left}
 #mode .dot{width:9px;height:9px;border-radius:50%;background:var(--good);flex:none;box-shadow:0 0 0 3px rgba(124,201,143,.2)}
-#mode .txt{display:flex;flex-direction:column;min-width:0;line-height:1.2}
+#mode .mtxt{display:flex;flex-direction:column;min-width:0;line-height:1.2}
 #mode .lbl{font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 #mode .sub{display:none;font-size:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 #mode .x{display:none;width:22px;height:22px;stroke-width:2.4}
@@ -185,7 +185,7 @@ body.portrait.panel-open #btnFull{display:none}
 .stage{display:inline-block;font:600 13px var(--fm);color:var(--accent-ink);background:var(--accent);border-radius:6px;padding:1px 7px;margin-right:6px}
 
 /* ── 地形ブラシバー ── */
-#brushBar{pointer-events:auto;position:absolute;left:0;right:0;bottom:calc(var(--tb-h) + var(--sab));background:var(--panel-2);
+.ebar{pointer-events:auto;position:absolute;left:0;right:0;bottom:calc(var(--tb-h) + var(--sab));background:var(--panel-2);
   border-top:2px solid var(--edit);border-radius:14px 14px 0 0;padding:8px calc(var(--sar) + 12px) 4px calc(var(--sal) + 12px);
   display:flex;flex-direction:column;gap:6px;z-index:2;box-shadow:0 -8px 24px rgba(0,0,0,.3)}
 .bb-row{display:flex;gap:6px;overflow-x:auto;scrollbar-width:none;touch-action:pan-x;align-items:center}
@@ -213,6 +213,46 @@ input[type=range]::-moz-range-thumb{width:24px;height:24px;border-radius:50%;bac
 .tools5{display:grid;grid-template-columns:repeat(auto-fill,minmax(96px,1fr));gap:8px}
 .tools5 .chip{justify-content:center;min-height:52px}
 
+.pl-hd{display:flex;align-items:baseline;gap:10px}
+.pl-hd b{font-size:15px}
+.pl-hd .num{color:var(--accent);margin-left:auto;font-size:14px}
+.pl-st{margin:0;font-size:14px;color:var(--ink-dim);min-height:1.45em}
+.pl-st.bad{color:var(--bad);font-weight:700}
+.pl-acts .sp{flex:1}
+.pl-acts .btn{flex:none}
+.ar-form{display:flex;flex-wrap:wrap;gap:6px 10px;align-items:center}
+.ar-form .txt{flex:1 1 140px}
+.mini-stp{display:flex;align-items:center;gap:4px}
+.mini-stp span{color:var(--ink-dim)}
+.mini-stp output{min-width:1.8em;text-align:center;font:600 15px var(--fm)}
+.btn.edit{background:var(--edit);border-color:var(--edit);color:#06202b}
+.btn[disabled]{opacity:.4;cursor:default}
+.bb-row.wrap{flex-wrap:wrap;overflow:visible}
+.plgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:8px}
+.plc{display:flex;flex-direction:column;align-items:flex-start;gap:2px;text-align:left;padding:10px 12px;border-radius:11px;border:1px solid var(--line);background:rgba(255,255,255,.035)}
+.plc b{font-size:15px}
+.plc .num{color:var(--accent);font-size:14px}
+.plc .d{color:var(--ink-dim);font-size:14px;line-height:1.45}
+.ecard{background:rgba(255,255,255,.035);border:1px solid var(--line);border-left:4px solid var(--accent);border-radius:11px;padding:10px 12px;display:flex;flex-direction:column;gap:8px}
+.ecard .hd{display:flex;align-items:baseline;gap:8px;justify-content:space-between}
+.meta{color:var(--ink-dim);font-size:14px;margin:0}
+.txt{font:inherit;font-size:16px;color:var(--ink);background:rgba(0,0,0,.3);border:1px solid var(--line);border-radius:9px;min-height:44px;padding:0 12px;width:100%;min-width:0;box-sizing:border-box;-webkit-user-select:text;user-select:text}
+.txt:focus{outline:2px solid var(--accent);outline-offset:1px}
+.fld{display:flex;flex-direction:column}
+.fl-hd{display:flex;justify-content:space-between;align-items:baseline}
+.fl-hd span{color:var(--ink-dim)}
+.fl-hd output{font:600 14px var(--fm);font-variant-numeric:tabular-nums}
+.stp{display:flex;align-items:center;gap:6px}
+.sb{width:44px;height:44px;border-radius:10px;background:var(--raise);border:1px solid var(--line);font:700 20px var(--fm);flex:none;display:grid;place-items:center}
+.swatches{display:flex;flex-wrap:wrap;gap:8px}
+.swc{width:44px;height:44px;border-radius:10px;border:3px solid transparent}
+.swc.on{border-color:var(--ink);box-shadow:inset 0 0 0 2px var(--bg)}
+.mcard{display:flex;align-items:center;gap:12px;text-align:left;padding:10px 12px;border-radius:11px;border:1px solid var(--line);background:rgba(255,255,255,.035);width:100%}
+.mcard .dot{width:28px;height:28px;border-radius:50%;flex:none;border:2px solid rgba(0,0,0,.35)}
+.mcard .t{flex:1;min-width:0;display:flex;flex-direction:column}
+.mcard svg{color:var(--ink-dim)}
+.badge{display:inline-block;font:700 14px var(--ff);padding:0 7px;border-radius:6px;background:var(--bad);color:#1b0806;margin-left:6px}
+
 /* ── ミニマップ ── */
 #minimap{pointer-events:auto;position:absolute;right:calc(var(--sar) + 8px);top:calc(var(--sat) + 108px);width:25vw;height:25vw;
   border-radius:12px;padding:3px;touch-action:none;cursor:pointer;z-index:1;transition:width .2s,height .2s}
@@ -237,7 +277,7 @@ body.landscape #ph{cursor:default}
 body.landscape #ph::before{display:none}
 body.landscape #ph h2,body.landscape #ph button{padding-top:0;margin-top:0}
 body.landscape #camBtns{top:calc(var(--sat) + 64px);bottom:auto}
-body.landscape #brushBar{left:calc(var(--rail-w) + var(--sal) + 8px);right:calc(var(--mm-w) + var(--sar) + 16px);bottom:calc(var(--sab) + 8px);
+body.landscape .ebar{left:calc(var(--rail-w) + var(--sal) + 8px);right:calc(var(--mm-w) + var(--sar) + 16px);bottom:calc(var(--sab) + 8px);
   border:2px solid var(--edit);border-radius:14px;padding:6px 12px 2px}
 body.landscape .bb-sl{grid-template-columns:1fr 1fr}
 body.landscape #minimap{top:auto;bottom:calc(var(--sab) + 8px);width:min(30vh,180px);height:min(30vh,180px)}
@@ -273,7 +313,7 @@ body.landscape.panel-open #fps{right:calc(var(--panel-w) + var(--sar) + 8px)}
         <button data-speed="2" aria-label="4倍速"><span>4×</span></button>
         <button data-speed="3" aria-label="16倍速"><span>16×</span></button>
       </div>
-      <button id="mode" class="glass" aria-live="polite"><span class="dot"></span><svg class="i x" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg><span class="txt"><span class="lbl" id="modeLbl">閲覧モード</span><span class="sub">タップで閲覧に戻る</span></span></button>
+      <button id="mode" class="glass" aria-live="polite"><span class="dot"></span><svg class="i x" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg><span class="mtxt"><span class="lbl" id="modeLbl">閲覧モード</span><span class="sub">閲覧に戻る</span></span></button>
     </div>
   </header>
   <div id="statusDetail" class="glass" hidden></div>
@@ -289,7 +329,7 @@ body.landscape.panel-open #fps{right:calc(var(--panel-w) + var(--sar) + 8px)}
 
   <div id="minimap" class="glass" role="button" aria-label="ミニマップ(タップで拡大・縮小、ドラッグで視点移動)"><canvas id="mmc"></canvas></div>
 
-  <div id="brushBar" hidden>
+  <div id="brushBar" class="ebar" hidden>
     <div class="bb-row" id="bbTools"></div>
     <div class="bb-row" id="bbPaint" hidden></div>
     <div class="bb-sl">
@@ -297,6 +337,9 @@ body.landscape.panel-open #fps{right:calc(var(--panel-w) + var(--sar) + 8px)}
       <label class="sl" id="bbSRow"><span class="k">強さ</span><input type="range" id="bbS" data-brush="strength" min="10" max="100" step="5"><output data-out="strength"></output></label>
     </div>
   </div>
+
+  <div id="placeBar" class="ebar" hidden></div>
+  <div id="areaBar" class="ebar" hidden></div>
 
   <div id="log" class="glass" role="log" aria-label="ログ"></div>
 
@@ -382,10 +425,14 @@ function newGame(seed) {
     version: 1, seed, day: 1, hour: 8,
     money: 10000, subscribers: 20, satisfaction: 70, research: 0,
     terrain: { n: DN, h: new Float32Array(DN * DN), t: new Uint8Array(DN * DN) },
-    objects: [], nextId: 1, logs: [],
+    objects: [], areas: [], monsterTypes: [], monsters: [], nextId: 1, logs: [],
   };
   generateIsland(g);
+  for (const m of DEFAULT_MT) g.monsterTypes.push(newMonsterType(g.nextId++, m));
   g.objects.push({ id: g.nextId++, type: 'town', name: 'はじまりの町', x: TOWN0.x, z: TOWN0.z, rot: 0 });
+  g.objects.push({ id: g.nextId++, type: 'board', x: TOWN0.x + 17, z: TOWN0.z - 3, rot: -Math.PI / 2 });
+  g.objects.push({ id: g.nextId++, type: 'spawn', x: TOWN0.x + 12, z: TOWN0.z + 40, rot: 0, mt: g.monsterTypes[0].id, max: 6, respawn: 4, radius: 12, timer: 0 });
+  g.areas.push({ id: g.nextId++, name: 'はじまりの草原', x0: TOWN0.x - 24, z0: TOWN0.z + 20, x1: TOWN0.x + 44, z1: TOWN0.z + 56, lvMin: 1, lvMax: 5, color: AREA_COLORS[0] });
   return g;
 }
 
@@ -394,7 +441,7 @@ function generateIsland(g) {
   for (let iz = 0; iz < DN; iz++) for (let ix = 0; ix < DN; ix++) {
     const x = -HALF + ix * CELL, z = -HALF + iz * CELL, nx = x / HALF, nz = z / HALF, i = iz * DN + ix;
     const d = Math.hypot(nx * 1.05, nz) + (fbm(x * .012, z * .012, s) - .5) * .5;
-    const island = 1 - smooth(.3, .82, d);
+    const island = 1 - smooth(.44, .95, d);
     let h = -13 + island * 16;
     h += island * (fbm(x * .04, z * .04, s + 5) - .5) * 9;
     const m = Math.max(0, fbm(x * .02 + 40, z * .02, s + 9) - .44) * 2.6;
@@ -580,7 +627,7 @@ const Scenery = {
       if (!want) continue;
       const x = -HALF + ix * CELL + (hash2(ix, iz, s + 8) - .5) * CELL, z = -HALF + iz * CELL + (hash2(ix, iz, s + 9) - .5) * CELL;
       const h = heightAt(x, z);
-      if (h < .7 || slopeAt(x, z) > 1.0) continue;
+      if (h < .7 || slopeAt(x, z) > 1.0 || blockedAt(x, z)) continue;
       const sc = .75 + hash2(ix, iz, s + 10) * .7;
       o.position.set(x, h - .1, z); o.rotation.set(0, r * 40, 0); o.scale.set(sc, sc * (t === 4 ? .7 : 1), sc);
       o.updateMatrix();
@@ -596,63 +643,781 @@ const Scenery = {
 };
 
 /* ════════════════════════════════════════════
-   配置物(段階①:町のみ)
+   配置物
    ════════════════════════════════════════════ */
-const Objects = {
-  views: new Map(), // id -> THREE.Group
-  radius: { town: 13 },
-  build(obj) {
-    const g = new THREE.Group();
-    if (obj.type === 'town') this.buildTown(g, obj);
-    g.traverse(m => { if (m.isMesh) { m.castShadow = true; m.receiveShadow = true; } });
-    scene.add(g); this.views.set(obj.id, g);
+const PLACE_DEFS = {
+  town:    { name: '町', cost: 2000, r: 13, slope: .45, named: true, desc: '加入者の拠点。死亡した加入者の復活地点になります' },
+  village: { name: '村', cost: 800, r: 8, slope: .5, named: true, desc: '小さな拠点。町から遠い場所の復活地点になります' },
+  inn:     { name: '宿屋', cost: 400, r: 4.6, slope: .5, named: true, desc: '加入者が休んで満足度を回復する場所(段階④)' },
+  board:   { name: 'クエスト掲示板', cost: 150, r: 2.2, slope: .6, desc: 'クエストを掲示する場所(段階⑤)' },
+  road:    { name: '道路', cost: 4, line: true, desc: '始点と終点をタップして敷設。上を歩くと移動速度+50%' },
+  bridge:  { name: '橋', cost: 25, line: true, desc: '陸地から陸地へ、水の上に架けます' },
+  tree:    { name: '木', cost: 10, r: 1.4, slope: .9, minor: true, desc: '景観用。連続配置できます' },
+  rock:    { name: '岩', cost: 10, r: 1.6, slope: 1.2, minor: true, desc: '景観用。連続配置できます' },
+  spawn:   { name: 'モンスター出現地点', cost: 200, r: 3, slope: .8, desc: '選んだモンスターが周囲に出現して徘徊します' },
+  dungeon: { name: 'ダンジョン入口', cost: 1500, r: 5.6, slope: .6, named: true, desc: '強敵が潜む入口。内部は研究(段階⑦)で拡張' },
+};
+const PLACE_ORDER = ['town', 'village', 'inn', 'board', 'road', 'bridge', 'tree', 'rock', 'spawn', 'dungeon'];
+GEO.rock = new THREE.DodecahedronGeometry(1, 0);
+MAT.wood = new THREE.MeshLambertMaterial({ color: 0x8a6a44 });
+MAT.paper = new THREE.MeshLambertMaterial({ color: 0xeee6cf });
+MAT.portal = new THREE.MeshBasicMaterial({ color: 0x26163c });
+MAT.rock = new THREE.MeshLambertMaterial({ color: 0x8c877d });
+MAT.canopyP = new THREE.MeshLambertMaterial({ color: 0xffffff });
+MAT.road = new THREE.MeshLambertMaterial({ color: 0xa88f66, polygonOffset: true, polygonOffsetFactor: -2, polygonOffsetUnits: -2 });
+MAT.pvOk = new THREE.MeshLambertMaterial({ color: 0x7cd996, transparent: true, opacity: .6, depthWrite: false });
+MAT.pvBad = new THREE.MeshLambertMaterial({ color: 0xff5a4a, transparent: true, opacity: .6, depthWrite: false });
+MAT.monster = new THREE.MeshLambertMaterial({ color: 0xffffff });
+const _matCache = new Map();
+function colorMat(hex) {
+  let m = _matCache.get(hex);
+  if (!m) { m = new THREE.MeshLambertMaterial({ color: hex }); _matCache.set(hex, m); }
+  return m;
+}
+const hexNum = css => parseInt(css.slice(1), 16);
+
+// 子要素を追加。userData.g=true の子は settle() で足元の地面の高さに合わせる
+function part(g, geo, mat, sx, sy, sz, lx = 0, lz = 0, yo = 0, ry = 0) {
+  const m = new THREE.Mesh(geo, mat);
+  m.scale.set(sx, sy, sz); m.position.set(lx, yo, lz); m.rotation.y = ry;
+  m.userData.g = true; m.userData.yo = yo;
+  g.add(m); return m;
+}
+function settle(g) {
+  const c0 = Math.cos(g.rotation.y), s0 = Math.sin(g.rotation.y), by = g.position.y;
+  for (const c of g.children) if (c.userData.g) {
+    const wx = g.position.x + c.position.x * c0 + c.position.z * s0, wz = g.position.z - c.position.x * s0 + c.position.z * c0;
+    c.position.y = heightAt(wx, wz) - by + c.userData.yo;
+  }
+}
+function house(g, w, h, d, k, lx, lz) {
+  const hs = new THREE.Group();
+  const add = (geo, mat, sx, sy, sz, x = 0, y = 0, z = 0) => { const m = new THREE.Mesh(geo, mat); m.scale.set(sx, sy, sz); m.position.set(x, y, z); hs.add(m); };
+  add(GEO.boxB, MAT.walls[k % 3], w, h, d);
+  add(GEO.roof, MAT.roofs[(k + 1) % 3], w, 1.4 * Math.min(1, h / 2), d, 0, h, 0);
+  for (const sx of [-.26, .26]) add(GEO.box, MAT.window, .42, .55, .08, sx * w, h * .55, d / 2 + .02);
+  add(GEO.boxB, MAT.roofs[2], .5, .95, .08, 0, 0, d / 2 + .02);
+  hs.position.set(lx, -.05, lz); hs.rotation.y = Math.atan2(-lx, -lz);
+  hs.userData.g = true; hs.userData.yo = -.05;
+  g.add(hs);
+}
+const BUILD = {
+  town(g, o) {
+    part(g, GEO.cylB, MAT.paving, 9, .25, 9, 0, 0, -.1);
+    part(g, GEO.cylB, MAT.stone, 2.4, 7, 2.4);
+    part(g, GEO.coneB, MAT.roofs[0], 3.3, 3, 3.3, 0, 0, 7);
+    for (const a of [0, Math.PI]) part(g, GEO.box, MAT.window, .5, .8, .12, Math.sin(a) * 1.05, Math.cos(a) * 1.05, 5, a);
+    for (let k = 0; k < 9; k++) {
+      const a = k / 9 * Math.PI * 2 + hash2(o.id, k, 1) * .4, r = 6.8 + hash2(o.id, k, 2) * 3.5;
+      house(g, 2.4 + hash2(o.id, k, 3) * 1.2, 1.9 + hash2(o.id, k, 4) * 1.1, 2.2 + hash2(o.id, k, 5), k, Math.sin(a) * r, Math.cos(a) * r);
+    }
   },
-  buildTown(g, obj) {
-    const cos = Math.cos(obj.rot), sin = Math.sin(obj.rot);
-    const place = (m, lx, lz, yOff = 0) => {
-      const wx = obj.x + lx * cos + lz * sin, wz = obj.z - lx * sin + lz * cos;
-      m.position.set(wx, heightAt(wx, wz) + yOff, wz); g.add(m); return m;
-    };
-    const mesh = (geo, mat, sx, sy, sz) => { const m = new THREE.Mesh(geo, mat); m.scale.set(sx, sy, sz); return m; };
-    // 広場・中央の塔
-    place(mesh(GEO.cylB, MAT.paving, 9, .25, 9), 0, 0, -.1);
-    place(mesh(GEO.cylB, MAT.stone, 2.4, 7, 2.4), 0, 0);
-    place(mesh(GEO.coneB, MAT.roofs[0], 3.3, 3, 3.3), 0, 0, 7);
-    for (const a of [0, Math.PI]) {
-      const w = place(mesh(GEO.box, MAT.window, .5, .8, .5), Math.sin(a) * 1.05, Math.cos(a) * 1.05, 5);
-      w.rotation.y = a; w.scale.set(.5, .8, .12);
+  village(g, o) {
+    part(g, GEO.cylB, MAT.stone, 1.3, .8, 1.3);
+    part(g, GEO.cylB, MAT.wood, .12, 1.8, .12, -.5, 0, .5); part(g, GEO.cylB, MAT.wood, .12, 1.8, .12, .5, 0, .5);
+    part(g, GEO.roof, MAT.roofs[2], 1.5, .7, 1.5, 0, 0, 2.2);
+    for (let k = 0; k < 4; k++) {
+      const a = k / 4 * Math.PI * 2 + .4 + hash2(o.id, k, 1) * .5, r = 4.4 + hash2(o.id, k, 2) * 1.2;
+      house(g, 2 + hash2(o.id, k, 3) * .7, 1.5 + hash2(o.id, k, 4) * .5, 1.9 + hash2(o.id, k, 5) * .5, k + 1, Math.sin(a) * r, Math.cos(a) * r);
     }
-    // 家々
-    const N = 9;
-    for (let k = 0; k < N; k++) {
-      const a = k / N * Math.PI * 2 + hash2(obj.id, k, 1) * .4, r = 6.8 + hash2(obj.id, k, 2) * 3.5;
-      const lx = Math.sin(a) * r, lz = Math.cos(a) * r;
-      const w = 2.4 + hash2(obj.id, k, 3) * 1.2, h = 1.9 + hash2(obj.id, k, 4) * 1.1, d = 2.2 + hash2(obj.id, k, 5) * 1;
-      const house = new THREE.Group();
-      house.add(mesh(GEO.boxB, MAT.walls[k % 3], w, h, d));
-      const roof = mesh(GEO.roof, MAT.roofs[(k + 1) % 3], w, 1.4, d); roof.position.y = h; house.add(roof);
-      for (const sx of [-.26, .26]) {
-        const win = mesh(GEO.box, MAT.window, .42, .55, .08); win.position.set(sx * w, h * .55, d / 2 + .02); house.add(win);
-      }
-      const door = mesh(GEO.boxB, MAT.roofs[2], .5, .95, .08); door.position.set(0, 0, d / 2 + .02); house.add(door);
-      place(house, lx, lz, -.05);
-      house.rotation.y = Math.atan2(-lx, -lz) + obj.rot;
+  },
+  inn(g) {
+    part(g, GEO.boxB, MAT.walls[0], 6, 3.2, 4.4, 0, 0, -.05);
+    part(g, GEO.boxB, MAT.walls[2], 5.6, 2.2, 4.1, 0, 0, 3.15);
+    part(g, GEO.roof, MAT.roofs[0], 5.8, 1.9, 4.4, 0, 0, 5.3);
+    for (const x of [-2, 0, 2]) { part(g, GEO.box, MAT.window, .6, .7, .08, x, 2.24, 4.3); if (x) part(g, GEO.box, MAT.window, .6, .7, .08, x, 2.24, 1.6); }
+    part(g, GEO.boxB, MAT.roofs[2], .9, 1.7, .08, 0, 2.24, -.05);
+    part(g, GEO.box, colorMat(0xe2a64b), 1.5, .6, .1, 0, 2.32, 2.3);
+  },
+  board(g) {
+    part(g, GEO.cylB, MAT.wood, .16, 2.2, .16, -.95); part(g, GEO.cylB, MAT.wood, .16, 2.2, .16, .95);
+    part(g, GEO.box, MAT.wood, 2.3, 1.3, .12, 0, 0, 1.45);
+    for (const x of [-.6, 0, .6]) part(g, GEO.box, MAT.paper, .45, .55, .03, x, .08, 1.45);
+    part(g, GEO.roof, MAT.roofs[0], 2.8, .6, .8, 0, 0, 2.2);
+  },
+  spawn(g, o) {
+    part(g, GEO.cylB, MAT.stone, 1.3, .3, 1.3, 0, 0, -.1);
+    for (let k = 0; k < 8; k++) { const a = k / 8 * Math.PI * 2; part(g, GEO.box, MAT.stone, .7, .6, .7, Math.sin(a) * 2.4, Math.cos(a) * 2.4, .2, a); }
+    const t = Monsters.type(o.mt);
+    part(g, GEO.roof, colorMat(t ? hexNum(t.color) : 0xe36b5d), .9, 2.6, .9, 0, 0, .2);
+  },
+  dungeon(g) {
+    part(g, GEO.boxB, MAT.stone, 1.2, 4, 1.2, -2.1, 0, -.2); part(g, GEO.boxB, MAT.stone, 1.2, 4, 1.2, 2.1, 0, -.2);
+    part(g, GEO.boxB, MAT.stone, 5.6, 1, 1.5, 0, 0, 3.8);
+    part(g, GEO.box, MAT.portal, 3, 3.8, .2, 0, 0, 1.75);
+    part(g, GEO.rock, MAT.rock, 1.6, 1.3, 1.4, -3.6, -1.2); part(g, GEO.rock, MAT.rock, 1.2, 1, 1.1, 3.5, -1.5);
+    part(g, GEO.rock, MAT.rock, 2.2, 1.6, 1.8, 0, -2.6, .6);
+  },
+  tree(g) { part(g, GEO.trunk, MAT.trunk, 1.1, 1.1, 1.1); part(g, GEO.canopy, MAT.canopyP, 1.1, 1.1, 1.1); },
+  rock(g) { part(g, GEO.rock, MAT.rock, 1.4, .9, 1.2, 0, 0, .3); },
+};
+
+// 地面に沿った帯(道路・エリア境界・プレビュー用)。バッファは使い回す
+function stripGeo(cap) {
+  const g = new THREE.BufferGeometry(), nor = new Float32Array(cap);
+  for (let i = 1; i < cap; i += 3) nor[i] = 1;
+  g.setAttribute('position', new THREE.BufferAttribute(new Float32Array(cap), 3));
+  g.setAttribute('normal', new THREE.BufferAttribute(nor, 3));
+  g.userData.cap = cap;
+  return g;
+}
+function sampleLine(x0, z0, x1, z1, step) {
+  const L = Math.hypot(x1 - x0, z1 - z0), n = Math.max(1, Math.ceil(L / step)), pts = [];
+  for (let i = 0; i <= n; i++) pts.push([lerp(x0, x1, i / n), lerp(z0, z1, i / n)]);
+  return pts;
+}
+function rectPts(x0, z0, x1, z1, step = 2) {
+  const pts = [], a = [[x0, z0, x1, z0], [x1, z0, x1, z1], [x1, z1, x0, z1], [x0, z1, x0, z0]];
+  for (const e of a) { const s = sampleLine(e[0], e[1], e[2], e[3], step); s.pop(); pts.push(...s); }
+  return pts;
+}
+function fillStrip(geo, pts, width, closed, yOff, fixedY) {
+  const n = pts.length, segs = closed ? n : n - 1;
+  const need = segs * 18;
+  if (need > geo.userData.cap) { pts = pts.slice(0, Math.floor(geo.userData.cap / 18)); return fillStrip(geo, pts, width, false, yOff, fixedY); }
+  const pos = geo.attributes.position.array, hw = width / 2, L = [], R = [];
+  for (let i = 0; i < n; i++) {
+    const a = pts[closed ? (i - 1 + n) % n : Math.max(0, i - 1)], b = pts[closed ? (i + 1) % n : Math.min(n - 1, i + 1)];
+    let dx = b[0] - a[0], dz = b[1] - a[1]; const l = Math.hypot(dx, dz) || 1; dx /= l; dz /= l;
+    const nx = -dz * hw, nz = dx * hw, p = pts[i];
+    const lx = p[0] + nx, lz = p[1] + nz, rx = p[0] - nx, rz = p[1] - nz;
+    L.push(lx, fixedY ?? Math.max(heightAt(lx, lz), 0) + yOff, lz);
+    R.push(rx, fixedY ?? Math.max(heightAt(rx, rz), 0) + yOff, rz);
+  }
+  let o = 0;
+  const put = (arr, i) => { pos[o++] = arr[i * 3]; pos[o++] = arr[i * 3 + 1]; pos[o++] = arr[i * 3 + 2]; };
+  for (let s = 0; s < segs; s++) { const t = (s + 1) % n; put(L, s); put(L, t); put(R, s); put(R, s); put(L, t); put(R, t); }
+  geo.setDrawRange(0, segs * 6);
+  geo.attributes.position.needsUpdate = true;
+  geo.computeBoundingSphere();
+  return geo;
+}
+function segDist(px, pz, x0, z0, x1, z1) {
+  const dx = x1 - x0, dz = z1 - z0, l2 = dx * dx + dz * dz || 1;
+  const t = clamp(((px - x0) * dx + (pz - z0) * dz) / l2, 0, 1);
+  return Math.hypot(px - (x0 + dx * t), pz - (z0 + dz * t));
+}
+const lineDist = (x, z, o) => segDist(x, z, o.x0, o.z0, o.x1, o.z1);
+function onBridge(x, z) { for (const o of G.objects) if (o.type === 'bridge' && lineDist(x, z, o) < 1.8) return true; return false; }
+function onRoad(x, z) { for (const o of G.objects) if ((o.type === 'road' || o.type === 'bridge') && lineDist(x, z, o) < 1.8) return true; return false; }
+function bridgeDeckY(x0, z0, x1, z1) { return Math.max(heightAt(x0, z0), heightAt(x1, z1), .5) + .35; }
+// 自動生成の木を置かない場所(建物・道路の上)
+function blockedAt(x, z) {
+  for (const o of G.objects) {
+    const d = PLACE_DEFS[o.type];
+    if (d.line) { if (lineDist(x, z, o) < 2.8) return true; }
+    else if (!d.minor && Math.hypot(o.x - x, o.z - z) < d.r + 1) return true;
+  }
+  return false;
+}
+
+const Objects = {
+  views: new Map(),
+  init() {
+    this.tTrunk = new THREE.InstancedMesh(GEO.trunk, MAT.trunk, 3000);
+    this.tCanopy = new THREE.InstancedMesh(GEO.canopy, MAT.canopyP, 3000);
+    this.rocks = new THREE.InstancedMesh(GEO.rock, MAT.rock, 3000);
+    this.tCanopy.setColorAt(0, new THREE.Color(0xffffff));
+    for (const m of [this.tTrunk, this.tCanopy, this.rocks]) { m.count = 0; m.castShadow = m.receiveShadow = true; scene.add(m); }
+  },
+  makeView(o) {
+    const def = PLACE_DEFS[o.type];
+    if (def.minor) return null;
+    if (o.type === 'road') {
+      const pts = sampleLine(o.x0, o.z0, o.x1, o.z1, 1.5);
+      const m = new THREE.Mesh(fillStrip(stripGeo(pts.length * 18), pts, 3, .15, false), MAT.road);
+      m.userData.ownGeo = true; m.receiveShadow = true;
+      return m;
     }
+    if (o.type === 'bridge') return buildBridge(o.x0, o.z0, o.x1, o.z1);
+    const g = new THREE.Group();
+    g.position.set(o.x, heightAt(o.x, o.z), o.z); g.rotation.y = o.rot || 0;
+    BUILD[o.type](g, o);
+    settle(g);
+    return g;
+  },
+  build(o) {
+    const v = this.makeView(o);
+    if (!v) return;
+    v.traverse(m => { if (m.isMesh) { m.castShadow = o.type !== 'road'; m.receiveShadow = true; } });
+    scene.add(v); this.views.set(o.id, v);
+  },
+  removeView(id) {
+    const v = this.views.get(id);
+    if (!v) return;
+    scene.remove(v);
+    if (v.userData.ownGeo) v.geometry.dispose();
+    this.views.delete(id);
   },
   rebuildAll() {
-    for (const g of this.views.values()) scene.remove(g);
-    this.views.clear();
+    for (const id of [...this.views.keys()]) this.removeView(id);
     for (const o of G.objects) this.build(o);
+    this.rebuildInstances();
   },
-  pick(x, z) {
-    let best = null, bd = Infinity;
+  // 配置した木・岩は InstancedMesh にまとめて描画
+  rebuildInstances() {
+    const o3 = new THREE.Object3D(), c = new THREE.Color();
+    let nt = 0, nr = 0;
     for (const o of G.objects) {
-      const d = Math.hypot(o.x - x, o.z - z), r = this.radius[o.type] || 4;
-      if (d < r && d < bd) { bd = d; best = o; }
+      if (o.type !== 'tree' && o.type !== 'rock') continue;
+      const s = .9 + hash2(o.id, 1, 3) * .4;
+      o3.position.set(o.x, heightAt(o.x, o.z) - .1, o.z); o3.rotation.set(0, o.rot + hash2(o.id, 2, 3) * 6, 0);
+      if (o.type === 'tree' && nt < 3000) {
+        o3.scale.set(s * 1.1, s * 1.1, s * 1.1); o3.updateMatrix();
+        this.tTrunk.setMatrixAt(nt, o3.matrix); this.tCanopy.setMatrixAt(nt, o3.matrix);
+        c.setHSL(.26 + hash2(o.id, 4, 3) * .07, .5, .27 + hash2(o.id, 5, 3) * .07); this.tCanopy.setColorAt(nt, c);
+        nt++;
+      } else if (o.type === 'rock' && nr < 3000) {
+        o3.position.y += .3; o3.scale.set(1.4 * s, .9 * s, 1.2 * s); o3.updateMatrix();
+        this.rocks.setMatrixAt(nr++, o3.matrix);
+      }
+    }
+    this.tTrunk.count = this.tCanopy.count = nt; this.rocks.count = nr;
+    for (const m of [this.tTrunk, this.tCanopy, this.rocks]) m.instanceMatrix.needsUpdate = true;
+    if (this.tCanopy.instanceColor) this.tCanopy.instanceColor.needsUpdate = true;
+  },
+  add(o) {
+    G.objects.push(o); this.build(o);
+    if (PLACE_DEFS[o.type].minor) this.rebuildInstances(); else Scenery.rebuild();
+  },
+  remove(o) {
+    const i = G.objects.indexOf(o);
+    if (i < 0) return;
+    G.objects.splice(i, 1); this.removeView(o.id);
+    if (o.type === 'spawn') Monsters.removeSpawn(o.id);
+    if (PLACE_DEFS[o.type].minor) this.rebuildInstances(); else Scenery.rebuild();
+  },
+  refresh(o) { this.removeView(o.id); this.build(o); if (PLACE_DEFS[o.type].minor) this.rebuildInstances(); },
+  pick(x, z) {
+    let best = null, bs = 1;
+    for (const o of G.objects) {
+      const def = PLACE_DEFS[o.type];
+      const d = def.line ? lineDist(x, z, o) : Math.hypot(o.x - x, o.z - z), r = def.line ? 2.4 : Math.max(def.r, 2);
+      const sc = d / r * (def.minor || def.line ? 1.3 : 1); // 小物・道路は建物より優先度を下げる
+      if (d < r && sc < bs) { bs = sc; best = o; }
     }
     return best;
   },
+  label(o) { return o.name || PLACE_DEFS[o.type].name; },
 };
+function buildBridge(x0, z0, x1, z1) {
+  const g = new THREE.Group(), L = Math.hypot(x1 - x0, z1 - z0), y = bridgeDeckY(x0, z0, x1, z1);
+  g.position.set((x0 + x1) / 2, y, (z0 + z1) / 2); g.rotation.y = Math.atan2(x1 - x0, z1 - z0);
+  const add = (geo, mat, sx, sy, sz, x, yy, z) => { const m = new THREE.Mesh(geo, mat); m.scale.set(sx, sy, sz); m.position.set(x, yy, z); g.add(m); };
+  add(GEO.box, MAT.wood, 3.2, .4, L + 1.5, 0, 0, 0);
+  for (const s of [-1, 1]) add(GEO.box, MAT.wood, .15, .6, L, s * 1.5, .5, 0);
+  const n = Math.max(1, Math.floor(L / 6));
+  for (let i = 0; i <= n; i++) for (const s of [-1, 1]) add(GEO.cylB, MAT.wood, .35, y - SEA_FLOOR, .35, s * 1.3, SEA_FLOOR - y, -L / 2 + L * i / n);
+  return g;
+}
+
+/* ════════════════════════════════════════════
+   エリア
+   ════════════════════════════════════════════ */
+const AREA_COLORS = ['#e2a64b', '#5bb8d9', '#7cc98f', '#d67fb0', '#e36b5d', '#b89cf0'];
+const _areaMats = new Map();
+function areaMat(css) {
+  let m = _areaMats.get(css);
+  if (!m) { m = new THREE.MeshBasicMaterial({ color: hexNum(css), transparent: true, opacity: .9, depthWrite: false, side: THREE.DoubleSide, polygonOffset: true, polygonOffsetFactor: -4, polygonOffsetUnits: -4 }); _areaMats.set(css, m); }
+  return m;
+}
+const Areas = {
+  views: new Map(),
+  build(a) {
+    const pts = rectPts(a.x0, a.z0, a.x1, a.z1);
+    const m = new THREE.Mesh(fillStrip(stripGeo(pts.length * 18), pts, .8, true, .3), areaMat(a.color));
+    m.renderOrder = 2; scene.add(m); this.views.set(a.id, m);
+  },
+  removeView(id) { const m = this.views.get(id); if (m) { scene.remove(m); m.geometry.dispose(); this.views.delete(id); } },
+  rebuildAll() { for (const id of [...this.views.keys()]) this.removeView(id); for (const a of G.areas) this.build(a); },
+  at(x, z) {
+    let best = null, ba = Infinity;
+    for (const a of G.areas) if (x >= a.x0 && x <= a.x1 && z >= a.z0 && z <= a.z1) { const ar = (a.x1 - a.x0) * (a.z1 - a.z0); if (ar < ba) { ba = ar; best = a; } }
+    return best;
+  },
+  spawnsIn(a) { return G.objects.filter(o => o.type === 'spawn' && o.x >= a.x0 && o.x <= a.x1 && o.z >= a.z0 && o.z <= a.z1); },
+};
+
+/* ════════════════════════════════════════════
+   モンスター
+   ════════════════════════════════════════════ */
+const SHAPES = [['slime', 'スライム'], ['beast', '獣'], ['golem', 'ゴーレム'], ['wisp', '精霊'], ['plant', 'キノコ']];
+const MON_COLORS = ['#6cc24a', '#3f8fd6', '#e0574a', '#9b6ad6', '#e2a64b', '#a09a8a', '#f2eee2', '#3a4150', '#d67fb0', '#4fc2b4'];
+const DEFAULT_MT = [
+  { name: 'スライム', color: '#6cc24a', shape: 'slime', size: 1, hp: 30, atk: 6, def: 1, spd: 2, exp: 8, gold: 3, habitat: 0 },
+  { name: '森オオカミ', color: '#a09a8a', shape: 'beast', size: 1.1, hp: 60, atk: 12, def: 3, spd: 4.5, exp: 18, gold: 6, habitat: 1 },
+  { name: '毒キノコ', color: '#d67fb0', shape: 'plant', size: 1, hp: 45, atk: 10, def: 2, spd: 1.5, exp: 12, gold: 5, habitat: 4 },
+  { name: '砂の精霊', color: '#e2a64b', shape: 'wisp', size: 1, hp: 50, atk: 16, def: 2, spd: 3, exp: 22, gold: 8, habitat: 2 },
+  { name: '岩ゴーレム', color: '#8c877d', shape: 'golem', size: 1.3, hp: 160, atk: 20, def: 10, spd: 1.5, exp: 45, gold: 20, habitat: -1 },
+  { name: '古代竜', color: '#e0574a', shape: 'beast', size: 3, hp: 1500, atk: 60, def: 25, spd: 3, exp: 600, gold: 300, habitat: -1, boss: true },
+];
+function newMonsterType(id, o) {
+  return Object.assign({ id, name: '新しいモンスター', color: '#6cc24a', shape: 'slime', size: 1, hp: 40, atk: 8, def: 2, spd: 2.5, exp: 10, gold: 4, boss: false, habitat: -1 }, o);
+}
+function mergeParts(parts) {
+  const P = [], N = [];
+  for (const [geo, m] of parts) {
+    const g = (geo.index ? geo.toNonIndexed() : geo.clone()).applyMatrix4(m);
+    P.push(...g.attributes.position.array); N.push(...g.attributes.normal.array); g.dispose();
+  }
+  const out = new THREE.BufferGeometry();
+  out.setAttribute('position', new THREE.Float32BufferAttribute(P, 3));
+  out.setAttribute('normal', new THREE.Float32BufferAttribute(N, 3));
+  return out;
+}
+const M4 = (x, y, z, sx = 1, sy = 1, sz = 1) => new THREE.Matrix4().compose(new THREE.Vector3(x, y, z), new THREE.Quaternion(), new THREE.Vector3(sx, sy, sz));
+function shapeGeo(shape) {
+  const B = GEO.box, C4 = new THREE.ConeGeometry(.5, 1, 4);
+  switch (shape) {
+    case 'slime': return mergeParts([[new THREE.SphereGeometry(.5, 12, 8), M4(0, .36, 0, 1, .72, 1)]]);
+    case 'beast': return mergeParts([
+      [B, M4(0, .55, 0, .55, .45, .95)], [B, M4(0, .8, .55, .42, .38, .42)], [B, M4(0, .72, .82, .22, .18, .22)],
+      [B, M4(.18, .18, .3, .13, .36, .13)], [B, M4(-.18, .18, .3, .13, .36, .13)], [B, M4(.18, .18, -.3, .13, .36, .13)], [B, M4(-.18, .18, -.3, .13, .36, .13)],
+      [C4, M4(.12, 1.06, .5, .16, .22, .16)], [C4, M4(-.12, 1.06, .5, .16, .22, .16)], [B, M4(0, .7, -.58, .1, .1, .35)]]);
+    case 'golem': return mergeParts([
+      [B, M4(.22, .3, 0, .3, .6, .35)], [B, M4(-.22, .3, 0, .3, .6, .35)], [B, M4(0, .95, 0, .9, .7, .55)],
+      [B, M4(0, 1.45, .02, .42, .36, .42)], [B, M4(.6, .85, 0, .26, .8, .3)], [B, M4(-.6, .85, 0, .26, .8, .3)]]);
+    case 'wisp': return mergeParts([[new THREE.OctahedronGeometry(.42), M4(0, 1.1, 0, 1, 1.3, 1)], [new THREE.OctahedronGeometry(.2), M4(0, .55, 0, 1, 1.6, 1)]]);
+    default: return mergeParts([[new THREE.CylinderGeometry(.5, .5, 1, 8), M4(0, .25, 0, .35, .5, .35)], [new THREE.SphereGeometry(.5, 12, 6, 0, Math.PI * 2, 0, Math.PI / 2), M4(0, .42, 0, 1.1, .8, 1.1)]]);
+  }
+}
+const Monsters = {
+  MAX: 400, meshes: {}, _o: new THREE.Object3D(), _c: new THREE.Color(), time: 0,
+  init() {
+    for (const [s] of SHAPES) {
+      const m = new THREE.InstancedMesh(shapeGeo(s), MAT.monster, this.MAX);
+      // setColorAt は count を0にする前に呼ぶ(色バッファは呼び出し時の count で確保される)
+      m.setColorAt(0, this._c.set(0xffffff));
+      m.count = 0; m.frustumCulled = false; m.castShadow = true;
+      scene.add(m); this.meshes[s] = m;
+    }
+  },
+  type(id) { return G.monsterTypes.find(t => t.id === id); },
+  effMax(sp) { const t = this.type(sp.mt); return !t ? 0 : t.boss ? 1 : sp.max; },
+  habitatOk(sp) { const t = this.type(sp.mt); return !!t && (t.habitat < 0 || typeAt(sp.x, sp.z) === t.habitat); },
+  count(spId) { let n = 0; for (const m of G.monsters) if (m.sp === spId) n++; return n; },
+  randomPoint(sp) {
+    for (let i = 0; i < 10; i++) {
+      const a = Math.random() * Math.PI * 2, r = Math.sqrt(Math.random()) * sp.radius, x = sp.x + Math.cos(a) * r, z = sp.z + Math.sin(a) * r;
+      if (heightAt(x, z) > .3 && slopeAt(x, z) < 1.0) return { x, z };
+    }
+    return null;
+  },
+  spawnOne(sp) {
+    const t = this.type(sp.mt);
+    if (!t || G.monsters.length >= this.MAX) return;
+    const p = this.randomPoint(sp) || { x: sp.x, z: sp.z };
+    G.monsters.push({ id: G.nextId++, sp: sp.id, t: t.id, x: p.x, z: p.z, hp: t.hp, tx: p.x, tz: p.z, wait: Math.random() * 3, ry: Math.random() * 6.28, ph: Math.random() * 6.28 });
+  },
+  fill(sp, n) { for (let i = 0; i < n && this.count(sp.id) < this.effMax(sp); i++) this.spawnOne(sp); },
+  resetSpawn(sp) { this.removeSpawn(sp.id); sp.timer = 0; this.fill(sp, 3); },
+  removeSpawn(id) { G.monsters = G.monsters.filter(m => m.sp !== id); },
+  // 1ティック(1時間)ごと:不足分を再出現時間に従って補充。生息地に合う地形なら2倍速
+  hourly() {
+    for (const sp of G.objects) {
+      if (sp.type !== 'spawn') continue;
+      const mx = this.effMax(sp);
+      let n = 0;
+      G.monsters = G.monsters.filter(m => { if (m.sp !== sp.id) return true; if (m.t !== sp.mt || n >= mx) return false; n++; return true; });
+      if (n >= mx) { sp.timer = 0; continue; }
+      sp.timer = (sp.timer || 0) + 1;
+      if (sp.timer >= sp.respawn * (this.habitatOk(sp) ? .5 : 1)) { this.spawnOne(sp); sp.timer = 0; }
+    }
+  },
+  // 徘徊(ゲーム速度に比例)。加入者への攻撃は段階④で追加
+  update(gdt, dt) {
+    this.time += dt;
+    const spById = new Map();
+    for (const o of G.objects) if (o.type === 'spawn') spById.set(o.id, o);
+    let steps = Math.min(8, Math.ceil(gdt / .25)); const sdt = steps ? gdt / steps : 0;
+    for (; steps > 0; steps--) for (const m of G.monsters) {
+      const t = this.type(m.t), sp = spById.get(m.sp);
+      if (!t || !sp) continue;
+      if (m.wait > 0) { m.wait -= sdt; continue; }
+      const dx = m.tx - m.x, dz = m.tz - m.z, d = Math.hypot(dx, dz), st = t.spd * sdt;
+      if (d <= st) {
+        m.x = m.tx; m.z = m.tz; m.wait = 1.5 + Math.random() * 4;
+        const p = this.randomPoint(sp); if (p) { m.tx = p.x; m.tz = p.z; }
+      } else {
+        const nx = m.x + dx / d * st, nz = m.z + dz / d * st;
+        if (heightAt(nx, nz) < .2) { m.tx = sp.x; m.tz = sp.z; continue; }
+        m.x = nx; m.z = nz; m.ry = Math.atan2(dx, dz);
+      }
+    }
+    // 描画
+    const cnt = {}, o = this._o;
+    for (const [s] of SHAPES) cnt[s] = 0;
+    for (const m of G.monsters) {
+      const t = this.type(m.t); if (!t) continue;
+      const mesh = this.meshes[t.shape] || this.meshes.slime, i = cnt[t.shape]++;
+      const moving = m.wait <= 0, bob = Math.sin(this.time * 7 + m.ph);
+      const sq = t.shape === 'slime' && moving ? 1 + bob * .12 : 1;
+      o.position.set(m.x, heightAt(m.x, m.z) + (t.shape === 'wisp' ? .25 + bob * .15 : 0), m.z);
+      o.rotation.set(0, m.ry, 0);
+      o.scale.set(t.size / Math.sqrt(sq), t.size * sq, t.size / Math.sqrt(sq));
+      o.updateMatrix();
+      mesh.setMatrixAt(i, o.matrix); mesh.setColorAt(i, this._c.set(t.color));
+    }
+    for (const [s] of SHAPES) {
+      const mesh = this.meshes[s]; mesh.count = cnt[s];
+      mesh.instanceMatrix.needsUpdate = true; if (mesh.instanceColor) mesh.instanceColor.needsUpdate = true;
+    }
+  },
+  byId(id) { return G.monsters.find(m => m.id === id); },
+};
+const _pv = new THREE.Vector3();
+function pickMonster(sx, sy, rad = 30) {
+  let best = null, bd = rad * rad;
+  for (const m of G.monsters) {
+    const t = Monsters.type(m.t);
+    _pv.set(m.x, heightAt(m.x, m.z) + .6 * (t ? t.size : 1), m.z).project(camera);
+    if (_pv.z > 1) continue;
+    const px = (_pv.x + 1) / 2 * innerWidth, py = (1 - _pv.y) / 2 * innerHeight, d2 = (px - sx) ** 2 + (py - sy) ** 2;
+    if (d2 < bd) { bd = d2; best = m; }
+  }
+  return best;
+}
+
+/* ════════════════════════════════════════════
+   配置モード
+   ════════════════════════════════════════════ */
+const marker = new THREE.Mesh(GEO.ring, new THREE.MeshBasicMaterial({ color: 0x5bb8d9, transparent: true, depthTest: false }));
+marker.renderOrder = 12; marker.visible = false; scene.add(marker);
+function showMarker(p, r = 1.6) { marker.position.set(p.x, Math.max(0, heightAt(p.x, p.z)) + .4, p.z); marker.scale.setScalar(r); marker.visible = true; }
+const Place = {
+  type: null, moveId: null, pv: null, pos: null, rot: 0, p0: null, p1: null, drag: null,
+  valid: false, reason: '', cost: 0, quick: false, spawnMt: 0, lineMesh: null,
+  init() {
+    this.lineMesh = new THREE.Mesh(stripGeo(18 * 400), MAT.pvOk);
+    this.lineMesh.visible = false; this.lineMesh.renderOrder = 3; this.lineMesh.frustumCulled = false;
+    scene.add(this.lineMesh);
+  },
+  start(type, moveObj) {
+    if (mode === 'place') this.clear();
+    this.type = type; this.rot = 0;
+    if (!this.spawnMt || !Monsters.type(this.spawnMt)) this.spawnMt = G.monsterTypes[0]?.id || 0;
+    if (moveObj) {
+      this.moveId = moveObj.id; this.pos = { x: moveObj.x, z: moveObj.z }; this.rot = moveObj.rot || 0;
+      if (moveObj.type === 'spawn') this.spawnMt = moveObj.mt;
+      const v = Objects.views.get(moveObj.id); if (v) v.visible = false;
+    }
+    setMode('place');
+    if (moveObj) this.makePreview();
+    renderPlaceBar();
+  },
+  clearPreview() {
+    if (this.pv) { scene.remove(this.pv); this.pv = null; }
+    this.lineMesh.visible = false; marker.visible = false;
+    this.pos = this.p0 = this.p1 = null; this.drag = null; this.valid = false;
+  },
+  clear() {
+    if (this.moveId) { const v = Objects.views.get(this.moveId); if (v) v.visible = true; }
+    const hidden = this.moveId && G.objects.find(o => o.id === this.moveId);
+    if (hidden && PLACE_DEFS[hidden.type].minor) Objects.rebuildInstances();
+    this.moveId = null; this.clearPreview();
+  },
+  makePreview() {
+    if (this.pv) scene.remove(this.pv);
+    const g = new THREE.Group();
+    BUILD[this.type](g, { id: 777, type: this.type, mt: this.spawnMt });
+    g.traverse(m => { if (m.isMesh) m.material = MAT.pvOk; });
+    g.userData.bad = false;
+    this.pv = g; scene.add(g);
+    this.update();
+  },
+  update() {
+    const def = PLACE_DEFS[this.type];
+    if (def.line) {
+      if (this.p0 && !this.p1) showMarker(this.p0);
+      if (!this.p0 || !this.p1) { this.lineMesh.visible = false; updatePlaceStatus(); return; }
+      marker.visible = false;
+      const { p0, p1 } = this, pts = sampleLine(p0.x, p0.z, p1.x, p1.z, 1.5);
+      fillStrip(this.lineMesh.geometry, pts, this.type === 'bridge' ? 3.2 : 3, .25, false, this.type === 'bridge' ? bridgeDeckY(p0.x, p0.z, p1.x, p1.z) : undefined);
+      this.validate();
+      this.lineMesh.material = this.valid ? MAT.pvOk : MAT.pvBad; this.lineMesh.visible = true;
+    } else if (this.pv && this.pos) {
+      const g = this.pv;
+      g.position.set(this.pos.x, heightAt(this.pos.x, this.pos.z) + .05, this.pos.z); g.rotation.y = this.rot;
+      settle(g);
+      this.validate();
+      if (g.userData.bad === this.valid) { const mat = this.valid ? MAT.pvOk : MAT.pvBad; g.traverse(m => { if (m.isMesh) m.material = mat; }); g.userData.bad = !this.valid; }
+    }
+    updatePlaceStatus();
+  },
+  validate() {
+    const def = PLACE_DEFS[this.type];
+    let reason = '';
+    if (def.line) {
+      const { p0, p1 } = this, L = Math.hypot(p1.x - p0.x, p1.z - p0.z);
+      this.cost = Math.ceil(L * def.cost); this.len = L;
+      const pts = sampleLine(p0.x, p0.z, p1.x, p1.z, 2);
+      if (pts.some(([x, z]) => Math.abs(x) > HALF - 2 || Math.abs(z) > HALF - 2)) reason = 'マップの外です';
+      else if (this.type === 'road') {
+        if (L < 4) reason = '短すぎます(4m以上)';
+        else if (L > 140) reason = '長すぎます(最大140m)';
+        else {
+          let prev = null;
+          for (const [x, z] of pts) {
+            const h = heightAt(x, z);
+            if (h < .2 && !onBridge(x, z)) { reason = '水の上には橋が必要です'; break; }
+            if (prev !== null && Math.abs(h - prev) / 2 > .8) { reason = '傾斜が急すぎます'; break; }
+            prev = h;
+          }
+        }
+      } else {
+        if (heightAt(p0.x, p0.z) < .2 || heightAt(p1.x, p1.z) < .2) reason = '両端を陸地にしてください';
+        else if (L < 6) reason = '短すぎます(6m以上)';
+        else if (L > 60) reason = '長すぎます(最大60m)';
+        else if (!pts.some(([x, z]) => heightAt(x, z) < .2)) reason = '水の上に架けてください';
+      }
+    } else {
+      const { x, z } = this.pos, r = def.r;
+      this.cost = def.cost;
+      if (Math.abs(x) > HALF - r || Math.abs(z) > HALF - r) reason = 'マップの外です';
+      else {
+        const samples = [[x, z]];
+        for (let k = 0; k < 8; k++) { const a = k / 8 * Math.PI * 2; samples.push([x + Math.cos(a) * r * .75, z + Math.sin(a) * r * .75]); }
+        for (const [sx, sz] of samples) {
+          if (heightAt(sx, sz) < .3) { reason = '水の上には置けません'; break; }
+          if (slopeAt(sx, sz) > def.slope) { reason = '傾斜が急すぎます'; break; }
+        }
+      }
+      if (!reason) for (const o of G.objects) {
+        if (o.id === this.moveId) continue;
+        const od = PLACE_DEFS[o.type];
+        if (od.line) { if (!def.minor && lineDist(x, z, o) < r * .8 + 1.5) { reason = `${od.name}と重なっています`; break; } continue; }
+        const min = def.minor && od.minor ? 1.4 : def.minor || od.minor ? (r + od.r) * .6 : r + od.r * .8;
+        if (Math.hypot(o.x - x, o.z - z) < min) { reason = `${Objects.label(o)}と重なっています`; break; }
+      }
+    }
+    if (!reason && !this.moveId && G.money < this.cost) reason = `資金が足りません(${fmt(this.cost)}G必要)`;
+    this.valid = !reason; this.reason = reason;
+  },
+  down(x, y) {
+    this.drag = null;
+    const p = pickGround(x, y), def = PLACE_DEFS[this.type];
+    if (!p) return;
+    if (!def.line && this.pos && Math.hypot(p.x - this.pos.x, p.z - this.pos.z) < Math.max(def.r * 1.4, 5))
+      this.drag = { ox: this.pos.x - p.x, oz: this.pos.z - p.z, sx: this.pos.x, sz: this.pos.z };
+    if (def.line && this.p1) {
+      const d0 = Math.hypot(p.x - this.p0.x, p.z - this.p0.z), d1 = Math.hypot(p.x - this.p1.x, p.z - this.p1.z);
+      const end = d0 < d1 ? 'p0' : 'p1';
+      if (Math.min(d0, d1) < 8) this.drag = { end, ox: this[end].x - p.x, oz: this[end].z - p.z, sx: this[end].x, sz: this[end].z };
+    }
+  },
+  move(x, y) {
+    if (!this.drag) return;
+    const p = pickGround(x, y); if (!p) return;
+    const np = { x: p.x + this.drag.ox, z: p.z + this.drag.oz };
+    if (this.drag.end) this[this.drag.end] = np; else this.pos = np;
+    this.update();
+  },
+  up(x, y, tap) {
+    const dragged = !!this.drag; this.drag = null;
+    if (!tap || dragged && !tap) return;
+    const p = pickGround(x, y), def = PLACE_DEFS[this.type];
+    if (!p) return;
+    if (def.line) {
+      if (!this.p0 || this.p1) { this.p0 = { x: p.x, z: p.z }; this.p1 = null; }
+      else this.p1 = { x: p.x, z: p.z };
+      this.update(); renderPlaceBar();
+    } else {
+      this.pos = { x: p.x, z: p.z };
+      if (!this.pv) this.makePreview(); else this.update();
+      if (this.quick && def.minor && !this.moveId && this.valid) this.confirm();
+      else renderPlaceBar();
+    }
+  },
+  cancelDrag() {
+    if (!this.drag) return;
+    const d = this.drag; this.drag = null;
+    if (d.end) this[d.end] = { x: d.sx, z: d.sz }; else this.pos = { x: d.sx, z: d.sz };
+    this.update();
+  },
+  rotate() { this.rot = (this.rot + Math.PI / 4) % (Math.PI * 2); this.update(); },
+  confirm() {
+    const def = PLACE_DEFS[this.type];
+    if (!(def.line ? this.p1 : this.pv)) return;
+    this.validate();
+    if (!this.valid) { toast(this.reason, 'warn'); return; }
+    if (this.moveId) {
+      const o = G.objects.find(q => q.id === this.moveId);
+      o.x = this.pos.x; o.z = this.pos.z; o.rot = this.rot;
+      this.moveId = null; this.clearPreview();
+      Objects.refresh(o); Scenery.rebuild();
+      log(`${Objects.label(o)}を移動しました`);
+      setMode('view'); select({ kind: 'object', obj: o });
+      return;
+    }
+    G.money -= this.cost;
+    let o;
+    if (def.line) {
+      const { p0, p1 } = this;
+      o = { id: G.nextId++, type: this.type, x0: p0.x, z0: p0.z, x1: p1.x, z1: p1.z, x: (p0.x + p1.x) / 2, z: (p0.z + p1.z) / 2, rot: 0 };
+    } else {
+      o = { id: G.nextId++, type: this.type, x: this.pos.x, z: this.pos.z, rot: this.rot };
+      if (def.named) o.name = `${def.name}${G.objects.filter(q => q.type === this.type).length + 1}`;
+      if (this.type === 'spawn') Object.assign(o, { mt: this.spawnMt, max: 5, respawn: 6, radius: 10, timer: 0 });
+    }
+    Objects.add(o);
+    if (o.type === 'spawn') Monsters.fill(o, 3);
+    if (!def.minor) log(`${Objects.label(o)}を設置しました(−${fmt(this.cost)}G)`);
+    this.clearPreview();
+    if (def.minor || def.line || o.type === 'spawn') { renderPlaceBar(); toast(`${def.name}を設置しました(−${fmt(this.cost)}G)`); }
+    else { setMode('view'); select({ kind: 'object', obj: o }); toast(`${Objects.label(o)}を設置しました`); }
+  },
+  cancel() {
+    const has = PLACE_DEFS[this.type].line ? this.p0 : this.pv;
+    if (has && !this.moveId) { this.clearPreview(); renderPlaceBar(); }
+    else setMode('view');
+  },
+};
+
+function placeStatusText() {
+  const def = PLACE_DEFS[Place.type];
+  if (def.line) {
+    if (!Place.p0) return ['始点をタップしてください', ''];
+    if (!Place.p1) return ['終点をタップしてください', ''];
+  } else if (!Place.pv) return ['地面をタップして位置を決めてください', ''];
+  if (!Place.valid) return [Place.reason, 'bad'];
+  if (def.line) return ['端をドラッグで調整できます。よければ確定', ''];
+  return [Place.quick && def.minor ? 'タップした場所にすぐ設置します' : 'ドラッグで位置を調整し、確定してください', ''];
+}
+function renderPlaceBar() {
+  if (!Place.type) return;
+  const def = PLACE_DEFS[Place.type], bar = $('#placeBar');
+  const mons = Place.type === 'spawn' ? `<div class="bb-row">${G.monsterTypes.map(t => `<button class="chip ${Place.spawnMt === t.id ? 'on' : ''}" data-pl="mt" data-v="${t.id}"><span class="sw8" style="background:${t.color}"></span>${esc(t.name)}</button>`).join('')}</div>` : '';
+  bar.innerHTML = `<div class="pl-hd"><b>${Place.moveId ? '移動:' : ''}${def.name}</b><span class="num" id="plCost"></span></div>
+    <p class="pl-st" id="plStatus"></p>${mons}
+    <div class="bb-row pl-acts">
+      ${def.line ? '' : '<button class="chip" data-pl="rot"><svg class="i" viewBox="0 0 24 24"><path d="M20 12a8 8 0 11-2.3-5.6"/><path d="M20 4v5h-5"/></svg>回転</button>'}
+      ${def.minor && !Place.moveId ? `<button class="chip ${Place.quick ? 'on' : ''}" data-pl="quick" aria-pressed="${Place.quick}">連続配置</button>` : ''}
+      <span class="sp"></span>
+      <button class="btn" data-pl="cancel">取消</button>
+      <button class="btn edit" data-pl="ok" id="plOk">確定</button>
+    </div>`;
+  updatePlaceStatus();
+  applyPanelLayout();
+}
+function updatePlaceStatus() {
+  const st = $('#plStatus'); if (!st || !Place.type) return;
+  const [t, k] = placeStatusText(), def = PLACE_DEFS[Place.type];
+  st.textContent = t; st.className = 'pl-st ' + k;
+  const ready = def.line ? !!Place.p1 : !!Place.pv;
+  $('#plOk').disabled = !ready || !Place.valid;
+  $('#plCost').textContent = Place.moveId ? '移動は無料' : def.line ? (Place.p1 ? `${Place.len.toFixed(0)}m · ${fmt(Place.cost)}G` : `${def.cost}G/m`) : `${fmt(def.cost)}G`;
+}
+$('#placeBar').addEventListener('click', e => {
+  const b = e.target.closest('[data-pl]'); if (!b || b.disabled) return;
+  const a = b.dataset.pl;
+  if (a === 'rot') Place.rotate();
+  else if (a === 'ok') Place.confirm();
+  else if (a === 'cancel') Place.cancel();
+  else if (a === 'quick') { Place.quick = !Place.quick; renderPlaceBar(); }
+  else if (a === 'mt') { Place.spawnMt = +b.dataset.v; if (Place.pv) Place.makePreview(); renderPlaceBar(); }
+});
+
+/* ════════════════════════════════════════════
+   エリア設定モード
+   ════════════════════════════════════════════ */
+const AreaEdit = {
+  p0: null, p1: null, drag: null, name: '', lvMin: 1, lvMax: 5, mesh: null,
+  init() {
+    this.mesh = new THREE.Mesh(stripGeo(18 * 700), areaMat('#5bb8d9'));
+    this.mesh.visible = false; this.mesh.renderOrder = 3; this.mesh.frustumCulled = false;
+    scene.add(this.mesh);
+  },
+  start() {
+    this.clear();
+    this.name = `エリア${G.areas.length + 1}`; this.lvMin = 1; this.lvMax = 5;
+    setMode('area');
+  },
+  clear() { this.p0 = this.p1 = null; this.drag = null; this.mesh.visible = false; marker.visible = false; },
+  rect() { return { x0: Math.min(this.p0.x, this.p1.x), z0: Math.min(this.p0.z, this.p1.z), x1: Math.max(this.p0.x, this.p1.x), z1: Math.max(this.p0.z, this.p1.z) }; },
+  ok() { const r = this.rect(); return r.x1 - r.x0 >= 8 && r.z1 - r.z0 >= 8; },
+  update() {
+    if (this.p0 && !this.p1) { showMarker(this.p0); this.mesh.visible = false; return; }
+    marker.visible = false;
+    if (!this.p1) { this.mesh.visible = false; return; }
+    const r = this.rect();
+    fillStrip(this.mesh.geometry, rectPts(r.x0, r.z0, r.x1, r.z1), 1, true, .35);
+    this.mesh.material = areaMat(this.ok() ? '#5bb8d9' : '#e36b5d');
+    this.mesh.visible = true;
+    const st = $('#arStatus');
+    if (st) { st.textContent = this.ok() ? `${(r.x1 - r.x0).toFixed(0)}×${(r.z1 - r.z0).toFixed(0)}m。角をドラッグで調整できます` : '小さすぎます(1辺8m以上)'; st.className = 'pl-st ' + (this.ok() ? '' : 'bad'); }
+  },
+  down(x, y) {
+    this.drag = null;
+    if (!this.p1) return;
+    const p = pickGround(x, y); if (!p) return;
+    let best = null, bd = 10;
+    for (const xk of ['p0', 'p1']) for (const zk of ['p0', 'p1']) {
+      const d = Math.hypot(p.x - this[xk].x, p.z - this[zk].z);
+      if (d < bd) { bd = d; best = { xk, zk, sx: this[xk].x, sz: this[zk].z }; }
+    }
+    this.drag = best;
+  },
+  move(x, y) {
+    if (!this.drag) return;
+    const p = pickGround(x, y); if (!p) return;
+    this[this.drag.xk].x = clamp(p.x, -HALF, HALF); this[this.drag.zk].z = clamp(p.z, -HALF, HALF);
+    this.update();
+  },
+  up(x, y, tap) {
+    const dragged = !!this.drag; this.drag = null;
+    if (!tap || dragged) return;
+    const p = pickGround(x, y); if (!p) return;
+    const q = { x: clamp(p.x, -HALF, HALF), z: clamp(p.z, -HALF, HALF) };
+    if (!this.p0 || this.p1) { if (this.p1) return; this.p0 = q; } else this.p1 = q;
+    this.update(); renderAreaBar();
+  },
+  cancelDrag() {
+    if (!this.drag) return;
+    const d = this.drag; this.drag = null;
+    this[d.xk].x = d.sx; this[d.zk].z = d.sz; this.update();
+  },
+  confirm() {
+    if (!this.p1 || !this.ok()) { toast('範囲が小さすぎます', 'warn'); return; }
+    const r = this.rect();
+    const a = { id: G.nextId++, name: this.name.trim() || `エリア${G.areas.length + 1}`, ...r, lvMin: this.lvMin, lvMax: this.lvMax, color: AREA_COLORS[G.areas.length % AREA_COLORS.length] };
+    G.areas.push(a); Areas.build(a);
+    log(`エリア「${a.name}」(Lv${a.lvMin}〜${a.lvMax})を作成しました`);
+    toast(`エリア「${a.name}」を作成しました`, 'good');
+    setMode('view');
+  },
+};
+function renderAreaBar() {
+  const bar = $('#areaBar'), A = AreaEdit;
+  if (!A.p1) {
+    bar.innerHTML = `<div class="pl-hd"><b>エリアを作る</b></div>
+      <p class="pl-st">${A.p0 ? '対角の2点目をタップしてください' : '範囲の1点目をタップしてください'}</p>
+      <div class="bb-row pl-acts"><span class="sp"></span><button class="btn" data-ar="cancel">${A.p0 ? 'やり直す' : '取消'}</button></div>`;
+  } else {
+    bar.innerHTML = `<div class="pl-hd"><b>エリアを作る</b></div>
+      <p class="pl-st" id="arStatus"></p>
+      <div class="ar-form"><input class="txt" id="arName" maxlength="16" value="${esc(A.name)}" aria-label="エリア名">
+        <div class="mini-stp"><span>Lv</span><button class="sb" data-ar="min-">−</button><output id="arMin">${A.lvMin}</output><button class="sb" data-ar="min+">+</button>
+        <span>〜</span><button class="sb" data-ar="max-">−</button><output id="arMax">${A.lvMax}</output><button class="sb" data-ar="max+">+</button></div></div>
+      <div class="bb-row pl-acts"><span class="sp"></span><button class="btn" data-ar="redo">やり直す</button><button class="btn edit" data-ar="ok">作成</button></div>`;
+    A.update();
+  }
+  applyPanelLayout();
+}
+$('#areaBar').addEventListener('click', e => {
+  const b = e.target.closest('[data-ar]'); if (!b) return;
+  const a = b.dataset.ar, A = AreaEdit;
+  if (a === 'cancel') { if (A.p0) { A.clear(); renderAreaBar(); } else setMode('view'); }
+  else if (a === 'redo') { A.clear(); renderAreaBar(); }
+  else if (a === 'ok') A.confirm();
+  else {
+    if (a === 'min-') A.lvMin = Math.max(1, A.lvMin - 1);
+    if (a === 'min+') { A.lvMin = Math.min(50, A.lvMin + 1); A.lvMax = Math.max(A.lvMax, A.lvMin); }
+    if (a === 'max-') { A.lvMax = Math.max(1, A.lvMax - 1); A.lvMin = Math.min(A.lvMin, A.lvMax); }
+    if (a === 'max+') A.lvMax = Math.min(50, A.lvMax + 1);
+    $('#arMin').textContent = A.lvMin; $('#arMax').textContent = A.lvMax;
+  }
+});
+$('#areaBar').addEventListener('input', e => { if (e.target.id === 'arName') AreaEdit.name = e.target.value; });
 
 // 選択リング
 const selRing = new THREE.Mesh(GEO.ring, MAT.sel);
@@ -826,14 +1591,17 @@ const MODES = { view: '閲覧モード', terrain: '地形編集中', place: '配
 let mode = 'view';
 // 編集モードの1本指操作をモードごとの処理に振り分ける
 const Edit = {
-  down(x, y) { if (mode === 'terrain') Brush.begin(x, y); },
-  move(x, y) { if (mode === 'terrain') Brush.moveTo(x, y); },
-  up() { if (mode === 'terrain') Brush.end(); },
-  cancel() { Brush.cancel(); },
+  down(x, y) { if (mode === 'terrain') Brush.begin(x, y); else if (mode === 'place') Place.down(x, y); else if (mode === 'area') AreaEdit.down(x, y); },
+  move(x, y) { if (mode === 'terrain') Brush.moveTo(x, y); else if (mode === 'place') Place.move(x, y); else if (mode === 'area') AreaEdit.move(x, y); },
+  up(x, y, tap) { if (mode === 'terrain') Brush.end(); else if (mode === 'place') Place.up(x, y, tap); else if (mode === 'area') AreaEdit.up(x, y, tap); },
+  cancel() { Brush.cancel(); Place.cancelDrag(); AreaEdit.cancelDrag(); },
 };
 function setMode(m) {
   if (mode !== 'view' && m !== mode) Edit.up();
+  if (mode === 'place' && m !== 'place') { Place.clear(); Place.type = null; }
+  if (mode === 'area' && m !== 'area') AreaEdit.clear();
   mode = m;
+  if (m === 'area') renderAreaBar();
   $('#modeLbl').textContent = MODES[m];
   $('#mode').classList.toggle('editing', m !== 'view');
   if (m !== 'view') select(null);
@@ -961,6 +1729,7 @@ Brush.initRing();
 function afterTerrainChange() {
   Scenery.rebuild();
   Objects.rebuildAll();
+  Areas.rebuildAll();
   Minimap.redrawBase();
   if (UI.tab === 'terrain') renderPanel();
   renderBrushBar();
@@ -1085,7 +1854,7 @@ function endPointer(e) {
   if (gest.kind === 'one') {
     clearTimeout(gest.lpTimer);
     const stale = now - gest.lastT > 90;
-    if (gest.act === 'edit') Edit.up(e.clientX, e.clientY, !gest.moved);
+    if (gest.act === 'edit') Edit.up(e.clientX, e.clientY, !gest.moved && e.type === 'pointerup' && now - gest.t0 < 600);
     if (!gest.moved && !gest.lp && e.type === 'pointerup' && (gest.type !== 'mouse' || gest.button === 0) && now - gest.t0 < 450) {
       if (gest.act !== 'edit') handleTap(e.clientX, e.clientY);
     }
@@ -1121,15 +1890,17 @@ function handleTap(x, y) {
 function hitTest(x, y) {
   const g = pickGround(x, y);
   if (!g) return null;
+  // 小さくタップしにくい対象は、タップ位置から一定半径内で最も近いものを選ぶ
+  const mon = pickMonster(x, y);
+  if (mon) return { kind: 'monster', mon, ground: g };
   const obj = Objects.pick(g.x, g.z);
-  // (段階④でNPCの近傍選択を追加)
   return obj ? { kind: 'object', obj, ground: g } : { kind: 'ground', ground: g };
 }
 function singleTap(x, y) { select(hitTest(x, y), false); }
 function doubleTap(x, y) {
   const h = hitTest(x, y);
   if (!h) return;
-  if (h.kind === 'npc') { /* 段階④:追従モード */ return; }
+  if (h.kind === 'monster') { select(h, false); followMonster(h.mon); return; }
   const p = h.kind === 'object' ? h.obj : h.ground;
   Cam.flyTo(p.x, p.z);
 }
@@ -1161,7 +1932,6 @@ addEventListener('blur', () => Cam.keys.clear());
    選択
    ════════════════════════════════════════════ */
 let selection = null;
-const TYPE_LABEL = { town: '町' };
 function select(h, detail) {
   selection = h ? { ...h, detail } : null;
   renderSelCard();
@@ -1169,46 +1939,90 @@ function select(h, detail) {
 function selectionPos() {
   if (!selection) return null;
   if (selection.kind === 'object') return selection.obj;
+  if (selection.kind === 'monster') return Monsters.byId(selection.mon.id) || null;
   return selection.ground;
+}
+function followMonster(m) {
+  const id = m.id, t = Monsters.type(m.t);
+  setFollow({ getPos: () => Monsters.byId(id) || null });
+  toast(`${t ? t.name : 'モンスター'}を追従中(Escまたは右端のボタンで解除)`);
 }
 function renderSelCard() {
   const el = $('#selCard');
   if (!selection) { el.hidden = true; selRing.visible = false; return; }
-  const s = selection, rows = [];
+  const s = selection, rows = [], acts = ['<button class="btn sm" data-sel="fly">ここへ移動</button>'];
   let title, kind;
   if (s.kind === 'object') {
-    const o = s.obj;
-    title = o.name || TYPE_LABEL[o.type]; kind = TYPE_LABEL[o.type];
-    rows.push(['位置', `${o.x.toFixed(0)}, ${o.z.toFixed(0)}`]);
-    if (o.type === 'town') {
-      rows.push(['建物', '家屋9・塔1']);
-      if (s.detail) rows.push(['標高', `${heightAt(o.x, o.z).toFixed(1)} m`], ['役割', '復活地点・クエスト拠点']);
+    const o = s.obj, def = PLACE_DEFS[o.type];
+    title = Objects.label(o); kind = def.name;
+    if (def.line) rows.push(['長さ', `${Math.hypot(o.x1 - o.x0, o.z1 - o.z0).toFixed(0)} m`]);
+    else rows.push(['位置', `${o.x.toFixed(0)}, ${o.z.toFixed(0)}`]);
+    const ar = Areas.at(o.x, o.z);
+    if (ar) rows.push(['エリア', ar.name]);
+    if (o.type === 'town' || o.type === 'village') rows.push(['役割', '復活地点・拠点']);
+    if (o.type === 'spawn') {
+      const t = Monsters.type(o.mt);
+      rows.push(['モンスター', t ? t.name : 'なし'], ['出現数', `${Monsters.count(o.id)} / ${Monsters.effMax(o)}体`], ['再出現', `${o.respawn}時間${Monsters.habitatOk(o) ? '(地形適性で2倍速)' : ''}`]);
+      acts.push('<button class="btn sm" data-sel="spawn">出現設定</button>');
     }
+    if (s.detail && !def.line) rows.push(['標高', `${heightAt(o.x, o.z).toFixed(1)} m`], ['地形', TT_NAMES[typeAt(o.x, o.z)]]);
+    if (!def.line) acts.push('<button class="btn sm" data-sel="move">移動</button>');
+    acts.push('<button class="btn sm" data-sel="del">削除</button>');
+  } else if (s.kind === 'monster') {
+    const m = Monsters.byId(s.mon.id), t = m && Monsters.type(m.t);
+    if (!m || !t) { selection = null; el.hidden = true; selRing.visible = false; return; }
+    title = t.name; kind = t.boss ? 'ボス' : 'モンスター';
+    rows.push(['HP', `${fmt(m.hp)} / ${fmt(t.hp)}`], ['攻撃 / 防御', `${t.atk} / ${t.def}`], ['状態', m.wait > 0 ? '休憩中' : '徘徊中']);
+    if (s.detail) rows.push(['移動速度', `${t.spd} m/秒`], ['経験値 / ゴールド', `${t.exp} / ${t.gold}G`], ['出現地点', `#${m.sp}`]);
+    acts.push('<button class="btn sm" data-sel="follow">追従</button>');
   } else {
-    const g = s.ground, h = heightAt(g.x, g.z);
+    const g = s.ground, h = heightAt(g.x, g.z), ar = Areas.at(g.x, g.z);
     title = g.water || h < 0 ? '海' : TT_NAMES[typeAt(g.x, g.z)];
     kind = '地点';
     rows.push(['位置', `${g.x.toFixed(0)}, ${g.z.toFixed(0)}`], ['標高', `${h.toFixed(1)} m`]);
+    if (ar) { rows.push(['エリア', `${ar.name}(Lv${ar.lvMin}〜${ar.lvMax})`]); acts.push('<button class="btn sm" data-sel="area">エリア設定</button>'); }
     if (s.detail) {
       const sl = slopeAt(g.x, g.z);
       rows.push(['傾斜', `${(Math.atan(sl) / DEG).toFixed(0)}°`], ['地形種別', h < 0 ? '海底' : TT_NAMES[typeAt(g.x, g.z)]],
-        ['建設', h < .3 ? '不可(水上)' : sl > .7 ? '不可(急斜面)' : '可能']);
+        ['建設', h < .3 ? '不可(水上)' : sl > .6 ? '不可(急斜面)' : '可能']);
     }
   }
+  if (!s.detail) acts.push('<button class="btn sm" data-sel="more">詳細</button>');
   el.innerHTML = `<div class="hd"><span class="kind">${kind}</span><h3>${esc(title)}</h3>
     <button data-sel="close" aria-label="選択解除"><svg class="i" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg></button></div>
     <dl>${rows.map(r => `<dt>${r[0]}</dt><dd>${esc(r[1])}</dd>`).join('')}</dl>
-    <div class="acts"><button class="btn sm" data-sel="fly">ここへ移動</button>${s.detail ? '' : '<button class="btn sm" data-sel="more">詳細</button>'}</div>`;
+    <div class="acts">${acts.join('')}</div>`;
   el.hidden = false;
-  const p = selectionPos(), r = s.kind === 'object' ? (Objects.radius[s.obj.type] || 4) : 1.6;
+  placeSelRing();
+}
+function placeSelRing() {
+  const s = selection, p = selectionPos();
+  if (!s || !p) { selRing.visible = false; return; }
+  let r = 1.6;
+  if (s.kind === 'object') r = PLACE_DEFS[s.obj.type].line ? 3 : Math.max(2, PLACE_DEFS[s.obj.type].r);
+  else if (s.kind === 'monster') { const t = Monsters.type(p.t); r = t ? .9 * t.size + .4 : 1; }
   selRing.position.set(p.x, Math.max(0, heightAt(p.x, p.z)) + .4, p.z); selRing.scale.setScalar(r); selRing.visible = true;
 }
 $('#selCard').addEventListener('click', e => {
-  const b = e.target.closest('[data-sel]'); if (!b) return;
-  const a = b.dataset.sel;
+  const b = e.target.closest('[data-sel]'); if (!b || !selection) return;
+  const a = b.dataset.sel, s = selection;
   if (a === 'close') select(null);
-  else if (a === 'fly') { const p = selectionPos(); Cam.flyTo(p.x, p.z, { dist: Math.min(Cam.dist, 110) }); }
+  else if (a === 'fly') { const p = selectionPos(); if (p) Cam.flyTo(p.x, p.z, { dist: Math.min(Cam.dist, 110) }); }
   else if (a === 'more') { selection.detail = true; renderSelCard(); }
+  else if (a === 'follow') { const m = Monsters.byId(s.mon.id); if (m) followMonster(m); }
+  else if (a === 'area') { select(null); UI.tab = null; openTab('area'); }
+  else if (a === 'spawn') { const id = s.obj.id; select(null); UI.mtEdit = null; if (UI.tab !== 'monster') openTab('monster'); else renderPanel(); const c = document.getElementById('sp' + id); if (c) c.scrollIntoView({ block: 'start' }); }
+  else if (a === 'move') { const o = s.obj; select(null); Place.start(o.type, o); }
+  else if (a === 'del') {
+    const o = s.obj, def = PLACE_DEFS[o.type];
+    if (o.type === 'town' && G.objects.filter(q => q.type === 'town').length <= 1) { toast('最後の町は削除できません', 'warn'); return; }
+    const refund = Math.floor((def.line ? Math.ceil(Math.hypot(o.x1 - o.x0, o.z1 - o.z0) * def.cost) : def.cost) / 2);
+    ask(`${Objects.label(o)}を削除しますか?(費用の半額 ${fmt(refund)}G を払い戻します)`, '削除する').then(ok => {
+      if (!ok) return;
+      Objects.remove(o); G.money += refund; select(null);
+      log(`${Objects.label(o)}を削除しました(+${fmt(refund)}G)`);
+    });
+  }
 });
 function esc(s) { return String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c])); }
 
@@ -1233,6 +2047,7 @@ function simUpdate(dt) {
 }
 function tick() {
   G.hour++;
+  Monsters.hourly();
   if (G.hour >= 24) { G.hour = 0; G.day++; daily(); }
   if (G.hour === 6) log('夜が明けました');
   if (G.hour === 19) log('日が沈み、町に灯りがともりました');
@@ -1313,9 +2128,13 @@ function applyPanelLayout() {
   const open = !!UI.tab, bs = document.body.style;
   document.body.classList.toggle('panel-open', open);
   // ブラシバーは地形編集中かつパネルを閉じているときだけ表示
-  const bb = $('#brushBar');
-  bb.hidden = !(mode === 'terrain' && !open);
-  const bbH = bb.hidden ? 0 : bb.getBoundingClientRect().height;
+  const barId = { terrain: 'brushBar', place: 'placeBar', area: 'areaBar' }[mode];
+  let bbH = 0;
+  for (const id of ['brushBar', 'placeBar', 'areaBar']) {
+    const el = document.getElementById(id);
+    el.hidden = !(id === barId && !open);
+    if (!el.hidden) bbH = el.getBoundingClientRect().height;
+  }
   if (UI.layout === 'portrait') {
     const H = sheetHeights(), h = !open ? 0 : UI.sheet === 'full' ? H.full : H.half;
     panel.style.height = h + 'px';
@@ -1373,13 +2192,10 @@ function measureOverlays() {
 /* パネル内容 */
 function renderPanel() {
   const t = UI.tab;
-  const R = PANELS[t] || PANELS._todo;
+  const R = PANELS[t] || PANEL_EXT[t] || PANELS._todo;
   pb.innerHTML = R(t);
 }
 const TODO = {
-  place: ['③', '町・村・宿屋・掲示板・道路・橋・木・岩・出現地点・ダンジョン入口の配置(プレビュー→確定/取消)'],
-  area: ['③', '2点タップで矩形エリアを作成し、名前と推奨レベル範囲を設定'],
-  monster: ['③', 'モンスターエディタ(形状・色・能力値・ボス)と出現地点ごとの出現設定'],
   class: ['④', 'クラスエディタ(能力値・成長率・スキル)、人気度、バフ/ナーフ、クラス別統計カード'],
   quest: ['⑤', '討伐・収集・移動・ボス討伐クエスト、報酬、クエストチェーン'],
   admin: ['⑦', '通報リスト(BAN・警告・放置・現地へ移動)、迷子の救助、GM雇用'],
@@ -1411,7 +2227,7 @@ const PANELS = {
       ${cnt.map((c, i) => c ? `<div class="card"><i>${TT_NAMES[i]}</i><b>${(c / land * 100).toFixed(0)}%</b></div>` : '').join('')}
       </div></div>
       <div class="sec"><h4>地形種別の効果</h4><dl class="keys">${TT_NAMES.map((n, i) => `<dt style="color:${TT_CSS[i] === '#3f6a2f' || TT_CSS[i] === '#4f5b38' ? '#8fbf6a' : TT_CSS[i]}">${n}</dt><dd>${TT_EFFECT[i]}</dd>`).join('')}</dl>
-      <p class="hint">モンスターの出現傾向への影響は段階③で追加します。</p></div>`;
+      <p class="hint">モンスターは好む地形にある出現地点で再出現が2倍速になります(モンスタータブで設定)。</p></div>`;
   },
   biz() {
     return `<div class="sec"><h4>現在の運営状況</h4><div class="cards">
@@ -1447,12 +2263,13 @@ const PANELS = {
         <dt>WASD・矢印</dt><dd>移動</dd><dt>Q / E</dt><dd>回転</dd><dt>R / F</dt><dd>角度</dd>
         <dt>Space・1〜4</dt><dd>一時停止・速度</dd><dt>Esc</dt><dd>追従解除・閲覧モードに戻る</dd><dt>H</dt><dd>初期視点</dd>
         <dt>T</dt><dd>地形編集の開始・終了</dd><dt>[ / ]</dt><dd>ブラシ半径</dd><dt>Ctrl+Z</dt><dd>地形を元に戻す</dd></dl></div>
-      <div class="sec"><h4>開発状況</h4><p class="hint"><span class="stage">段階②</span>地形ブラシ・操作モード切替・ミニマップ</p></div>`;
+      <div class="sec"><h4>開発状況</h4><p class="hint"><span class="stage">段階③</span>配置物・エリア設定・モンスター出現と徘徊</p></div>`;
   },
 };
 pb.addEventListener('click', e => {
   const b = e.target.closest('[data-act]'); if (!b || b.disabled) return;
   const a = b.dataset.act;
+  if (panelAction(a, b)) return;
   if (a === 'tool' || a === 'edit') {
     if (a === 'tool') Brush.tool = b.dataset.v;
     closePanel(); setMode('terrain');
@@ -1465,6 +2282,164 @@ pb.addEventListener('click', e => {
   else if (a === 'fps') { S.showFps = !S.showFps; $('#fps').hidden = !S.showFps; renderPanel(); }
   else if (a === 'full') toggleFullscreen();
 });
+
+/* パネル内の数値入力(スライダー+−/+ボタン。キーボードを出さない) */
+const FIELDS = {};
+function stepper(key, label, val, min, max, step, fmtFn, set) {
+  FIELDS[key] = { min, max, step, set, fmt: fmtFn };
+  return `<div class="fld"><div class="fl-hd"><span>${label}</span><output data-o="${key}">${fmtFn(val)}</output></div>
+    <div class="stp"><button class="sb" data-step="${key}" data-d="-1" aria-label="${label}を下げる">−</button><input type="range" data-fld="${key}" min="${min}" max="${max}" step="${step}" value="${val}" aria-label="${label}"><button class="sb" data-step="${key}" data-d="1" aria-label="${label}を上げる">+</button></div></div>`;
+}
+function fieldChange(key, v) {
+  const F = FIELDS[key]; if (!F) return;
+  v = +clamp(Math.round(v / F.step) * F.step, F.min, F.max).toFixed(2);
+  F.set(v);
+  syncField(key, v);
+}
+function syncField(key, v) {
+  const F = FIELDS[key]; if (!F) return;
+  pb.querySelectorAll(`[data-fld="${key}"]`).forEach(i => { i.value = v; });
+  pb.querySelectorAll(`[data-o="${key}"]`).forEach(o => { o.textContent = F.fmt(v); });
+}
+pb.addEventListener('input', e => {
+  const t = e.target;
+  if (t.dataset.fld) fieldChange(t.dataset.fld, +t.value);
+  else if (t.dataset.name) setName(t.dataset.name, t.value);
+});
+pb.addEventListener('change', e => { if (e.target.dataset.fld && e.target.dataset.fld.startsWith('mt.')) refreshSpawnViews(); });
+function setName(key, v) {
+  const [kind, id] = key.split(':');
+  if (kind === 'mt') { const t = Monsters.type(+id); if (t) t.name = v || '名無し'; }
+  else if (kind === 'ar') { const a = G.areas.find(q => q.id === +id); if (a) a.name = v || '名無しのエリア'; }
+  else if (kind === 'obj') { const o = G.objects.find(q => q.id === +id); if (o) o.name = v || PLACE_DEFS[o.type].name; }
+}
+function refreshSpawnViews() { for (const o of G.objects) if (o.type === 'spawn') Objects.refresh(o); }
+
+const intf = u => v => `${fmt(v)}${u}`;
+const PANEL_EXT = {
+  place() {
+    const cnt = {};
+    for (const o of G.objects) cnt[o.type] = (cnt[o.type] || 0) + 1;
+    return `<div class="sec"><h4>配置するものを選ぶ</h4><div class="plgrid">
+      ${PLACE_ORDER.map(k => { const d = PLACE_DEFS[k]; return `<button class="plc" data-act="place" data-v="${k}"><b>${d.name}</b><span class="num">${fmt(d.cost)}G${d.line ? '/m' : ''}</span><span class="d">${d.desc}</span></button>`; }).join('')}
+      </div><p class="hint">選ぶと配置モードになります。地面をタップ→ドラッグで調整→確定。急斜面や水の上には置けません(置けない場所は赤く表示)。配置したものをタップすると、移動・削除ができます。</p></div>
+      <div class="sec"><h4>設置済み</h4><div class="cards">${PLACE_ORDER.filter(k => cnt[k]).map(k => `<div class="card"><i>${PLACE_DEFS[k].name}</i><b>${cnt[k]}</b></div>`).join('') || '<p class="hint">まだありません</p>'}</div></div>`;
+  },
+  area() {
+    const list = G.areas.map(a => {
+      const sps = Areas.spawnsIn(a), mons = [...new Set(sps.map(s => Monsters.type(s.mt)?.name).filter(Boolean))];
+      return `<div class="ecard" style="border-left-color:${a.color}">
+        <input class="txt" data-name="ar:${a.id}" maxlength="16" value="${esc(a.name)}" aria-label="エリア名">
+        ${stepper(`ar${a.id}.lvMin`, '推奨レベル(下限)', a.lvMin, 1, 50, 1, v => 'Lv' + v, v => { a.lvMin = v; if (a.lvMax < v) { a.lvMax = v; syncField(`ar${a.id}.lvMax`, v); } })}
+        ${stepper(`ar${a.id}.lvMax`, '推奨レベル(上限)', a.lvMax, 1, 50, 1, v => 'Lv' + v, v => { a.lvMax = v; if (a.lvMin > v) { a.lvMin = v; syncField(`ar${a.id}.lvMin`, v); } })}
+        <p class="meta">${(a.x1 - a.x0).toFixed(0)}×${(a.z1 - a.z0).toFixed(0)}m · 出現地点${sps.length}か所${mons.length ? '(' + esc(mons.join('、')) + ')' : ''}</p>
+        <div class="row"><button class="btn sm" data-act="arFly" data-v="${a.id}">現地へ移動</button><button class="btn sm" data-act="arDel" data-v="${a.id}">削除</button></div></div>`;
+    }).join('');
+    return `<div class="sec"><button class="btn pri" data-act="newArea">新しいエリアを作る</button>
+      <p class="hint">地面の2点をタップして範囲を決め、名前と推奨レベルを付けます。境界は地面に色付きの線で表示されます。</p></div>
+      <div class="sec"><h4>エリア一覧(${G.areas.length})</h4>${list || '<p class="hint">エリアはまだありません</p>'}</div>`;
+  },
+  monster() {
+    if (UI.mtEdit) {
+      const t = Monsters.type(UI.mtEdit);
+      if (t) return monsterEditor(t);
+      UI.mtEdit = null;
+    }
+    const alive = {};
+    for (const m of G.monsters) alive[m.t] = (alive[m.t] || 0) + 1;
+    const types = G.monsterTypes.map(t => `<button class="mcard" data-act="mtEdit" data-v="${t.id}"><span class="dot" style="background:${t.color}"></span>
+      <span class="t"><b>${esc(t.name)}${t.boss ? '<span class="badge">ボス</span>' : ''}</b><span class="meta">${SHAPES.find(s => s[0] === t.shape)[1]} · HP${t.hp} 攻${t.atk} 防${t.def} · 生息${alive[t.id] || 0}</span></span>
+      <svg class="i" viewBox="0 0 24 24"><path d="M9 6l6 6-6 6"/></svg></button>`).join('');
+    const spawns = G.objects.filter(o => o.type === 'spawn').map(sp => {
+      const t = Monsters.type(sp.mt), ar = Areas.at(sp.x, sp.z), ok = Monsters.habitatOk(sp);
+      return `<div class="ecard" id="sp${sp.id}" style="border-left-color:${t ? t.color : 'var(--bad)'}">
+        <div class="hd"><b>出現地点 #${sp.id}</b><span class="meta">${ar ? esc(ar.name) : 'エリア外'}</span></div>
+        <div class="bb-row wrap">${G.monsterTypes.map(m => `<button class="chip ${sp.mt === m.id ? 'on' : ''}" data-act="spMt" data-sp="${sp.id}" data-v="${m.id}"><span class="sw8" style="background:${m.color}"></span>${esc(m.name)}</button>`).join('')}</div>
+        ${stepper(`sp${sp.id}.max`, '最大出現数', sp.max, 1, 20, 1, intf('体'), v => { sp.max = v; })}
+        ${stepper(`sp${sp.id}.respawn`, '再出現時間', sp.respawn, 1, 48, 1, intf('時間'), v => { sp.respawn = v; })}
+        ${stepper(`sp${sp.id}.radius`, '徘徊範囲', sp.radius, 5, 30, 1, intf('m'), v => { sp.radius = v; })}
+        <p class="meta">現在 ${Monsters.count(sp.id)} / ${Monsters.effMax(sp)}体${t && t.boss ? '(ボスは1体まで)' : ''} · 地形:${TT_NAMES[typeAt(sp.x, sp.z)]}${t ? (ok ? '(生息地に合うため再出現2倍速)' : `(${t.habitat >= 0 ? TT_NAMES[t.habitat] + 'を好む' : ''})`) : ''}</p>
+        <div class="row"><button class="btn sm" data-act="spFly" data-v="${sp.id}">現地へ移動</button></div></div>`;
+    }).join('');
+    return `<div class="sec"><h4>モンスターの種類(${G.monsterTypes.length})</h4>${types}
+      <button class="btn" data-act="mtNew">新しいモンスターを作る</button></div>
+      <div class="sec"><h4>出現地点</h4>${spawns || '<p class="hint">出現地点はまだありません</p>'}
+      <button class="btn" data-act="place" data-v="spawn">出現地点を置く</button>
+      <p class="hint">加入者への攻撃は段階④(AI加入者)で追加します。</p></div>`;
+  },
+};
+function monsterEditor(t) {
+  const k = 'mt.';
+  return `<div class="row"><button class="btn sm" data-act="mtBack"><svg class="i" viewBox="0 0 24 24"><path d="M15 6l-6 6 6 6"/></svg>一覧へ</button><span class="grow"></span>
+      <button class="btn sm" data-act="mtCopy">複製</button><button class="btn sm" data-act="mtDel">削除</button></div>
+    <div class="sec"><h4>名前</h4><input class="txt" data-name="mt:${t.id}" maxlength="16" value="${esc(t.name)}" aria-label="モンスター名"></div>
+    <div class="sec"><h4>色</h4><div class="swatches">${MON_COLORS.map(c => `<button class="swc ${t.color === c ? 'on' : ''}" style="background:${c}" data-act="mtColor" data-v="${c}" aria-label="色 ${c}"></button>`).join('')}</div></div>
+    <div class="sec"><h4>形状</h4><div class="bb-row wrap">${SHAPES.map(([s, n]) => `<button class="chip ${t.shape === s ? 'on' : ''}" data-act="mtShape" data-v="${s}">${n}</button>`).join('')}</div></div>
+    <div class="sec"><h4>能力</h4>
+      ${stepper(k + 'size', '大きさ', t.size, .5, 4, .1, v => '×' + v.toFixed(1), v => { t.size = v; })}
+      ${stepper(k + 'hp', 'HP', t.hp, 5, 3000, 5, intf(''), v => { t.hp = v; })}
+      ${stepper(k + 'atk', '攻撃力', t.atk, 1, 300, 1, intf(''), v => { t.atk = v; })}
+      ${stepper(k + 'def', '防御力', t.def, 0, 200, 1, intf(''), v => { t.def = v; })}
+      ${stepper(k + 'spd', '移動速度', t.spd, .5, 10, .5, v => v.toFixed(1) + 'm/秒', v => { t.spd = v; })}
+      ${stepper(k + 'exp', '経験値', t.exp, 1, 1000, 1, intf(''), v => { t.exp = v; })}
+      ${stepper(k + 'gold', 'ドロップゴールド', t.gold, 0, 500, 1, intf('G'), v => { t.gold = v; })}</div>
+    <div class="sec"><h4>好む地形</h4><div class="bb-row wrap">${[-1, 0, 1, 2, 3, 4].map(h => `<button class="chip ${t.habitat === h ? 'on' : ''}" data-act="mtHab" data-v="${h}">${h < 0 ? 'どこでも' : TT_NAMES[h]}</button>`).join('')}</div>
+      <p class="hint">好む地形にある出現地点では、再出現が2倍速になります。</p></div>
+    <div class="sec"><div class="row"><span class="grow">ボスにする<br><span class="hint">出現地点ごとに1体だけ出現します</span></span><button class="sw" role="switch" aria-checked="${!!t.boss}" data-act="mtBoss" aria-label="ボスにする"></button></div>
+      <p class="hint">変更はすぐに3Dビューへ反映されます。</p></div>`;
+}
+function panelAction(a, b) {
+  const v = b.dataset.v;
+  switch (a) {
+    case 'place': closePanel(); Place.start(v); return true;
+    case 'newArea': closePanel(); AreaEdit.start(); return true;
+    case 'arFly': { const ar = G.areas.find(q => q.id === +v); if (ar) { Cam.flyTo((ar.x0 + ar.x1) / 2, (ar.z0 + ar.z1) / 2, { dist: clamp(Math.max(ar.x1 - ar.x0, ar.z1 - ar.z0) * 1.6, 40, 300) }); if (UI.layout === 'portrait') closePanel(); } return true; }
+    case 'arDel': {
+      const ar = G.areas.find(q => q.id === +v); if (!ar) return true;
+      ask(`エリア「${ar.name}」を削除しますか?(中の出現地点や建物は残ります)`, '削除する').then(ok => {
+        if (!ok) return; G.areas.splice(G.areas.indexOf(ar), 1); Areas.removeView(ar.id); log(`エリア「${ar.name}」を削除しました`); renderPanel();
+      });
+      return true;
+    }
+    case 'mtEdit': UI.mtEdit = +v; renderPanel(); pb.scrollTop = 0; return true;
+    case 'mtBack': UI.mtEdit = null; renderPanel(); return true;
+    case 'mtNew': {
+      const t = newMonsterType(G.nextId++, { name: `モンスター${G.monsterTypes.length + 1}`, color: MON_COLORS[G.monsterTypes.length % MON_COLORS.length] });
+      G.monsterTypes.push(t); UI.mtEdit = t.id; renderPanel(); pb.scrollTop = 0; return true;
+    }
+    case 'mtCopy': {
+      const s = Monsters.type(UI.mtEdit); if (!s) return true;
+      const t = { ...s, id: G.nextId++, name: s.name + 'の亜種' }; G.monsterTypes.push(t); UI.mtEdit = t.id; renderPanel(); toast('複製しました'); return true;
+    }
+    case 'mtDel': {
+      const t = Monsters.type(UI.mtEdit); if (!t) return true;
+      if (G.monsterTypes.length <= 1) { toast('モンスターの種類は1つ以上必要です', 'warn'); return true; }
+      ask(`「${t.name}」を削除しますか?生息している個体も消え、この種類の出現地点は別の種類に切り替わります。`, '削除する').then(ok => {
+        if (!ok) return;
+        G.monsterTypes.splice(G.monsterTypes.indexOf(t), 1);
+        G.monsters = G.monsters.filter(m => m.t !== t.id);
+        for (const sp of G.objects) if (sp.type === 'spawn' && sp.mt === t.id) { sp.mt = G.monsterTypes[0].id; Monsters.resetSpawn(sp); Objects.refresh(sp); }
+        UI.mtEdit = null; log(`モンスター「${t.name}」を削除しました`); renderPanel();
+      });
+      return true;
+    }
+    case 'mtColor': { const t = Monsters.type(UI.mtEdit); t.color = v; refreshSpawnViews(); renderPanel(); return true; }
+    case 'mtShape': { const t = Monsters.type(UI.mtEdit); t.shape = v; renderPanel(); return true; }
+    case 'mtHab': { const t = Monsters.type(UI.mtEdit); t.habitat = +v; renderPanel(); return true; }
+    case 'mtBoss': { const t = Monsters.type(UI.mtEdit); t.boss = !t.boss; renderPanel(); return true; }
+    case 'spMt': {
+      const sp = G.objects.find(o => o.id === +b.dataset.sp); if (!sp) return true;
+      sp.mt = +v; Monsters.resetSpawn(sp); Objects.refresh(sp); renderPanel(); return true;
+    }
+    case 'spFly': { const sp = G.objects.find(o => o.id === +v); if (sp) { Cam.flyTo(sp.x, sp.z, { dist: Math.min(Cam.dist, 80) }); if (UI.layout === 'portrait') closePanel(); } return true; }
+  }
+  return false;
+}
+pb.addEventListener('click', e => {
+  const s = e.target.closest('[data-step]');
+  if (s) { const key = s.dataset.step, F = FIELDS[key], inp = pb.querySelector(`[data-fld="${key}"]`); if (F && inp) fieldChange(key, +inp.value + F.step * +s.dataset.d); }
+});
+
 
 /* ステータス詳細の展開 */
 $('#status').addEventListener('click', () => {
@@ -1610,6 +2585,7 @@ function uiUpdate() {
   $('#stSat').textContent = G.satisfaction;
   $('#stDate').textContent = gameTimeStr();
   if (!$('#statusDetail').hidden) renderStatusDetail();
+  if (selection && selection.kind === 'monster') renderSelCard();
 }
 
 /* ════════════════════════════════════════════
@@ -1662,12 +2638,50 @@ const Minimap = {
     const c = this.ctx, u = W / 100;
     c.imageSmoothingEnabled = true;
     c.drawImage(this.base, 0, 0, W, W);
-    // 町
+    const big = this.el.classList.contains('big');
+    // エリア
+    for (const a of G.areas) {
+      const [ax, ay] = this.toMap(a.x0, a.z0, W), [bx, by] = this.toMap(a.x1, a.z1, W);
+      c.fillStyle = a.color + '22'; c.fillRect(ax, ay, bx - ax, by - ay);
+      c.strokeStyle = a.color; c.lineWidth = Math.max(1.5, u * .6); c.strokeRect(ax, ay, bx - ax, by - ay);
+      if (big) { c.fillStyle = '#f8f4e8'; c.font = `700 ${Math.round(u * 3.4)}px ${getComputedStyle(document.body).fontFamily}`; c.fillText(a.name, ax + u, ay + u * 4); }
+    }
+    // 道路・橋
+    c.lineCap = 'round';
     for (const o of G.objects) {
-      if (o.type !== 'town') continue;
+      if (o.type !== 'road' && o.type !== 'bridge') continue;
+      const [ax, ay] = this.toMap(o.x0, o.z0, W), [bx, by] = this.toMap(o.x1, o.z1, W);
+      c.strokeStyle = o.type === 'road' ? '#cdb58a' : '#8a6a44'; c.lineWidth = Math.max(1.5, u * 1.1);
+      c.beginPath(); c.moveTo(ax, ay); c.lineTo(bx, by); c.stroke();
+    }
+    // モンスター
+    c.fillStyle = '#ff6a58';
+    const ms = Math.max(1.5, u * .55);
+    for (const m of G.monsters) { const [mx, my] = this.toMap(m.x, m.z, W); c.fillRect(mx - ms / 2, my - ms / 2, ms, ms); }
+    // 建物・出現地点
+    c.strokeStyle = '#1c1406'; c.lineWidth = Math.max(1, u * .6);
+    for (const o of G.objects) {
       const [mx, my] = this.toMap(o.x, o.z, W);
-      c.fillStyle = '#e2a64b'; c.strokeStyle = '#1c1406'; c.lineWidth = Math.max(1, u * .8);
-      c.fillRect(mx - u * 2.6, my - u * 2.6, u * 5.2, u * 5.2); c.strokeRect(mx - u * 2.6, my - u * 2.6, u * 5.2, u * 5.2);
+      if (o.type === 'town' || o.type === 'village') {
+        const r = u * (o.type === 'town' ? 2.6 : 1.8);
+        c.fillStyle = '#e2a64b'; c.fillRect(mx - r, my - r, r * 2, r * 2); c.strokeRect(mx - r, my - r, r * 2, r * 2);
+      } else if (o.type === 'spawn') {
+        c.fillStyle = '#e36b5d'; c.beginPath(); c.arc(mx, my, u * 1.5, 0, Math.PI * 2); c.fill(); c.stroke();
+      } else if (o.type === 'dungeon') {
+        c.fillStyle = '#9b6ad6'; c.beginPath(); c.moveTo(mx, my - u * 2.2); c.lineTo(mx + u * 2, my + u * 1.6); c.lineTo(mx - u * 2, my + u * 1.6); c.closePath(); c.fill(); c.stroke();
+      } else if (o.type === 'inn' || o.type === 'board') {
+        const r = u * 1.1; c.fillStyle = '#f2eee2'; c.fillRect(mx - r, my - r, r * 2, r * 2);
+      }
+    }
+    // 配置中のプレビュー
+    if (mode === 'place' && (Place.pos || Place.p0)) {
+      c.strokeStyle = Place.valid ? '#7cd996' : '#ff5a4a'; c.lineWidth = Math.max(2, u * .8);
+      if (Place.p0 && Place.p1) { const [ax, ay] = this.toMap(Place.p0.x, Place.p0.z, W), [bx, by] = this.toMap(Place.p1.x, Place.p1.z, W); c.beginPath(); c.moveTo(ax, ay); c.lineTo(bx, by); c.stroke(); }
+      else { const p = Place.pos || Place.p0, [mx, my] = this.toMap(p.x, p.z, W); c.beginPath(); c.arc(mx, my, Math.max(u * 1.5, (PLACE_DEFS[Place.type].r || 2) / WORLD * W), 0, Math.PI * 2); c.stroke(); }
+    }
+    if (mode === 'area' && AreaEdit.p0 && AreaEdit.p1) {
+      const r = AreaEdit.rect(), [ax, ay] = this.toMap(r.x0, r.z0, W), [bx, by] = this.toMap(r.x1, r.z1, W);
+      c.strokeStyle = '#5bb8d9'; c.lineWidth = Math.max(2, u * .8); c.setLineDash([u * 2, u * 1.5]); c.strokeRect(ax, ay, bx - ax, by - ay); c.setLineDash([]);
     }
     // ブラシ
     if (mode === 'terrain' && Brush.pt) {
@@ -1732,6 +2746,8 @@ function frame(now) {
   Cam.update(dt);
   Sky.update((G.hour + (SPEEDS[speedIdx] ? clamp(tickAcc, 0, .999) : 0)) % 24);
   Brush.apply(dt);
+  Monsters.update(dt * SPEEDS[speedIdx], dt);
+  if (selection && selection.kind === 'monster') placeSelRing();
   if (Brush.ring.visible) Brush.updateRing();
   if (selRing.visible) selRing.material.opacity = .7 + Math.sin(now / 250) * .25;
   if (now - Minimap.last > 100) { Minimap.last = now; Minimap.draw(); }
@@ -1747,14 +2763,21 @@ function frame(now) {
 function boot() {
   G = newGame(20260926);
   applyQuality(S.quality);
+  Objects.init();
+  Monsters.init();
+  Place.init();
+  AreaEdit.init();
   Scenery.init();
   Minimap.init();
   Objects.rebuildAll();
+  Areas.rebuildAll();
+  for (const sp of G.objects) if (sp.type === 'spawn' && !Monsters.count(sp.id)) Monsters.fill(sp, 4);
   setSpeed(1);
   setMode('view');
   setFollow(null);
   log('サーバー「Arcana Online」を開設しました', 'good');
   log('はじまりの町を中央の島に設置しました');
+  log('エリア「はじまりの草原」(Lv1〜5)にスライムが出現しています');
   uiUpdate();
   Cam.update(0);
   requestAnimationFrame(frame);
@@ -1763,6 +2786,6 @@ function boot() {
 boot();
 
 // デバッグ・後続段階用に参照を公開
-window.__arcana = { get G() { return G; }, Cam, Terrain, Brush, Minimap, setMode, applyQuality, toast };
+window.__arcana = { get G() { return G; }, Cam, Terrain, Brush, Minimap, Objects, Monsters, Place, AreaEdit, Areas, setMode, applyQuality, toast, heightAt, slopeAt };
 })();
 </script>
