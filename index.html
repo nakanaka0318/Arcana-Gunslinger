@@ -1,0 +1,1378 @@
+<title>Arcana Online 運営室</title>
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@500;600&family=Zen+Kaku+Gothic+New:wght@500;700&display=swap">
+<style>
+/* ── トークン:運営コンソール風のダークHUD(単一テーマ) ── */
+:root{
+  --bg:#0e1317;
+  --panel:rgba(17,22,28,.88);
+  --panel-2:rgba(22,28,35,.97);
+  --raise:#252e38;
+  --line:rgba(228,220,198,.15);
+  --ink:#ece6d6;
+  --ink-dim:#a6a192;
+  --accent:#e2a64b;
+  --accent-ink:#1c1406;
+  --edit:#5bb8d9;
+  --good:#7cc98f;
+  --warn:#e6c35a;
+  --bad:#e36b5d;
+  --sat:env(safe-area-inset-top,0px);
+  --sab:env(safe-area-inset-bottom,0px);
+  --sal:env(safe-area-inset-left,0px);
+  --sar:env(safe-area-inset-right,0px);
+  --tb-h:64px;
+  --rail-w:64px;
+  --panel-w:min(40vw,460px);
+  --sheet-h:0px;
+  --ff:'Zen Kaku Gothic New',system-ui,-apple-system,'Hiragino Sans','Noto Sans JP','Yu Gothic',sans-serif;
+  --fm:'IBM Plex Mono',ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+  color-scheme:dark;
+}
+:root{padding:0!important}
+[hidden]{display:none!important}
+html,body{height:100%;margin:0;overflow:hidden;background:var(--bg);overscroll-behavior:none}
+body{position:fixed;inset:0;font:500 14px/1.45 var(--ff);color:var(--ink);
+  -webkit-user-select:none;user-select:none;-webkit-touch-callout:none;-webkit-tap-highlight-color:transparent;
+  -webkit-text-size-adjust:100%;text-size-adjust:100%}
+#gl{position:fixed;inset:0;width:100%;height:100%;display:block;touch-action:none;outline:none}
+#hud{position:fixed;inset:0;pointer-events:none;z-index:2}
+button{font:inherit;color:inherit;background:none;border:0;padding:0;margin:0;min-width:44px;min-height:44px;
+  cursor:pointer;touch-action:manipulation;-webkit-tap-highlight-color:transparent}
+button:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+svg.i{width:24px;height:24px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;flex:none}
+.num{font-family:var(--fm);font-variant-numeric:tabular-nums;font-weight:500}
+.glass{background:var(--panel);border:1px solid var(--line);-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px)}
+
+/* ── 上部バー ── */
+#topbar{position:absolute;top:0;left:0;right:0;display:flex;flex-direction:column;gap:6px;
+  padding:calc(var(--sat) + 6px) calc(var(--sar) + 8px) 0 calc(var(--sal) + 8px);pointer-events:none}
+#status{pointer-events:auto;display:flex;align-items:center;gap:14px;height:44px;padding:0 10px 0 12px;border-radius:12px;
+  white-space:nowrap;overflow:hidden;text-align:left;cursor:pointer}
+.st{display:flex;align-items:baseline;gap:5px;min-width:0}
+.st i{font-style:normal;color:var(--ink-dim);font-size:14px}
+.st b{font:600 15px var(--fm);font-variant-numeric:tabular-nums}
+#status .chev{margin-left:auto;color:var(--ink-dim);width:18px;height:18px}
+#status[aria-expanded="true"] .chev{transform:rotate(180deg)}
+#row2{display:flex;align-items:center;gap:8px;pointer-events:none}
+#speed{pointer-events:auto;display:flex;border-radius:12px;padding:0 2px;height:44px;align-items:center}
+#speed button{min-width:44px;height:44px;display:grid;place-items:center;font:600 14px var(--fm);color:var(--ink-dim);position:relative}
+#speed button span{display:grid;place-items:center;min-width:34px;height:28px;border-radius:8px;padding:0 4px}
+#speed button.on span{background:var(--accent);color:var(--accent-ink)}
+#speed button svg{width:16px;height:16px}
+#mode{pointer-events:auto;display:flex;align-items:center;gap:8px;height:44px;padding:0 6px 0 12px;border-radius:12px;min-width:0}
+#mode .dot{width:9px;height:9px;border-radius:50%;background:var(--good);flex:none;box-shadow:0 0 0 3px rgba(124,201,143,.2)}
+#mode .lbl{font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#mode.editing{border-color:var(--edit);background:rgba(20,48,60,.9)}
+#mode.editing .dot{background:var(--edit);box-shadow:0 0 0 3px rgba(91,184,217,.25)}
+#modeBack{display:none;height:36px;min-height:36px;padding:0 14px;border-radius:9px;background:var(--edit);color:#06202b;font-weight:700;white-space:nowrap}
+#mode.editing #modeBack{display:block}
+#mode{padding-right:12px}
+#mode.editing{padding-right:4px}
+
+#statusDetail{position:absolute;left:calc(var(--sal) + 8px);right:calc(var(--sar) + 8px);top:calc(var(--sat) + 56px);
+  pointer-events:auto;border-radius:12px;padding:12px 14px;display:grid;grid-template-columns:1fr 1fr;gap:10px 16px;z-index:4}
+#statusDetail div{display:flex;flex-direction:column}
+#statusDetail i{font-style:normal;color:var(--ink-dim);font-size:14px}
+#statusDetail b{font:600 16px var(--fm);font-variant-numeric:tabular-nums}
+
+/* ── ツール(縦:タブバー / 横:レール) ── */
+#tools{pointer-events:auto;position:absolute;left:0;right:0;bottom:0;height:calc(var(--tb-h) + var(--sab));
+  padding:0 var(--sar) var(--sab) var(--sal);display:flex;overflow-x:auto;overflow-y:hidden;background:var(--panel-2);
+  border-top:1px solid var(--line);touch-action:pan-x;scrollbar-width:none;z-index:3}
+#tools::-webkit-scrollbar{display:none}
+#tools button{flex:0 0 66px;height:var(--tb-h);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;
+  color:var(--ink-dim);position:relative}
+#tools button .lb{font-size:14px;line-height:1;white-space:nowrap}
+#tools button.on{color:var(--accent)}
+#tools button.on::after{content:"";position:absolute;top:0;left:14px;right:14px;height:3px;border-radius:0 0 3px 3px;background:var(--accent)}
+#tools button.locked{opacity:.4}
+#railTip{position:absolute;pointer-events:none;padding:8px 12px;border-radius:9px;background:var(--raise);border:1px solid var(--line);
+  font-weight:700;white-space:nowrap;z-index:9}
+
+/* ── パネル(縦:ボトムシート / 横:右サイドパネル) ── */
+#panel{pointer-events:auto;position:absolute;left:0;right:0;bottom:calc(var(--tb-h) + var(--sab));height:0;
+  background:var(--panel-2);border-top:1px solid var(--line);border-radius:16px 16px 0 0;display:flex;flex-direction:column;
+  overflow:hidden;visibility:hidden;transition:height .24s cubic-bezier(.2,.8,.2,1),visibility 0s .24s;z-index:2;
+  box-shadow:0 -10px 30px rgba(0,0,0,.35)}
+#panel.open{visibility:visible;transition:height .24s cubic-bezier(.2,.8,.2,1)}
+#panel.dragging{transition:none}
+#ph{flex:none;display:flex;align-items:center;gap:8px;padding:0 6px 0 16px;height:56px;position:relative;touch-action:none;cursor:grab}
+#ph::before{content:"";position:absolute;top:7px;left:50%;width:40px;height:5px;margin-left:-20px;border-radius:3px;background:rgba(228,220,198,.3)}
+#ph h2{margin:0;font-size:17px;font-weight:700;flex:1;padding-top:6px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#ph button{display:grid;place-items:center;color:var(--ink-dim);margin-top:6px}
+#pb{flex:1;overflow-y:auto;overflow-x:hidden;padding:4px 16px calc(20px + var(--sab));touch-action:pan-y;
+  -webkit-overflow-scrolling:touch;overscroll-behavior:contain;display:flex;flex-direction:column;gap:18px}
+
+/* ── カメラボタン ── */
+#camBtns{pointer-events:none;position:absolute;right:calc(var(--sar) + 8px);bottom:calc(var(--tb-h) + var(--sab) + var(--sheet-h) + 8px);transition:bottom .24s cubic-bezier(.2,.8,.2,1);
+  display:flex;flex-direction:column;gap:10px;z-index:1}
+#camBtns button{pointer-events:auto;width:48px;height:48px;border-radius:50%;display:grid;place-items:center;color:var(--ink)}
+#camBtns button.dim{color:var(--ink-dim);opacity:.55}
+#camBtns button.act{color:var(--accent-ink);background:var(--accent);border-color:var(--accent)}
+
+/* ── ログ ── */
+#log{pointer-events:auto;position:absolute;left:calc(var(--sal) + 8px);right:calc(var(--sar) + 70px);
+  bottom:calc(var(--tb-h) + var(--sab) + var(--sheet-h) + 8px);border-radius:10px;padding:0 12px;min-height:44px;
+  display:flex;flex-direction:column;justify-content:center;cursor:pointer;transition:bottom .24s cubic-bezier(.2,.8,.2,1);z-index:1}
+#log .ln{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-size:14px;line-height:1.5}
+#log .ln .t{font:500 13px var(--fm);color:var(--ink-dim);margin-right:8px}
+#log .ln.warn{color:var(--warn)}#log .ln.bad{color:var(--bad)}#log .ln.good{color:var(--good)}
+#log.expanded{max-height:45vh;overflow-y:auto;padding:8px 12px;justify-content:flex-start;touch-action:pan-y}
+#log.expanded .ln{white-space:normal}
+body.sheet-full #log,body.sheet-full #selCard,body.sheet-full #camBtns{display:none}
+body.portrait.panel-open #btnFull{display:none}
+
+/* ── 選択カード ── */
+#selCard{pointer-events:auto;position:absolute;left:calc(var(--sal) + 8px);right:calc(var(--sar) + 70px);
+  bottom:calc(var(--tb-h) + var(--sab) + var(--sheet-h) + 60px);border-radius:12px;padding:10px 6px 8px 14px;z-index:1;
+  transition:bottom .24s cubic-bezier(.2,.8,.2,1)}
+#selCard .hd{display:flex;align-items:center;gap:8px}
+#selCard h3{margin:0;font-size:16px;flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#selCard .kind{font-size:14px;color:var(--accent);white-space:nowrap}
+#selCard dl{margin:4px 8px 6px 0;display:grid;grid-template-columns:auto 1fr;gap:2px 12px}
+#selCard dt{color:var(--ink-dim)}#selCard dd{margin:0;font-family:var(--fm);font-variant-numeric:tabular-nums;text-align:right}
+#selCard .acts{display:flex;gap:8px;flex-wrap:wrap;padding-right:8px}
+
+/* ── トースト / FPS / ダイアログ ── */
+#toasts{position:absolute;left:50%;top:calc(var(--sat) + 108px);transform:translateX(-50%);display:flex;flex-direction:column;
+  align-items:center;gap:6px;pointer-events:none;width:min(92vw,420px);z-index:6}
+.toast{background:var(--raise);border:1px solid var(--line);border-left:4px solid var(--accent);padding:10px 14px;border-radius:10px;
+  font-weight:700;box-shadow:0 8px 24px rgba(0,0,0,.4);animation:tin .25s ease-out;max-width:100%}
+.toast.warn{border-left-color:var(--warn)}.toast.bad{border-left-color:var(--bad)}.toast.good{border-left-color:var(--good)}
+.toast.out{opacity:0;transform:translateY(-6px);transition:.3s}
+@keyframes tin{from{opacity:0;transform:translateY(-8px)}to{opacity:1;transform:none}}
+#fps{position:absolute;left:calc(var(--sal) + 8px);top:calc(var(--sat) + 108px);padding:4px 8px;border-radius:8px;
+  font:600 14px var(--fm);pointer-events:none;z-index:1}
+#dialog{position:absolute;inset:0;background:rgba(5,8,10,.55);display:grid;place-items:center;pointer-events:auto;z-index:20;padding:16px}
+#dialog .box{background:var(--panel-2);border:1px solid var(--line);border-radius:14px;padding:18px;width:min(100%,380px);
+  display:flex;flex-direction:column;gap:14px;box-shadow:0 20px 50px rgba(0,0,0,.5)}
+#dialog p{margin:0;line-height:1.6}
+#dialog .acts{display:flex;gap:10px;justify-content:flex-end;flex-wrap:wrap}
+#bootErr{position:fixed;inset:0;display:grid;place-items:center;padding:24px;text-align:center;z-index:30;background:var(--bg)}
+
+/* ── パネル内部の部品 ── */
+.sec{display:flex;flex-direction:column;gap:10px}
+.sec h4{margin:0;font-size:14px;letter-spacing:.06em;color:var(--ink-dim);font-weight:700}
+.row{display:flex;align-items:center;gap:12px;min-height:44px}
+.row .grow{flex:1;min-width:0}
+.hint{color:var(--ink-dim);font-size:14px;margin:0;line-height:1.6}
+.btn{min-height:44px;padding:0 16px;border-radius:10px;background:var(--raise);border:1px solid var(--line);font-weight:700;
+  display:inline-flex;align-items:center;justify-content:center;gap:8px;white-space:nowrap}
+.btn.pri{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+.btn.sm{min-height:40px;padding:0 12px}
+.seg{display:flex;background:rgba(0,0,0,.25);border:1px solid var(--line);border-radius:11px;padding:3px;gap:3px}
+.seg button{flex:1;min-height:42px;border-radius:8px;font-weight:700;color:var(--ink-dim)}
+.seg button.on{background:var(--accent);color:var(--accent-ink)}
+.sw{width:56px;height:44px;min-width:56px;display:grid;place-items:center}
+.sw::before{content:"";width:48px;height:28px;border-radius:14px;background:var(--raise);border:1px solid var(--line);grid-area:1/1;transition:.2s}
+.sw::after{content:"";width:22px;height:22px;border-radius:50%;background:var(--ink-dim);grid-area:1/1;transform:translateX(-10px);transition:.2s}
+.sw[aria-checked="true"]::before{background:var(--accent);border-color:var(--accent)}
+.sw[aria-checked="true"]::after{background:var(--accent-ink);transform:translateX(10px)}
+.cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:8px}
+.card{background:rgba(255,255,255,.035);border:1px solid var(--line);border-radius:11px;padding:10px 12px;display:flex;flex-direction:column;gap:2px}
+.card i{font-style:normal;color:var(--ink-dim);font-size:14px}
+.card b{font:600 18px var(--fm);font-variant-numeric:tabular-nums}
+.keys{display:grid;grid-template-columns:auto 1fr;gap:6px 14px;margin:0}
+.keys dt{font:600 14px var(--fm);color:var(--accent);white-space:nowrap}
+.keys dd{margin:0}
+.plan{margin:0;padding-left:1.3em;display:flex;flex-direction:column;gap:6px;line-height:1.55}
+.stage{display:inline-block;font:600 13px var(--fm);color:var(--accent-ink);background:var(--accent);border-radius:6px;padding:1px 7px;margin-right:6px}
+
+/* ── 横画面レイアウト ── */
+body.landscape #topbar{flex-direction:row;align-items:center;gap:8px;left:calc(var(--rail-w) + var(--sal));padding-left:8px}
+body.landscape #status{flex:0 1 auto;min-width:0}
+body.landscape #row2{flex:none}
+body.landscape #statusDetail{left:calc(var(--rail-w) + var(--sal) + 8px);right:auto;width:min(420px,60vw)}
+body.landscape #tools{top:0;right:auto;bottom:0;height:auto;width:calc(var(--rail-w) + var(--sal));flex-direction:column;
+  overflow-x:hidden;overflow-y:auto;padding:calc(var(--sat) + 4px) 0 calc(var(--sab) + 4px) var(--sal);border-top:0;border-right:1px solid var(--line);touch-action:pan-y}
+body.landscape #tools button{flex:0 0 52px;width:var(--rail-w);height:52px}
+body.landscape #tools button .lb{display:none}
+body.landscape #tools button.on::after{top:12px;bottom:12px;left:0;right:auto;width:3px;height:auto;border-radius:0 3px 3px 0}
+body.landscape #panel{left:auto;top:calc(var(--sat) + 58px);bottom:0;right:0;width:var(--panel-w);height:auto!important;border-radius:16px 0 0 0;
+  border-top:1px solid var(--line);border-left:1px solid var(--line);padding:0 var(--sar) 0 0;transform:translateX(105%);
+  transition:transform .24s cubic-bezier(.2,.8,.2,1),visibility 0s .24s;box-shadow:-10px 0 30px rgba(0,0,0,.35)}
+body.landscape #panel.open{transform:none;transition:transform .24s cubic-bezier(.2,.8,.2,1)}
+body.landscape #ph{cursor:default}
+body.landscape #ph::before{display:none}
+body.landscape #ph h2,body.landscape #ph button{padding-top:0;margin-top:0}
+body.landscape #camBtns{top:50%;bottom:auto;transform:translateY(-50%)}
+body.landscape.panel-open #camBtns{right:calc(var(--panel-w) + var(--sar) + 8px)}
+body.landscape #log{left:calc(var(--rail-w) + var(--sal) + 8px);right:auto;width:min(380px,38vw);bottom:calc(var(--sab) + 8px);padding:6px 12px}
+body.landscape #log.expanded{max-height:60vh}
+body.landscape #selCard{left:calc(var(--rail-w) + var(--sal) + 8px);right:auto;width:min(340px,40vw);top:calc(var(--sat) + 60px);bottom:auto}
+body.landscape #toasts{top:calc(var(--sat) + 62px)}
+body.landscape #fps{left:auto;right:calc(var(--sar) + 8px);top:calc(var(--sat) + 60px)}
+body.landscape.panel-open #fps{right:calc(var(--panel-w) + var(--sar) + 8px)}
+
+@media (max-width:370px){ body.portrait .st i.opt{display:none} #status{gap:10px} }
+@media (prefers-reduced-motion:reduce){ *{transition:none!important;animation:none!important} }
+</style>
+
+<canvas id="gl" aria-label="ゲームワールド"></canvas>
+
+<div id="hud">
+  <header id="topbar">
+    <button id="status" class="glass" aria-expanded="false" aria-controls="statusDetail">
+      <span class="st"><i class="opt">資金</i><b id="stMoney">10,000G</b></span>
+      <span class="st"><i>加入</i><b id="stSubs">20</b></span>
+      <span class="st"><i>満足</i><b id="stSat">70</b></span>
+      <span class="st"><b id="stDate">1日 08:00</b></span>
+      <svg class="i chev" viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg>
+    </button>
+    <div id="row2">
+      <div id="speed" class="glass" role="group" aria-label="ゲーム速度">
+        <button data-speed="0" aria-label="一時停止"><span><svg class="i" viewBox="0 0 24 24"><path d="M8 5v14M16 5v14" stroke-width="3"/></svg></span></button>
+        <button data-speed="1" aria-label="1倍速"><span>1×</span></button>
+        <button data-speed="2" aria-label="4倍速"><span>4×</span></button>
+        <button data-speed="3" aria-label="16倍速"><span>16×</span></button>
+      </div>
+      <div id="mode" class="glass" aria-live="polite"><span class="dot"></span><span class="lbl" id="modeLbl">閲覧モード</span><button id="modeBack">閲覧に戻る</button></div>
+    </div>
+  </header>
+  <div id="statusDetail" class="glass" hidden></div>
+
+  <div id="toasts" aria-live="polite"></div>
+  <div id="fps" class="glass num" hidden>-- fps</div>
+
+  <div id="camBtns">
+    <button id="btnHome" class="glass" aria-label="初期視点へ戻る"><svg class="i" viewBox="0 0 24 24"><path d="M3 11l9-7 9 7"/><path d="M6 9.5V20h12V9.5"/><path d="M10 20v-5h4v5"/></svg></button>
+    <button id="btnUnfollow" class="glass dim" aria-label="追従解除"><svg class="i" viewBox="0 0 24 24"><circle cx="12" cy="12" r="7"/><circle cx="12" cy="12" r="2.2"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/><path d="M4 4l16 16"/></svg></button>
+    <button id="btnFull" class="glass" aria-label="全画面" hidden><svg class="i" viewBox="0 0 24 24"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/></svg></button>
+  </div>
+
+  <div id="log" class="glass" role="log" aria-label="ログ"></div>
+
+  <div id="selCard" class="glass" hidden></div>
+
+  <section id="panel" aria-labelledby="panelTitle">
+    <div id="ph"><h2 id="panelTitle">パネル</h2>
+      <button id="panelClose" aria-label="閉じる"><svg class="i" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg></button></div>
+    <div id="pb"></div>
+  </section>
+
+  <nav id="tools" aria-label="ツール"></nav>
+  <div id="railTip" hidden></div>
+  <div id="dialog" hidden><div class="box" role="dialog" aria-modal="true"><p id="dlgMsg"></p><div class="acts" id="dlgActs"></div></div></div>
+</div>
+<div id="bootErr" hidden><div><p>3D描画ライブラリ(Three.js)を読み込めませんでした。</p><p class="hint">通信環境を確認して再読み込みしてください。</p></div></div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script>
+(() => {
+'use strict';
+if (!window.THREE) { document.getElementById('bootErr').hidden = false; return; }
+
+/* ════════════════════════════════════════════
+   基本ユーティリティ
+   ════════════════════════════════════════════ */
+const $ = s => document.querySelector(s);
+const clamp = (v, a, b) => v < a ? a : v > b ? b : v;
+const lerp = (a, b, t) => a + (b - a) * t;
+const smooth = (a, b, x) => { const t = clamp((x - a) / (b - a), 0, 1); return t * t * (3 - 2 * t); };
+const DEG = Math.PI / 180;
+const fmt = n => Math.round(n).toLocaleString('ja-JP');
+const pad2 = n => String(n).padStart(2, '0');
+
+function hash2(x, y, s) {
+  let h = Math.imul(x | 0, 374761393) ^ Math.imul(y | 0, 668265263) ^ Math.imul(s | 0, 1442695041);
+  h = Math.imul(h ^ (h >>> 13), 1274126177); h ^= h >>> 16;
+  return (h >>> 0) / 4294967296;
+}
+function vnoise(x, y, s) {
+  const xi = Math.floor(x), yi = Math.floor(y), xf = x - xi, yf = y - yi;
+  const u = xf * xf * (3 - 2 * xf), v = yf * yf * (3 - 2 * yf);
+  return lerp(lerp(hash2(xi, yi, s), hash2(xi + 1, yi, s), u), lerp(hash2(xi, yi + 1, s), hash2(xi + 1, yi + 1, s), u), v);
+}
+function fbm(x, y, s, oct = 4) {
+  let v = 0, a = .5, f = 1, n = 0;
+  for (let i = 0; i < oct; i++) { v += a * vnoise(x * f, y * f, s + i * 17); n += a; a *= .5; f *= 2; }
+  return v / n;
+}
+
+/* ════════════════════════════════════════════
+   定数・画質設定
+   ════════════════════════════════════════════ */
+const WORLD = 256, HALF = WORLD / 2, DN = 129, CELL = WORLD / (DN - 1), SEA_FLOOR = -14;
+const TOWN0 = { x: 0, z: 14 };
+const IS_MOBILE = matchMedia('(pointer: coarse)').matches || /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+const TARGET_FPS = IS_MOBILE ? 30 : 60;
+const QUALITY = {
+  low:  { label: '低', pr: 1,   shadow: false, res: 64,  npc: 100, fog: 170 },
+  mid:  { label: '中', pr: 1.5, shadow: false, res: 96,  npc: 200, fog: 300 },
+  high: { label: '高', pr: 2,   shadow: true,  res: 128, npc: 300, fog: 440 },
+};
+const Q_ORDER = ['low', 'mid', 'high'];
+function autoQuality() {
+  const cores = navigator.hardwareConcurrency || 4, mem = navigator.deviceMemory || 4;
+  if (IS_MOBILE) return (mem <= 2 || cores <= 2) ? 'low' : 'mid';
+  return (cores <= 4 || mem <= 4 || (devicePixelRatio || 1) > 2.5) ? 'mid' : 'high';
+}
+const SPEEDS = [0, 1, 4, 16];
+const TICK_SEC = 1.0; // 1倍速:実時間1秒 = ゲーム内1時間(1ティック)
+
+// 画面設定(セーブ対象外)
+const S = { quality: autoQuality(), showFps: false };
+
+/* ════════════════════════════════════════════
+   ゲーム状態
+   ════════════════════════════════════════════ */
+const TT_NAMES = ['草原', '森', '砂漠', '雪原', '沼地'];
+let G = null;
+
+function newGame(seed) {
+  const g = {
+    version: 1, seed, day: 1, hour: 8,
+    money: 10000, subscribers: 20, satisfaction: 70, research: 0,
+    terrain: { n: DN, h: new Float32Array(DN * DN), t: new Uint8Array(DN * DN) },
+    objects: [], nextId: 1, logs: [],
+  };
+  generateIsland(g);
+  g.objects.push({ id: g.nextId++, type: 'town', name: 'はじまりの町', x: TOWN0.x, z: TOWN0.z, rot: 0 });
+  return g;
+}
+
+function generateIsland(g) {
+  const H = g.terrain.h, T = g.terrain.t, s = g.seed;
+  for (let iz = 0; iz < DN; iz++) for (let ix = 0; ix < DN; ix++) {
+    const x = -HALF + ix * CELL, z = -HALF + iz * CELL, nx = x / HALF, nz = z / HALF, i = iz * DN + ix;
+    const d = Math.hypot(nx * 1.05, nz) + (fbm(x * .012, z * .012, s) - .5) * .5;
+    const island = 1 - smooth(.3, .82, d);
+    let h = -13 + island * 16;
+    h += island * (fbm(x * .04, z * .04, s + 5) - .5) * 9;
+    const m = Math.max(0, fbm(x * .02 + 40, z * .02, s + 9) - .44) * 2.6;
+    const north = smooth(.2, -.4, nz);
+    h += island * island * m * 70 * (.25 + .75 * north);
+    const td = Math.hypot(x - TOWN0.x, z - TOWN0.z);
+    h = lerp(h, 2.6, smooth(26, 12, td));
+    H[i] = clamp(h, SEA_FLOOR, 48);
+    let t = 0;
+    if (td > 28 && H[i] > 1.2 && H[i] < 20 && fbm(x * .035 + 200, z * .035, s + 23) > .56) t = 1;
+    else if (td > 28 && H[i] > .3 && H[i] < 2.4 && fbm(x * .05 + 300, z * .05, s + 31) > .64) t = 4;
+    T[i] = t;
+  }
+}
+
+function heightAt(x, z) {
+  const gx = (x + HALF) / CELL, gz = (z + HALF) / CELL;
+  if (gx < 0 || gz < 0 || gx > DN - 1 || gz > DN - 1) return SEA_FLOOR;
+  const ix = Math.min(DN - 2, gx | 0), iz = Math.min(DN - 2, gz | 0), fx = gx - ix, fz = gz - iz;
+  const H = G.terrain.h, i = iz * DN + ix;
+  return lerp(lerp(H[i], H[i + 1], fx), lerp(H[i + DN], H[i + DN + 1], fx), fz);
+}
+function slopeAt(x, z) {
+  const dx = (heightAt(x + 1, z) - heightAt(x - 1, z)) / 2, dz = (heightAt(x, z + 1) - heightAt(x, z - 1)) / 2;
+  return Math.hypot(dx, dz);
+}
+function typeAt(x, z) {
+  const ix = clamp(Math.round((x + HALF) / CELL), 0, DN - 1), iz = clamp(Math.round((z + HALF) / CELL), 0, DN - 1);
+  return G.terrain.t[iz * DN + ix];
+}
+function gameTimeStr(day = G.day, hour = G.hour) { return `${day}日 ${pad2(Math.floor(hour))}:00`; }
+
+/* ════════════════════════════════════════════
+   Three.js 基盤
+   ════════════════════════════════════════════ */
+const canvas = $('#gl');
+const renderer = new THREE.WebGLRenderer({ canvas, antialias: S.quality !== 'low', powerPreference: 'high-performance' });
+renderer.shadowMap.type = THREE.PCFShadowMap;
+const scene = new THREE.Scene();
+const camera = new THREE.PerspectiveCamera(50, innerWidth / innerHeight, 1, 3200);
+scene.fog = new THREE.Fog(0xbcd9ee, 200, 600);
+
+const amb = new THREE.AmbientLight(0xffffff, .5);
+const sun = new THREE.DirectionalLight(0xffffff, 1);
+sun.shadow.mapSize.set(1024, 1024);
+sun.shadow.camera.near = 10; sun.shadow.camera.far = 700;
+sun.shadow.bias = -0.0006;
+scene.add(amb, sun, sun.target);
+
+// 空:背景色のグラデーション(カメラ追従の天球)
+const skyMat = new THREE.ShaderMaterial({
+  uniforms: { top: { value: new THREE.Color() }, hor: { value: new THREE.Color() }, bot: { value: new THREE.Color() } },
+  vertexShader: 'varying vec3 vP; void main(){ vP = normalize(position); gl_Position = projectionMatrix * modelViewMatrix * vec4(position,1.0); }',
+  fragmentShader: 'uniform vec3 top; uniform vec3 hor; uniform vec3 bot; varying vec3 vP; void main(){ float y = vP.y; vec3 c = y > 0.0 ? mix(hor, top, pow(clamp(y,0.0,1.0), 0.55)) : mix(hor, bot, clamp(-y*5.0,0.0,1.0)); gl_FragColor = vec4(c,1.0); }',
+  side: THREE.BackSide, depthWrite: false,
+});
+const sky = new THREE.Mesh(new THREE.SphereGeometry(1400, 24, 12), skyMat);
+sky.renderOrder = -1; sky.frustumCulled = false;
+scene.add(sky);
+
+// 海面と海底の下敷き
+const waterMat = new THREE.MeshLambertMaterial({ color: 0x2b7ea6, transparent: true, opacity: .72 });
+const water = new THREE.Mesh(new THREE.PlaneGeometry(3000, 3000), waterMat);
+water.rotation.x = -Math.PI / 2; water.renderOrder = 1; water.receiveShadow = true;
+const seabed = new THREE.Mesh(new THREE.PlaneGeometry(3000, 3000), new THREE.MeshLambertMaterial({ color: 0x5b5240 }));
+seabed.rotation.x = -Math.PI / 2; seabed.position.y = SEA_FLOOR - .3;
+scene.add(water, seabed);
+
+// 共有ジオメトリ・マテリアル(毎フレーム生成しない)
+const GEO = {
+  boxB: new THREE.BoxGeometry(1, 1, 1).translate(0, .5, 0),
+  box: new THREE.BoxGeometry(1, 1, 1),
+  roof: new THREE.ConeGeometry(.75, 1, 4).rotateY(Math.PI / 4).translate(0, .5, 0),
+  cylB: new THREE.CylinderGeometry(.5, .5, 1, 10).translate(0, .5, 0),
+  coneB: new THREE.ConeGeometry(.5, 1, 10).translate(0, .5, 0),
+  trunk: new THREE.CylinderGeometry(.22, .32, 1.6, 5).translate(0, .8, 0),
+  canopy: new THREE.ConeGeometry(1.4, 3.4, 6).translate(0, 3.0, 0),
+  ring: new THREE.RingGeometry(.86, 1, 48).rotateX(-Math.PI / 2),
+};
+const MAT = {
+  terrain: new THREE.MeshLambertMaterial({ vertexColors: true }),
+  walls: [0xd9ccb0, 0xc7b393, 0xe4dac7].map(c => new THREE.MeshLambertMaterial({ color: c })),
+  roofs: [0x9c4a3a, 0x566c8a, 0x7b5a3a].map(c => new THREE.MeshLambertMaterial({ color: c })),
+  stone: new THREE.MeshLambertMaterial({ color: 0x8f8a80 }),
+  paving: new THREE.MeshLambertMaterial({ color: 0xb3a994 }),
+  window: new THREE.MeshLambertMaterial({ color: 0x33343d, emissive: 0x000000 }),
+  trunk: new THREE.MeshLambertMaterial({ color: 0x6b4a2e }),
+  canopy: new THREE.MeshLambertMaterial({ color: 0xffffff }),
+  sel: new THREE.MeshBasicMaterial({ color: 0xe2a64b, transparent: true, opacity: .95, depthTest: false }),
+};
+
+/* ════════════════════════════════════════════
+   地形メッシュ(高さマップ → 画質に応じた頂点数で描画)
+   ════════════════════════════════════════════ */
+const COL = {
+  deep: new THREE.Color(0x6c6045), sand: new THREE.Color(0xc9b27f), beach: new THREE.Color(0xdcc995),
+  grass: new THREE.Color(0x6a9a43), dirt: new THREE.Color(0x8b7250), rock: new THREE.Color(0x7b766d), snow: new THREE.Color(0xeef2f5),
+};
+const TYPE_COL = [null, new THREE.Color(0x3f6a2f), new THREE.Color(0xd8bf7e), new THREE.Color(0xe4ebf0), new THREE.Color(0x4f5b38)];
+const _c = new THREE.Color();
+function terrainColor(h, type, slope, jit, out) {
+  if (h < 0) {
+    out.copy(COL.deep).lerp(COL.sand, smooth(-12, -.4, h));
+  } else {
+    out.copy(COL.beach).lerp(COL.grass, smooth(.6, 1.6, h));
+    if (type) out.lerp(TYPE_COL[type], .85 * smooth(.6, 1.4, h));
+    out.lerp(COL.dirt, smooth(11, 19, h));
+    out.lerp(COL.rock, smooth(19, 27, h));
+    out.lerp(COL.rock, smooth(.9, 1.6, slope) * .8);
+    out.lerp(COL.snow, smooth(30, 35, h));
+  }
+  return out.multiplyScalar(.94 + jit * .12);
+}
+
+const Terrain = {
+  mesh: null, geo: null, res: 0,
+  build(res) {
+    if (this.mesh) { scene.remove(this.mesh); this.geo.dispose(); }
+    this.res = res;
+    const geo = new THREE.PlaneGeometry(WORLD, WORLD, res - 1, res - 1);
+    geo.rotateX(-Math.PI / 2);
+    geo.setAttribute('color', new THREE.BufferAttribute(new Float32Array(res * res * 3), 3));
+    this.geo = geo;
+    this.mesh = new THREE.Mesh(geo, MAT.terrain);
+    this.mesh.receiveShadow = true;
+    scene.add(this.mesh);
+    this.refresh();
+  },
+  // 範囲指定(ワールド座標)で頂点の高さと色を更新。normals=false で法線再計算を間引く
+  refresh(x0 = -HALF, z0 = -HALF, x1 = HALF, z1 = HALF, normals = true) {
+    const n = this.res, step = WORLD / (n - 1);
+    const pos = this.geo.attributes.position.array, col = this.geo.attributes.color.array;
+    const i0 = clamp(Math.floor((x0 + HALF) / step) - 1, 0, n - 1), i1 = clamp(Math.ceil((x1 + HALF) / step) + 1, 0, n - 1);
+    const j0 = clamp(Math.floor((z0 + HALF) / step) - 1, 0, n - 1), j1 = clamp(Math.ceil((z1 + HALF) / step) + 1, 0, n - 1);
+    for (let j = j0; j <= j1; j++) for (let i = i0; i <= i1; i++) {
+      const k = j * n + i, x = pos[k * 3], z = pos[k * 3 + 2];
+      const h = heightAt(x, z);
+      pos[k * 3 + 1] = h;
+      terrainColor(h, typeAt(x, z), slopeAt(x, z), hash2(i, j, 99), _c);
+      col[k * 3] = _c.r; col[k * 3 + 1] = _c.g; col[k * 3 + 2] = _c.b;
+    }
+    this.geo.attributes.position.needsUpdate = true;
+    this.geo.attributes.color.needsUpdate = true;
+    if (normals) this.finalize();
+  },
+  finalize() { this.geo.computeVertexNormals(); this.geo.computeBoundingSphere(); this.geo.computeBoundingBox(); },
+};
+
+/* ════════════════════════════════════════════
+   景観:森の木々(InstancedMesh)
+   ════════════════════════════════════════════ */
+const Scenery = {
+  max: 5000, trunks: null, canopies: null,
+  init() {
+    this.trunks = new THREE.InstancedMesh(GEO.trunk, MAT.trunk, this.max);
+    this.canopies = new THREE.InstancedMesh(GEO.canopy, MAT.canopy, this.max);
+    for (const m of [this.trunks, this.canopies]) { m.castShadow = true; m.receiveShadow = true; scene.add(m); }
+    this.rebuild();
+  },
+  rebuild() {
+    const T = G.terrain.t, s = G.seed, o = new THREE.Object3D(), c = new THREE.Color();
+    let n = 0;
+    for (let iz = 0; iz < DN && n < this.max; iz++) for (let ix = 0; ix < DN && n < this.max; ix++) {
+      const t = T[iz * DN + ix], r = hash2(ix, iz, s + 7);
+      const want = t === 1 ? r < .5 : t === 0 ? r < .012 : t === 4 ? r < .05 : false;
+      if (!want) continue;
+      const x = -HALF + ix * CELL + (hash2(ix, iz, s + 8) - .5) * CELL, z = -HALF + iz * CELL + (hash2(ix, iz, s + 9) - .5) * CELL;
+      const h = heightAt(x, z);
+      if (h < .7 || slopeAt(x, z) > 1.0) continue;
+      const sc = .75 + hash2(ix, iz, s + 10) * .7;
+      o.position.set(x, h - .1, z); o.rotation.set(0, r * 40, 0); o.scale.set(sc, sc * (t === 4 ? .7 : 1), sc);
+      o.updateMatrix();
+      this.trunks.setMatrixAt(n, o.matrix); this.canopies.setMatrixAt(n, o.matrix);
+      c.setHSL(.27 + hash2(ix, iz, s + 11) * .07, .45, (t === 4 ? .22 : .25) + hash2(ix, iz, s + 12) * .08);
+      this.canopies.setColorAt(n, c);
+      n++;
+    }
+    this.trunks.count = this.canopies.count = n;
+    this.trunks.instanceMatrix.needsUpdate = this.canopies.instanceMatrix.needsUpdate = true;
+    if (this.canopies.instanceColor) this.canopies.instanceColor.needsUpdate = true;
+  },
+};
+
+/* ════════════════════════════════════════════
+   配置物(段階①:町のみ)
+   ════════════════════════════════════════════ */
+const Objects = {
+  views: new Map(), // id -> THREE.Group
+  radius: { town: 13 },
+  build(obj) {
+    const g = new THREE.Group();
+    if (obj.type === 'town') this.buildTown(g, obj);
+    g.traverse(m => { if (m.isMesh) { m.castShadow = true; m.receiveShadow = true; } });
+    scene.add(g); this.views.set(obj.id, g);
+  },
+  buildTown(g, obj) {
+    const cos = Math.cos(obj.rot), sin = Math.sin(obj.rot);
+    const place = (m, lx, lz, yOff = 0) => {
+      const wx = obj.x + lx * cos + lz * sin, wz = obj.z - lx * sin + lz * cos;
+      m.position.set(wx, heightAt(wx, wz) + yOff, wz); g.add(m); return m;
+    };
+    const mesh = (geo, mat, sx, sy, sz) => { const m = new THREE.Mesh(geo, mat); m.scale.set(sx, sy, sz); return m; };
+    // 広場・中央の塔
+    place(mesh(GEO.cylB, MAT.paving, 9, .25, 9), 0, 0, -.1);
+    place(mesh(GEO.cylB, MAT.stone, 2.4, 7, 2.4), 0, 0);
+    place(mesh(GEO.coneB, MAT.roofs[0], 3.3, 3, 3.3), 0, 0, 7);
+    for (const a of [0, Math.PI]) {
+      const w = place(mesh(GEO.box, MAT.window, .5, .8, .5), Math.sin(a) * 1.05, Math.cos(a) * 1.05, 5);
+      w.rotation.y = a; w.scale.set(.5, .8, .12);
+    }
+    // 家々
+    const N = 9;
+    for (let k = 0; k < N; k++) {
+      const a = k / N * Math.PI * 2 + hash2(obj.id, k, 1) * .4, r = 6.8 + hash2(obj.id, k, 2) * 3.5;
+      const lx = Math.sin(a) * r, lz = Math.cos(a) * r;
+      const w = 2.4 + hash2(obj.id, k, 3) * 1.2, h = 1.9 + hash2(obj.id, k, 4) * 1.1, d = 2.2 + hash2(obj.id, k, 5) * 1;
+      const house = new THREE.Group();
+      house.add(mesh(GEO.boxB, MAT.walls[k % 3], w, h, d));
+      const roof = mesh(GEO.roof, MAT.roofs[(k + 1) % 3], w, 1.4, d); roof.position.y = h; house.add(roof);
+      for (const sx of [-.26, .26]) {
+        const win = mesh(GEO.box, MAT.window, .42, .55, .08); win.position.set(sx * w, h * .55, d / 2 + .02); house.add(win);
+      }
+      const door = mesh(GEO.boxB, MAT.roofs[2], .5, .95, .08); door.position.set(0, 0, d / 2 + .02); house.add(door);
+      place(house, lx, lz, -.05);
+      house.rotation.y = Math.atan2(-lx, -lz) + obj.rot;
+    }
+  },
+  rebuildAll() {
+    for (const g of this.views.values()) scene.remove(g);
+    this.views.clear();
+    for (const o of G.objects) this.build(o);
+  },
+  pick(x, z) {
+    let best = null, bd = Infinity;
+    for (const o of G.objects) {
+      const d = Math.hypot(o.x - x, o.z - z), r = this.radius[o.type] || 4;
+      if (d < r && d < bd) { bd = d; best = o; }
+    }
+    return best;
+  },
+};
+
+// 選択リング
+const selRing = new THREE.Mesh(GEO.ring, MAT.sel);
+selRing.renderOrder = 10; selRing.visible = false;
+scene.add(selRing);
+
+/* ════════════════════════════════════════════
+   昼夜サイクル・照明
+   ════════════════════════════════════════════ */
+// [時刻, 空(上), 空(地平), 太陽色, 太陽強度, 環境光色, 環境光強度, 窓の灯り]
+const SKY_KEYS = [
+  [0,    0x0a0f1e, 0x1b2440, 0x9fb2e0, .22, 0x34406a, .36, 1],
+  [4.8,  0x0a0f1e, 0x1b2440, 0x9fb2e0, .22, 0x34406a, .36, 1],
+  [6,    0x34466f, 0xe79a67, 0xffa868, .35, 0x7a6f88, .42, .7],
+  [7.2,  0x4a82c2, 0xf2c49a, 0xffd2a0, .8,  0xa7aec0, .5, .1],
+  [9,    0x4d8fd2, 0xbfdcef, 0xfff3dc, 1.0, 0xb9c8d8, .55, 0],
+  [16,   0x4d8fd2, 0xbfdcef, 0xfff3dc, 1.0, 0xb9c8d8, .55, 0],
+  [17.2, 0x4a67a0, 0xf4b27c, 0xffb070, .75, 0x9d8a92, .48, .2],
+  [18,   0x33406e, 0xef8c56, 0xff8d4d, .35, 0x7d6c86, .42, .7],
+  [19.3, 0x141a36, 0x3b3358, 0x9fb2e0, .22, 0x38416c, .37, 1],
+  [24,   0x0a0f1e, 0x1b2440, 0x9fb2e0, .22, 0x34406a, .36, 1],
+];
+const _ca = new THREE.Color(), _cb = new THREE.Color(), _sunDir = new THREE.Vector3();
+function lerpHex(a, b, t, out) { return out.setHex(a).lerp(_cb.setHex(b), t); }
+const Sky = {
+  hor: new THREE.Color(), glow: 0,
+  update(hour) {
+    let k = 0; while (k < SKY_KEYS.length - 2 && hour >= SKY_KEYS[k + 1][0]) k++;
+    const A = SKY_KEYS[k], B = SKY_KEYS[k + 1], t = clamp((hour - A[0]) / (B[0] - A[0]), 0, 1);
+    lerpHex(A[1], B[1], t, skyMat.uniforms.top.value);
+    lerpHex(A[2], B[2], t, this.hor);
+    skyMat.uniforms.hor.value.copy(this.hor);
+    skyMat.uniforms.bot.value.copy(this.hor).multiplyScalar(.75);
+    scene.fog.color.copy(this.hor);
+    lerpHex(A[3], B[3], t, sun.color); sun.intensity = lerp(A[4], B[4], t);
+    lerpHex(A[5], B[5], t, amb.color); amb.intensity = lerp(A[6], B[6], t);
+    this.glow = lerp(A[7], B[7], t);
+    MAT.window.emissive.setRGB(1.0 * this.glow, .76 * this.glow, .4 * this.glow);
+    // 太陽(6〜18時)/月(夜間)の方向
+    const day = hour >= 6 && hour < 18;
+    const a = day ? (hour - 6) / 12 * Math.PI : ((hour + 6) % 24) / 12 * Math.PI;
+    if (day) _sunDir.set(Math.cos(a), Math.sin(a) * .95 + .1, .45);
+    else _sunDir.set(Math.cos(a), Math.sin(a) * .75 + .15, -.35);
+    _sunDir.normalize();
+    const T = Cam.target, span = clamp(Cam.dist * .95, 36, 200);
+    sun.position.set(T.x + _sunDir.x * 300, T.y + _sunDir.y * 300, T.z + _sunDir.z * 300);
+    sun.target.position.copy(T); sun.target.updateMatrixWorld();
+    const sc = sun.shadow.camera;
+    if (sun.castShadow && Math.abs(sc.right - span) > 2) {
+      sc.left = -span; sc.right = span; sc.top = span; sc.bottom = -span; sc.updateProjectionMatrix();
+    }
+  },
+};
+
+/* ════════════════════════════════════════════
+   神視点カメラ
+   ════════════════════════════════════════════ */
+const HOME = { yaw: .62, pitch: 52, dist: 175 };
+const Cam = {
+  target: new THREE.Vector3(TOWN0.x, 3, TOWN0.z),
+  yaw: HOME.yaw, pitch: HOME.pitch, dist: HOME.dist,
+  vel: new THREE.Vector2(), yawVel: 0, dragging: false,
+  anim: null, follow: null, keys: new Set(),
+  unitsPerPx() { return 2 * this.dist * Math.tan(camera.fov / 2 * DEG) / Math.max(1, innerHeight); },
+  // 画面上の移動量(px)で地面をパン。移動量はズーム距離に比例
+  panPixels(dx, dy) {
+    const k = this.unitsPerPx(), sp = 1 / Math.max(.55, Math.sin(this.pitch * DEG));
+    const c = Math.cos(this.yaw), s = Math.sin(this.yaw);
+    const mx = (-dx * c - dy * s * sp) * k, mz = (dx * s - dy * c * sp) * k;
+    this.target.x += mx; this.target.z += mz;
+    this.anim = null;
+    if (this.follow) setFollow(null);
+    return [mx, mz];
+  },
+  rotate(dYaw, dPitch) { this.yaw += dYaw; this.pitch = clamp(this.pitch + dPitch, 15, 85); },
+  zoomAt(factor, sx, sy) {
+    const nd = clamp(this.dist * factor, 10, 400);
+    if (sx !== undefined && !this.follow) {
+      const p = pickGround(sx, sy);
+      if (p) { const t = 1 - nd / this.dist; this.target.x += (p.x - this.target.x) * t; this.target.z += (p.z - this.target.z) * t; }
+    }
+    this.dist = nd;
+  },
+  flyTo(x, z, opts = {}) {
+    this.vel.set(0, 0); this.yawVel = 0;
+    this.anim = { t: 0, fx: this.target.x, fz: this.target.z, tx: x, tz: z, fd: this.dist, td: opts.dist ?? this.dist,
+      fy: this.yaw, ty: opts.yaw ?? this.yaw, fp: this.pitch, tp: opts.pitch ?? this.pitch };
+  },
+  home() {
+    setFollow(null);
+    const t = G.objects.find(o => o.type === 'town') || { x: 0, z: 0 };
+    let ty = HOME.yaw; while (ty - this.yaw > Math.PI) ty -= Math.PI * 2; while (this.yaw - ty > Math.PI) ty += Math.PI * 2;
+    this.flyTo(t.x, t.z, { dist: HOME.dist, yaw: ty, pitch: HOME.pitch });
+  },
+  update(dt) {
+    if (this.anim) {
+      const A = this.anim; A.t = Math.min(1, A.t + dt / .7);
+      const e = A.t < .5 ? 2 * A.t * A.t : 1 - Math.pow(-2 * A.t + 2, 2) / 2;
+      this.target.x = lerp(A.fx, A.tx, e); this.target.z = lerp(A.fz, A.tz, e);
+      this.dist = lerp(A.fd, A.td, e); this.yaw = lerp(A.fy, A.ty, e); this.pitch = lerp(A.fp, A.tp, e);
+      if (A.t >= 1) this.anim = null;
+    } else if (this.follow) {
+      const p = this.follow.getPos();
+      if (!p) setFollow(null);
+      else { const f = 1 - Math.exp(-dt * 6); this.target.x += (p.x - this.target.x) * f; this.target.z += (p.z - this.target.z) * f; }
+    }
+    if (!this.dragging) {
+      if (this.vel.lengthSq() > 1e-4) {
+        this.target.x += this.vel.x * dt; this.target.z += this.vel.y * dt;
+        this.vel.multiplyScalar(Math.exp(-dt * 3.2));
+      }
+      if (Math.abs(this.yawVel) > 1e-4) { this.yaw += this.yawVel * dt; this.yawVel *= Math.exp(-dt * 4); }
+    }
+    // キーボード
+    if (this.keys.size) {
+      const K = this.keys, sp = this.dist * .9 * dt / this.unitsPerPx();
+      let dx = 0, dy = 0;
+      if (K.has('a') || K.has('arrowleft')) dx += sp;
+      if (K.has('d') || K.has('arrowright')) dx -= sp;
+      if (K.has('w') || K.has('arrowup')) dy += sp;
+      if (K.has('s') || K.has('arrowdown')) dy -= sp;
+      if (dx || dy) this.panPixels(dx, dy);
+      if (K.has('q')) this.yaw -= 1.4 * dt;
+      if (K.has('e')) this.yaw += 1.4 * dt;
+      if (K.has('r')) this.pitch = clamp(this.pitch + 40 * dt, 15, 85);
+      if (K.has('f')) this.pitch = clamp(this.pitch - 40 * dt, 15, 85);
+    }
+    this.target.x = clamp(this.target.x, -HALF - 20, HALF + 20);
+    this.target.z = clamp(this.target.z, -HALF - 20, HALF + 20);
+    const gy = Math.max(0, heightAt(this.target.x, this.target.z));
+    this.target.y += (gy - this.target.y) * (1 - Math.exp(-dt * 8));
+    const p = this.pitch * DEG, cp = Math.cos(p) * this.dist;
+    camera.position.set(this.target.x + Math.sin(this.yaw) * cp, this.target.y + Math.sin(p) * this.dist, this.target.z + Math.cos(this.yaw) * cp);
+    const floor = Math.max(0, heightAt(camera.position.x, camera.position.z)) + 3;
+    if (camera.position.y < floor) camera.position.y = floor;
+    camera.lookAt(this.target);
+    sky.position.copy(camera.position);
+    const q = QUALITY[S.quality];
+    scene.fog.near = this.dist * .55 + 20;
+    scene.fog.far = this.dist * 1.15 + q.fog;
+  },
+};
+
+function setFollow(f) {
+  Cam.follow = f;
+  const b = $('#btnUnfollow');
+  b.classList.toggle('dim', !f); b.classList.toggle('act', !!f);
+}
+
+/* ════════════════════════════════════════════
+   レイキャスト(地面上の位置取得)
+   ════════════════════════════════════════════ */
+const raycaster = new THREE.Raycaster(), _ndc = new THREE.Vector2(), _plane = new THREE.Plane(new THREE.Vector3(0, 1, 0), 0), _hit = new THREE.Vector3();
+function pickGround(sx, sy) {
+  _ndc.set(sx / innerWidth * 2 - 1, -(sy / innerHeight) * 2 + 1);
+  raycaster.setFromCamera(_ndc, camera);
+  const hits = raycaster.intersectObject(Terrain.mesh, false);
+  if (hits.length) {
+    const p = hits[0].point;
+    if (p.y >= 0) return { x: p.x, z: p.z, y: p.y, water: false };
+  }
+  // 海面(y=0)との交点
+  if (raycaster.ray.intersectPlane(_plane, _hit)) return { x: _hit.x, z: _hit.z, y: 0, water: heightAt(_hit.x, _hit.z) < 0 };
+  return null;
+}
+
+/* ════════════════════════════════════════════
+   操作モード(段階②以降で編集モードを追加)
+   ════════════════════════════════════════════ */
+const MODES = { view: '閲覧モード', terrain: '地形編集中', place: '配置中', area: 'エリア設定中' };
+let mode = 'view';
+const Edit = { down() {}, move() {}, up() {}, cancel() {} }; // 編集ハンドラ(段階②で実装)
+function setMode(m) {
+  if (mode !== 'view' && m !== mode) Edit.cancel();
+  mode = m;
+  $('#modeLbl').textContent = MODES[m];
+  $('#mode').classList.toggle('editing', m !== 'view');
+}
+$('#modeBack').addEventListener('click', () => setMode('view'));
+
+/* ════════════════════════════════════════════
+   入力:Pointer Events でタッチとマウスを統一
+   ════════════════════════════════════════════ */
+const pointers = new Map();
+let gest = null, lastTap = null;
+const TAP_MOVE = IS_MOBILE ? 10 : 5;
+
+canvas.addEventListener('pointerdown', e => {
+  if (pointers.size >= 2) return;
+  try { canvas.setPointerCapture(e.pointerId); } catch (_) {}
+  pointers.set(e.pointerId, { x: e.clientX, y: e.clientY, sx: e.clientX, sy: e.clientY });
+  Cam.vel.set(0, 0); Cam.yawVel = 0;
+  collapseOverlays();
+  if (pointers.size === 1) {
+    let act = 'pan';
+    if (e.pointerType === 'mouse') act = e.button === 2 ? 'rotate' : e.button === 1 ? 'pan' : (mode === 'view' ? 'pan' : 'edit');
+    else if (mode !== 'view') act = 'edit';
+    gest = { kind: 'one', id: e.pointerId, act, moved: false, lp: false, t0: performance.now(), lastT: performance.now(), button: e.button, type: e.pointerType };
+    if (e.button === 0) gest.lpTimer = setTimeout(() => { if (gest && gest.kind === 'one' && !gest.moved) { gest.lp = true; longPress(e.clientX, e.clientY); } }, 500);
+    if (act === 'edit') Edit.down(e.clientX, e.clientY);
+    Cam.dragging = true;
+  } else if (pointers.size === 2) {
+    if (gest && gest.kind === 'one') { clearTimeout(gest.lpTimer); if (gest.act === 'edit') Edit.up(); }
+    const [a, b] = [...pointers.values()];
+    gest = { kind: 'two', lock: null, acc: 0, span: Math.hypot(b.x - a.x, b.y - a.y), ang: Math.atan2(b.y - a.y, b.x - a.x), cx: (a.x + b.x) / 2, cy: (a.y + b.y) / 2, lastT: performance.now() };
+    Cam.dragging = true;
+  }
+});
+
+canvas.addEventListener('pointermove', e => {
+  const p = pointers.get(e.pointerId);
+  if (!p) return;
+  const dx = e.clientX - p.x, dy = e.clientY - p.y;
+  p.x = e.clientX; p.y = e.clientY;
+  if (!gest) return;
+  const now = performance.now();
+  if (gest.kind === 'one') {
+    if (!gest.moved && Math.hypot(p.x - p.sx, p.y - p.sy) > TAP_MOVE) { gest.moved = true; clearTimeout(gest.lpTimer); }
+    if (!gest.moved) return;
+    const dtm = Math.max(1, now - gest.lastT) / 1000; gest.lastT = now;
+    if (gest.act === 'pan') {
+      const [mx, mz] = Cam.panPixels(dx, dy);
+      Cam.vel.x = lerp(Cam.vel.x, mx / dtm, .5); Cam.vel.y = lerp(Cam.vel.y, mz / dtm, .5);
+    } else if (gest.act === 'rotate') {
+      const dyaw = -dx * .006;
+      Cam.rotate(dyaw, dy * .25);
+      Cam.yawVel = lerp(Cam.yawVel, dyaw / dtm, .5);
+    } else if (gest.act === 'edit') Edit.move(p.x, p.y);
+  } else if (gest.kind === 'two') {
+    const [a, b] = [...pointers.values()];
+    const span = Math.hypot(b.x - a.x, b.y - a.y), ang = Math.atan2(b.y - a.y, b.x - a.x);
+    const cx = (a.x + b.x) / 2, cy = (a.y + b.y) / 2;
+    let dAng = ang - gest.ang; if (dAng > Math.PI) dAng -= Math.PI * 2; if (dAng < -Math.PI) dAng += Math.PI * 2;
+    const dcx = cx - gest.cx, dcy = cy - gest.cy, dspan = span - gest.span;
+    if (!gest.lock) {
+      // 動き始めで「仰角(平行上下)」か「ズーム・回転・パン」かを判定して固定
+      gest.acc += Math.hypot(dcx, dcy) + Math.abs(dspan);
+      gest.accY = (gest.accY || 0) + dcy; gest.accX = (gest.accX || 0) + dcx; gest.accS = (gest.accS || 0) + dspan; gest.accA = (gest.accA || 0) + dAng;
+      if (gest.acc > 14) {
+        const vertical = Math.abs(gest.accY) > Math.abs(gest.accX) * 1.6 && Math.abs(gest.accY) > Math.abs(gest.accS) * 1.8 && Math.abs(gest.accA) < .12;
+        gest.lock = vertical ? 'tilt' : 'xform';
+      }
+    } else if (gest.lock === 'tilt') {
+      Cam.rotate(0, dcy * .25);
+    } else {
+      if (gest.span > 0 && span > 0) Cam.zoomAt(gest.span / span, cx, cy);
+      Cam.yaw += dAng;
+      const dtm = Math.max(1, now - gest.lastT) / 1000;
+      const [mx, mz] = Cam.panPixels(dcx, dcy);
+      Cam.vel.x = lerp(Cam.vel.x, mx / dtm, .4); Cam.vel.y = lerp(Cam.vel.y, mz / dtm, .4);
+      Cam.yawVel = lerp(Cam.yawVel, dAng / dtm, .4);
+    }
+    gest.span = span; gest.ang = ang; gest.cx = cx; gest.cy = cy; gest.lastT = now;
+  }
+});
+
+function endPointer(e) {
+  if (!pointers.has(e.pointerId)) return;
+  pointers.delete(e.pointerId);
+  try { canvas.releasePointerCapture(e.pointerId); } catch (_) {}
+  if (!gest) return;
+  const now = performance.now();
+  if (gest.kind === 'one') {
+    clearTimeout(gest.lpTimer);
+    const stale = now - gest.lastT > 90;
+    if (gest.act === 'edit') Edit.up(e.clientX, e.clientY, !gest.moved);
+    if (!gest.moved && !gest.lp && e.type === 'pointerup' && (gest.type !== 'mouse' || gest.button === 0) && now - gest.t0 < 450) {
+      if (gest.act !== 'edit') handleTap(e.clientX, e.clientY);
+    }
+    if (stale || gest.act === 'edit') { Cam.vel.set(0, 0); Cam.yawVel = 0; }
+    gest = null; Cam.dragging = false;
+  } else if (gest.kind === 'two') {
+    if (now - gest.lastT > 90) { Cam.vel.set(0, 0); Cam.yawVel = 0; }
+    // 1本残っても再度パンは始めない(誤操作防止)。全て離れたら終了
+    gest = pointers.size ? { kind: 'rest' } : null;
+    Cam.dragging = !!pointers.size;
+  } else if (!pointers.size) { gest = null; Cam.dragging = false; }
+}
+canvas.addEventListener('pointerup', endPointer);
+canvas.addEventListener('pointercancel', endPointer);
+canvas.addEventListener('lostpointercapture', endPointer);
+
+canvas.addEventListener('wheel', e => {
+  e.preventDefault();
+  const d = e.deltaY * (e.deltaMode === 1 ? 33 : e.deltaMode === 2 ? 400 : 1);
+  Cam.zoomAt(Math.exp(clamp(d, -300, 300) * .0012), e.clientX, e.clientY);
+}, { passive: false });
+
+document.addEventListener('contextmenu', e => { if (!e.target.closest('input,textarea')) e.preventDefault(); });
+document.addEventListener('gesturestart', e => e.preventDefault());
+document.addEventListener('dblclick', e => { if (!e.target.closest('input,textarea')) e.preventDefault(); });
+
+function handleTap(x, y) {
+  const now = performance.now();
+  if (lastTap && now - lastTap.t < 330 && Math.hypot(x - lastTap.x, y - lastTap.y) < 32) { lastTap = null; doubleTap(x, y); return; }
+  lastTap = { t: now, x, y };
+  singleTap(x, y);
+}
+function hitTest(x, y) {
+  const g = pickGround(x, y);
+  if (!g) return null;
+  const obj = Objects.pick(g.x, g.z);
+  // (段階④でNPCの近傍選択を追加)
+  return obj ? { kind: 'object', obj, ground: g } : { kind: 'ground', ground: g };
+}
+function singleTap(x, y) { select(hitTest(x, y), false); }
+function doubleTap(x, y) {
+  const h = hitTest(x, y);
+  if (!h) return;
+  if (h.kind === 'npc') { /* 段階④:追従モード */ return; }
+  const p = h.kind === 'object' ? h.obj : h.ground;
+  Cam.flyTo(p.x, p.z);
+}
+function longPress(x, y) {
+  const h = hitTest(x, y);
+  if (!h) return;
+  if (navigator.vibrate) try { navigator.vibrate(12); } catch (_) {}
+  select(h, true);
+}
+
+/* キーボード(PC) */
+addEventListener('keydown', e => {
+  if (e.target.closest && e.target.closest('input,textarea')) return;
+  const k = e.key.toLowerCase();
+  if (['w', 'a', 's', 'd', 'q', 'e', 'r', 'f', 'arrowup', 'arrowdown', 'arrowleft', 'arrowright'].includes(k)) { Cam.keys.add(k); e.preventDefault(); }
+  else if (k === 'escape') { if (!$('#dialog').hidden) return; if (Cam.follow) setFollow(null); else if (mode !== 'view') setMode('view'); else if (UI.tab) closePanel(); else select(null); }
+  else if (k === 'h') Cam.home();
+  else if (k === ' ') { setSpeed(speedIdx ? 0 : (prevSpeed || 1)); e.preventDefault(); }
+  else if (['1', '2', '3', '4'].includes(k)) setSpeed(+k - 1);
+});
+addEventListener('keyup', e => Cam.keys.delete(e.key.toLowerCase()));
+addEventListener('blur', () => Cam.keys.clear());
+
+/* ════════════════════════════════════════════
+   選択
+   ════════════════════════════════════════════ */
+let selection = null;
+const TYPE_LABEL = { town: '町' };
+function select(h, detail) {
+  selection = h ? { ...h, detail } : null;
+  renderSelCard();
+}
+function selectionPos() {
+  if (!selection) return null;
+  if (selection.kind === 'object') return selection.obj;
+  return selection.ground;
+}
+function renderSelCard() {
+  const el = $('#selCard');
+  if (!selection) { el.hidden = true; selRing.visible = false; return; }
+  const s = selection, rows = [];
+  let title, kind;
+  if (s.kind === 'object') {
+    const o = s.obj;
+    title = o.name || TYPE_LABEL[o.type]; kind = TYPE_LABEL[o.type];
+    rows.push(['位置', `${o.x.toFixed(0)}, ${o.z.toFixed(0)}`]);
+    if (o.type === 'town') {
+      rows.push(['建物', '家屋9・塔1']);
+      if (s.detail) rows.push(['標高', `${heightAt(o.x, o.z).toFixed(1)} m`], ['役割', '復活地点・クエスト拠点']);
+    }
+  } else {
+    const g = s.ground, h = heightAt(g.x, g.z);
+    title = g.water || h < 0 ? '海' : TT_NAMES[typeAt(g.x, g.z)];
+    kind = '地点';
+    rows.push(['位置', `${g.x.toFixed(0)}, ${g.z.toFixed(0)}`], ['標高', `${h.toFixed(1)} m`]);
+    if (s.detail) {
+      const sl = slopeAt(g.x, g.z);
+      rows.push(['傾斜', `${(Math.atan(sl) / DEG).toFixed(0)}°`], ['地形種別', h < 0 ? '海底' : TT_NAMES[typeAt(g.x, g.z)]],
+        ['建設', h < .3 ? '不可(水上)' : sl > .7 ? '不可(急斜面)' : '可能']);
+    }
+  }
+  el.innerHTML = `<div class="hd"><span class="kind">${kind}</span><h3>${esc(title)}</h3>
+    <button data-sel="close" aria-label="選択解除"><svg class="i" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg></button></div>
+    <dl>${rows.map(r => `<dt>${r[0]}</dt><dd>${esc(r[1])}</dd>`).join('')}</dl>
+    <div class="acts"><button class="btn sm" data-sel="fly">ここへ移動</button>${s.detail ? '' : '<button class="btn sm" data-sel="more">詳細</button>'}</div>`;
+  el.hidden = false;
+  const p = selectionPos(), r = s.kind === 'object' ? (Objects.radius[s.obj.type] || 4) : 1.6;
+  selRing.position.set(p.x, Math.max(0, heightAt(p.x, p.z)) + .4, p.z); selRing.scale.setScalar(r); selRing.visible = true;
+}
+$('#selCard').addEventListener('click', e => {
+  const b = e.target.closest('[data-sel]'); if (!b) return;
+  const a = b.dataset.sel;
+  if (a === 'close') select(null);
+  else if (a === 'fly') { const p = selectionPos(); Cam.flyTo(p.x, p.z, { dist: Math.min(Cam.dist, 110) }); }
+  else if (a === 'more') { selection.detail = true; renderSelCard(); }
+});
+function esc(s) { return String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c])); }
+
+/* ════════════════════════════════════════════
+   時間進行(描画フレームとティックを分離)
+   ════════════════════════════════════════════ */
+let speedIdx = 1, prevSpeed = 1, tickAcc = 0;
+function setSpeed(i) {
+  if (i === speedIdx) return;
+  if (speedIdx) prevSpeed = speedIdx;
+  speedIdx = i;
+  document.querySelectorAll('#speed button').forEach(b => b.classList.toggle('on', +b.dataset.speed === i));
+}
+$('#speed').addEventListener('click', e => { const b = e.target.closest('button'); if (b) setSpeed(+b.dataset.speed); });
+function simUpdate(dt) {
+  const sp = SPEEDS[speedIdx];
+  if (!sp) return;
+  tickAcc += dt * sp / TICK_SEC;
+  let n = 0;
+  while (tickAcc >= 1 && n < 32) { tickAcc -= 1; tick(); n++; }
+  if (tickAcc > 4) tickAcc = 0;
+}
+function tick() {
+  G.hour++;
+  if (G.hour >= 24) { G.hour = 0; G.day++; daily(); }
+  if (G.hour === 6) log('夜が明けました');
+  if (G.hour === 19) log('日が沈み、町に灯りがともりました');
+}
+function daily() { log(`${G.day}日目が始まりました`); }
+
+/* ════════════════════════════════════════════
+   UI:ツール・パネル・ログ・トースト・ダイアログ
+   ════════════════════════════════════════════ */
+const ICONS = {
+  terrain: '<path d="M2.5 19l6.5-11 4 6.5 3-4 5.5 8.5z"/><path d="M7.2 11.2l1.8 1.3 1.6-1.3"/>',
+  place: '<path d="M4 11l8-7 8 7"/><path d="M6 9.5V20h12V9.5"/><path d="M10 20v-5h4v5"/>',
+  area: '<path d="M4 8V4h4M16 4h4v4M20 16v4h-4M8 20H4v-4"/><path d="M11 4h2M11 20h2M4 11v2M20 11v2"/>',
+  monster: '<path d="M4.5 19c0-7 3.3-12 7.5-12s7.5 5 7.5 12z"/><circle cx="9.5" cy="13" r="1"/><circle cx="14.5" cy="13" r="1"/><path d="M9 4.5l1.5 3M15 4.5l-1.5 3"/>',
+  class: '<path d="M14.5 3.5h6v6l-9.5 9.5-6-6z"/><path d="M4 15l5 5M3 21l3-3"/>',
+  quest: '<path d="M7 3.5h10a2 2 0 012 2V19a1.5 1.5 0 01-1.5 1.5H7A2 2 0 015 18.5V5.5a2 2 0 012-2z"/><path d="M9 8h6M9 12h6M9 16h3"/>',
+  admin: '<path d="M12 3l8 3v6c0 5-3.6 8-8 9-4.4-1-8-4-8-9V6z"/><path d="M9 12l2 2 4-4"/>',
+  research: '<path d="M9.5 3h5M10.5 3v6.5L5 18.5A1.8 1.8 0 006.6 21h10.8a1.8 1.8 0 001.6-2.5L13.5 9.5V3"/><path d="M7.5 15h9"/>',
+  biz: '<path d="M4 20V11M10 20V5M16 20v-6M3 20.5h18"/>',
+  other: '<path d="M4 7h9M17 7h3M4 17h3M11 17h9"/><circle cx="15" cy="7" r="2"/><circle cx="9" cy="17" r="2"/>',
+};
+const TABS = [
+  ['terrain', '地形'], ['place', '配置'], ['area', 'エリア'], ['monster', 'モンスター'], ['class', 'クラス'],
+  ['quest', 'クエスト'], ['admin', '管理'], ['research', '研究'], ['biz', '経営'], ['other', 'その他'],
+];
+const UI = { tab: null, sheet: 'closed', layout: '' };
+const tools = $('#tools');
+tools.innerHTML = TABS.map(([id, lb]) => `<button data-tab="${id}" aria-label="${lb}"><svg class="i" viewBox="0 0 24 24">${ICONS[id]}</svg><span class="lb">${lb}</span></button>`).join('');
+
+// 横画面のレールは長押しでラベル表示
+let railTimer = null, railSuppress = false;
+tools.addEventListener('pointerdown', e => {
+  const b = e.target.closest('button'); if (!b || UI.layout !== 'landscape') return;
+  railSuppress = false;
+  railTimer = setTimeout(() => {
+    railSuppress = true;
+    const tip = $('#railTip'), r = b.getBoundingClientRect();
+    tip.textContent = b.getAttribute('aria-label'); tip.hidden = false;
+    tip.style.left = (r.right + 6) + 'px'; tip.style.top = (r.top + r.height / 2 - 18) + 'px';
+  }, 500);
+});
+const hideTip = () => { clearTimeout(railTimer); setTimeout(() => { $('#railTip').hidden = true; }, 600); };
+tools.addEventListener('pointerup', hideTip); tools.addEventListener('pointercancel', hideTip);
+tools.addEventListener('pointerleave', hideTip);
+tools.addEventListener('scroll', () => clearTimeout(railTimer), { passive: true });
+tools.addEventListener('click', e => {
+  const b = e.target.closest('button'); if (!b) return;
+  if (railSuppress) { railSuppress = false; return; }
+  openTab(b.dataset.tab);
+});
+
+const panel = $('#panel'), pb = $('#pb');
+function openTab(id) {
+  if (UI.tab === id) { closePanel(); return; }
+  UI.tab = id;
+  tools.querySelectorAll('button').forEach(b => b.classList.toggle('on', b.dataset.tab === id));
+  $('#panelTitle').textContent = TABS.find(t => t[0] === id)[1];
+  renderPanel();
+  pb.scrollTop = 0;
+  if (UI.sheet === 'closed') UI.sheet = 'half';
+  panel.classList.add('open');
+  applyPanelLayout();
+}
+function closePanel() {
+  UI.tab = null; UI.sheet = 'closed';
+  tools.querySelectorAll('button').forEach(b => b.classList.remove('on'));
+  panel.classList.remove('open');
+  applyPanelLayout();
+}
+$('#panelClose').addEventListener('click', closePanel);
+
+function sheetHeights() {
+  const tb = tools.getBoundingClientRect().height;
+  const full = innerHeight - tb - ($('#topbar').getBoundingClientRect().top) - 4;
+  return { half: Math.max(220, Math.min(full, Math.round(innerHeight * .6) - tb)), full };
+}
+function applyPanelLayout() {
+  const open = !!UI.tab;
+  document.body.classList.toggle('panel-open', open);
+  if (UI.layout === 'portrait') {
+    const H = sheetHeights(), h = !open ? 0 : UI.sheet === 'full' ? H.full : H.half;
+    panel.style.height = h + 'px';
+    document.body.style.setProperty('--sheet-h', h + 'px');
+    document.body.classList.toggle('sheet-full', open && UI.sheet === 'full');
+  } else {
+    panel.style.height = '';
+    document.body.style.setProperty('--sheet-h', '0px');
+    document.body.classList.remove('sheet-full');
+  }
+}
+
+// ボトムシートのドラッグ(上:全画面 / 下:閉じる)
+(() => {
+  const ph = $('#ph');
+  let drag = null;
+  ph.addEventListener('pointerdown', e => {
+    if (UI.layout !== 'portrait' || e.target.closest('button')) return;
+    ph.setPointerCapture(e.pointerId);
+    drag = { y: e.clientY, h: panel.getBoundingClientRect().height, t: performance.now(), v: 0, ly: e.clientY };
+    panel.classList.add('dragging');
+  });
+  ph.addEventListener('pointermove', e => {
+    if (!drag) return;
+    const H = sheetHeights(), now = performance.now();
+    const h = clamp(drag.h - (e.clientY - drag.y), 0, H.full);
+    drag.v = (e.clientY - drag.ly) / Math.max(1, now - drag.t); drag.t = now; drag.ly = e.clientY;
+    panel.style.height = h + 'px';
+  });
+  const end = e => {
+    if (!drag) return;
+    panel.classList.remove('dragging');
+    const H = sheetHeights(), h = panel.getBoundingClientRect().height, v = drag.v;
+    const moved = Math.abs(e.clientY - drag.y) > 6;
+    drag = null;
+    if (!moved) { applyPanelLayout(); return; }
+    let target;
+    if (v < -.6) target = h > H.half + 10 || UI.sheet === 'half' ? 'full' : 'half';
+    else if (v > .6) target = h < H.half - 10 || UI.sheet === 'half' ? 'closed' : 'half';
+    else target = h > (H.half + H.full) / 2 ? 'full' : h > H.half * .55 ? 'half' : 'closed';
+    if (target === 'closed') closePanel(); else { UI.sheet = target; applyPanelLayout(); }
+  };
+  ph.addEventListener('pointerup', end); ph.addEventListener('pointercancel', end);
+})();
+
+/* パネル内容 */
+function renderPanel() {
+  const t = UI.tab;
+  const R = PANELS[t] || PANELS._todo;
+  pb.innerHTML = R(t);
+}
+const TODO = {
+  terrain: ['②', '隆起・沈降・平坦化・平滑化ブラシ、地形種別(草原/森/砂漠/雪原/沼地)の塗り、ブラシ半径・強さのスライダー'],
+  place: ['③', '町・村・宿屋・掲示板・道路・橋・木・岩・出現地点・ダンジョン入口の配置(プレビュー→確定/取消)'],
+  area: ['③', '2点タップで矩形エリアを作成し、名前と推奨レベル範囲を設定'],
+  monster: ['③', 'モンスターエディタ(形状・色・能力値・ボス)と出現地点ごとの出現設定'],
+  class: ['④', 'クラスエディタ(能力値・成長率・スキル)、人気度、バフ/ナーフ、クラス別統計カード'],
+  quest: ['⑤', '討伐・収集・移動・ボス討伐クエスト、報酬、クエストチェーン'],
+  admin: ['⑦', '通報リスト(BAN・警告・放置・現地へ移動)、迷子の救助、GM雇用'],
+  research: ['⑦', '研究ポイントによる新地形・ダンジョン・ボス・建物・GMなどの解放'],
+};
+const PANELS = {
+  _todo(t) {
+    const [st, desc] = TODO[t];
+    return `<div class="sec"><p class="hint"><span class="stage">段階${st}</span>この画面は段階${st}で実装します。</p>
+      <p class="hint">予定:${desc}</p></div>`;
+  },
+  terrain() {
+    const H = G.terrain.h, T = G.terrain.t; let land = 0, max = -99; const cnt = [0, 0, 0, 0, 0];
+    for (let i = 0; i < H.length; i++) { if (H[i] > 0) { land++; cnt[T[i]]++; } if (H[i] > max) max = H[i]; }
+    return `<div class="sec"><h4>現在の地形</h4><div class="cards">
+      <div class="card"><i>陸地の割合</i><b>${(land / H.length * 100).toFixed(1)}%</b></div>
+      <div class="card"><i>最高標高</i><b>${max.toFixed(1)} m</b></div>
+      ${cnt.map((c, i) => c ? `<div class="card"><i>${TT_NAMES[i]}</i><b>${(c / land * 100).toFixed(0)}%</b></div>` : '').join('')}
+      </div></div>
+      <div class="sec"><p class="hint"><span class="stage">段階②</span>${TODO.terrain[1]}を追加します。</p></div>`;
+  },
+  biz() {
+    return `<div class="sec"><h4>現在の運営状況</h4><div class="cards">
+      <div class="card"><i>資金</i><b>${fmt(G.money)}G</b></div>
+      <div class="card"><i>加入者</i><b>${fmt(G.subscribers)}人</b></div>
+      <div class="card"><i>平均満足度</i><b>${G.satisfaction}</b></div>
+      <div class="card"><i>経過日数</i><b>${G.day}日</b></div></div></div>
+      <div class="sec"><p class="hint"><span class="stage">段階⑥</span>収益モデル(月額/基本無料)、サーバー費、収支・加入者・満足度のグラフを追加します。</p></div>`;
+  },
+  other() {
+    const q = QUALITY[S.quality], fsOk = fullscreenSupported();
+    return `<div class="sec"><h4>画質</h4>
+      <div class="seg" role="radiogroup" aria-label="画質">${Q_ORDER.map(k => `<button role="radio" aria-checked="${k === S.quality}" class="${k === S.quality ? 'on' : ''}" data-act="quality" data-v="${k}">${QUALITY[k].label}</button>`).join('')}</div>
+      <div class="cards">
+        <div class="card"><i>地形の頂点数</i><b>${q.res}×${q.res}</b></div>
+        <div class="card"><i>解像度倍率</i><b>≤${q.pr}</b></div>
+        <div class="card"><i>太陽の影</i><b>${q.shadow ? 'あり' : 'なし'}</b></div>
+        <div class="card"><i>NPC描画上限</i><b>${q.npc}体</b></div>
+      </div>
+      <p class="hint">目標フレームレート:${TARGET_FPS}fps(${IS_MOBILE ? 'スマホ' : 'PC'})。重くなり続けると画質を下げるか確認します。</p></div>
+      <div class="sec"><h4>表示</h4>
+        <div class="row"><span class="grow">FPSを表示</span><button class="sw" role="switch" aria-checked="${S.showFps}" data-act="fps" aria-label="FPSを表示"></button></div>
+        ${fsOk ? `<div class="row"><span class="grow">全画面表示</span><button class="btn sm" data-act="full">${isFullscreen() ? '解除' : '全画面にする'}</button></div>` : ''}
+      </div>
+      <div class="sec"><h4>タッチ操作</h4><dl class="keys">
+        <dt>1本指ドラッグ</dt><dd>移動(閲覧モード)</dd><dt>2本指ピンチ</dt><dd>ズーム</dd>
+        <dt>2本指ひねり</dt><dd>回転</dd><dt>2本指を上下</dt><dd>見下ろす角度</dd>
+        <dt>タップ</dt><dd>選択</dd><dt>ダブルタップ</dt><dd>その地点へ移動(NPCは追従)</dd><dt>長押し</dt><dd>詳細表示</dd></dl></div>
+      <div class="sec"><h4>マウス・キーボード</h4><dl class="keys">
+        <dt>左/中ドラッグ</dt><dd>移動</dd><dt>右ドラッグ</dt><dd>回転・角度</dd><dt>ホイール</dt><dd>ズーム</dd>
+        <dt>WASD・矢印</dt><dd>移動</dd><dt>Q / E</dt><dd>回転</dd><dt>R / F</dt><dd>角度</dd>
+        <dt>Space・1〜4</dt><dd>一時停止・速度</dd><dt>Esc</dt><dd>追従解除</dd><dt>H</dt><dd>初期視点</dd></dl></div>
+      <div class="sec"><h4>開発状況</h4><p class="hint"><span class="stage">段階①</span>3D地形・神視点カメラ・縦横レイアウト・画質設定</p></div>`;
+  },
+};
+pb.addEventListener('click', e => {
+  const b = e.target.closest('[data-act]'); if (!b) return;
+  const a = b.dataset.act;
+  if (a === 'quality') { applyQuality(b.dataset.v); toast(`画質を「${QUALITY[S.quality].label}」にしました`); renderPanel(); }
+  else if (a === 'fps') { S.showFps = !S.showFps; $('#fps').hidden = !S.showFps; renderPanel(); }
+  else if (a === 'full') toggleFullscreen();
+});
+
+/* ステータス詳細の展開 */
+$('#status').addEventListener('click', () => {
+  const d = $('#statusDetail'), open = d.hidden;
+  d.hidden = !open; $('#status').setAttribute('aria-expanded', open);
+  if (open) renderStatusDetail();
+});
+function renderStatusDetail() {
+  $('#statusDetail').innerHTML = [
+    ['資金', fmt(G.money) + 'G'], ['加入者', fmt(G.subscribers) + '人'], ['平均満足度', G.satisfaction],
+    ['日付', `${G.day}日目`], ['時刻', `${pad2(Math.floor(G.hour))}:00`], ['研究ポイント', fmt(G.research)],
+    ['速度', ['停止', '1倍', '4倍', '16倍'][speedIdx]], ['画質', QUALITY[S.quality].label],
+  ].map(([k, v]) => `<div><i>${k}</i><b>${v}</b></div>`).join('');
+}
+function collapseOverlays() {
+  if (!$('#statusDetail').hidden) { $('#statusDetail').hidden = true; $('#status').setAttribute('aria-expanded', 'false'); }
+  if ($('#log').classList.contains('expanded')) { $('#log').classList.remove('expanded'); renderLog(); }
+}
+
+/* ログ(縦:最新1行/横:最新3行、タップで全件) */
+function log(text, kind = '') {
+  G.logs.push({ d: G.day, h: G.hour, text, kind });
+  if (G.logs.length > 200) G.logs.shift();
+  renderLog();
+}
+function renderLog() {
+  const el = $('#log'), exp = el.classList.contains('expanded');
+  const n = exp ? G.logs.length : UI.layout === 'landscape' ? 3 : 1;
+  const list = G.logs.slice(-n);
+  if (exp) list.reverse();
+  el.innerHTML = list.map(l => `<div class="ln ${l.kind}"><span class="t">${gameTimeStr(l.d, l.h)}</span>${esc(l.text)}</div>`).join('') || '<div class="ln">ログはありません</div>';
+}
+$('#log').addEventListener('click', () => { $('#log').classList.toggle('expanded'); renderLog(); $('#log').scrollTop = 0; });
+
+/* トースト */
+function toast(text, kind = '') {
+  const t = document.createElement('div');
+  t.className = 'toast ' + kind; t.textContent = text;
+  const box = $('#toasts'); box.appendChild(t);
+  while (box.children.length > 3) box.firstChild.remove();
+  setTimeout(() => { t.classList.add('out'); setTimeout(() => t.remove(), 350); }, 3000);
+}
+
+/* ページ内ダイアログ(confirm()は使わない) */
+function ask(msg, okLabel = 'OK', cancelLabel = 'キャンセル') {
+  return new Promise(res => {
+    const d = $('#dialog');
+    $('#dlgMsg').textContent = msg;
+    $('#dlgActs').innerHTML = `<button class="btn" data-r="0">${cancelLabel}</button><button class="btn pri" data-r="1">${okLabel}</button>`;
+    d.hidden = false;
+    d.onclick = e => { const b = e.target.closest('[data-r]'); if (!b) return; d.hidden = true; d.onclick = null; res(b.dataset.r === '1'); };
+  });
+}
+
+/* 全画面 */
+function fullscreenSupported() {
+  const el = document.documentElement;
+  return !!(document.fullscreenEnabled || document.webkitFullscreenEnabled) && !!(el.requestFullscreen || el.webkitRequestFullscreen);
+}
+function isFullscreen() { return !!(document.fullscreenElement || document.webkitFullscreenElement); }
+async function toggleFullscreen() {
+  try {
+    if (isFullscreen()) await (document.exitFullscreen || document.webkitExitFullscreen).call(document);
+    else { const el = document.documentElement; await (el.requestFullscreen || el.webkitRequestFullscreen).call(el); }
+  } catch (_) { toast('この環境では全画面にできませんでした', 'warn'); }
+}
+$('#btnFull').hidden = !fullscreenSupported();
+$('#btnFull').addEventListener('click', toggleFullscreen);
+document.addEventListener('fullscreenchange', () => { if (UI.tab === 'other') renderPanel(); });
+$('#btnHome').addEventListener('click', () => Cam.home());
+$('#btnUnfollow').addEventListener('click', () => { if (Cam.follow) { setFollow(null); toast('追従を解除しました'); } else toast('追従中の対象はありません'); });
+
+/* ════════════════════════════════════════════
+   画質・リサイズ・レイアウト切替
+   ════════════════════════════════════════════ */
+function applyQuality(k) {
+  S.quality = k;
+  const q = QUALITY[k];
+  renderer.setPixelRatio(Math.min(devicePixelRatio || 1, q.pr));
+  renderer.shadowMap.enabled = q.shadow;
+  sun.castShadow = q.shadow;
+  if (Terrain.res !== q.res) Terrain.build(q.res);
+  scene.traverse(o => { if (o.material) o.material.needsUpdate = true; });
+  fpsLow = 0;
+  resize();
+}
+function resize() {
+  const vv = window.visualViewport;
+  const w = Math.round(vv ? Math.min(innerWidth, vv.width) : innerWidth) || innerWidth;
+  const h = Math.round(vv ? Math.min(innerHeight, vv.height) : innerHeight) || innerHeight;
+  renderer.setSize(w, h, false);
+  camera.aspect = w / h; camera.updateProjectionMatrix();
+  const layout = w > h ? 'landscape' : 'portrait';
+  if (layout !== UI.layout) {
+    // 開いているパネル・選択・カメラは維持し、レイアウトだけ切り替える
+    UI.layout = layout;
+    document.body.classList.toggle('landscape', layout === 'landscape');
+    document.body.classList.toggle('portrait', layout === 'portrait');
+    $('#railTip').hidden = true;
+    renderLog();
+  }
+  applyPanelLayout();
+}
+addEventListener('resize', resize);
+if (window.visualViewport) visualViewport.addEventListener('resize', resize);
+addEventListener('orientationchange', () => setTimeout(resize, 150));
+
+/* バックグラウンドで自動一時停止 */
+let pausedByHide = false;
+document.addEventListener('visibilitychange', () => {
+  if (document.hidden) { if (speedIdx) { setSpeed(0); pausedByHide = true; } Cam.keys.clear(); }
+  else if (pausedByHide) { pausedByHide = false; toast('バックグラウンド中は一時停止していました'); log('自動一時停止しました(アプリ切替)'); }
+  lastFrame = performance.now();
+});
+
+/* ════════════════════════════════════════════
+   FPS計測と画質自動確認
+   ════════════════════════════════════════════ */
+let fpsFrames = 0, fpsT0 = performance.now(), fpsLow = 0, fpsAskedAt = -1e9, fpsNow = 0;
+function fpsSample(now) {
+  fpsFrames++;
+  if (now - fpsT0 < 1000) return;
+  fpsNow = fpsFrames * 1000 / (now - fpsT0); fpsFrames = 0; fpsT0 = now;
+  if (S.showFps) $('#fps').textContent = `${fpsNow.toFixed(0)} / ${TARGET_FPS} fps`;
+  if (document.hidden) return;
+  fpsLow = fpsNow < TARGET_FPS * .62 ? fpsLow + 1 : Math.max(0, fpsLow - 1);
+  const qi = Q_ORDER.indexOf(S.quality);
+  if (fpsLow >= 8 && qi > 0 && now - fpsAskedAt > 120000 && $('#dialog').hidden) {
+    fpsAskedAt = now; fpsLow = 0;
+    ask(`動作が重くなっています(平均 ${fpsNow.toFixed(0)}fps / 目標 ${TARGET_FPS}fps)。画質を「${QUALITY[Q_ORDER[qi - 1]].label}」に下げますか?`, '下げる', 'このまま')
+      .then(ok => { if (ok) { applyQuality(Q_ORDER[qi - 1]); toast(`画質を「${QUALITY[S.quality].label}」にしました`); if (UI.tab === 'other') renderPanel(); } });
+  }
+}
+
+/* ════════════════════════════════════════════
+   UIの数値更新(0.5秒ごと)
+   ════════════════════════════════════════════ */
+function uiUpdate() {
+  $('#stMoney').textContent = fmt(G.money) + 'G';
+  $('#stSubs').textContent = fmt(G.subscribers);
+  $('#stSat').textContent = G.satisfaction;
+  $('#stDate').textContent = gameTimeStr();
+  if (!$('#statusDetail').hidden) renderStatusDetail();
+}
+
+/* ════════════════════════════════════════════
+   メインループ
+   ════════════════════════════════════════════ */
+let lastFrame = performance.now(), uiT = 0;
+const MIN_FRAME = TARGET_FPS === 30 ? 1000 / 30 - 4 : 0;
+function frame(now) {
+  requestAnimationFrame(frame);
+  if (now - lastFrame < MIN_FRAME) return;
+  const dt = Math.min(.1, (now - lastFrame) / 1000);
+  lastFrame = now;
+  simUpdate(dt);
+  Cam.update(dt);
+  Sky.update((G.hour + (SPEEDS[speedIdx] ? clamp(tickAcc, 0, .999) : 0)) % 24);
+  if (selRing.visible) selRing.material.opacity = .7 + Math.sin(now / 250) * .25;
+  renderer.render(scene, camera);
+  fpsSample(now);
+  uiT += dt;
+  if (uiT >= .5) { uiT = 0; uiUpdate(); }
+}
+
+/* ════════════════════════════════════════════
+   起動
+   ════════════════════════════════════════════ */
+function boot() {
+  G = newGame(20260926);
+  applyQuality(S.quality);
+  Scenery.init();
+  Objects.rebuildAll();
+  setSpeed(1);
+  setMode('view');
+  setFollow(null);
+  log('サーバー「Arcana Online」を開設しました', 'good');
+  log('はじまりの町を中央の島に設置しました');
+  uiUpdate();
+  Cam.update(0);
+  requestAnimationFrame(frame);
+  toast(`画質「${QUALITY[S.quality].label}」で開始しました(その他タブで変更可)`);
+}
+boot();
+
+// デバッグ・後続段階用に参照を公開
+window.__arcana = { get G() { return G; }, Cam, Terrain, setMode, applyQuality, toast };
+})();
+</script>
