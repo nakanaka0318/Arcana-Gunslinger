@@ -27,6 +27,9 @@
   --rail-w:64px;
   --panel-w:min(40vw,460px);
   --sheet-h:0px;
+  --bb-h:0px;
+  --log-h:44px;
+  --mm-w:0px;
   --ff:'Zen Kaku Gothic New',system-ui,-apple-system,'Hiragino Sans','Noto Sans JP','Yu Gothic',sans-serif;
   --fm:'IBM Plex Mono',ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
   color-scheme:dark;
@@ -62,15 +65,15 @@ svg.i{width:24px;height:24px;fill:none;stroke:currentColor;stroke-width:1.8;stro
 #speed button span{display:grid;place-items:center;min-width:34px;height:28px;border-radius:8px;padding:0 4px}
 #speed button.on span{background:var(--accent);color:var(--accent-ink)}
 #speed button svg{width:16px;height:16px}
-#mode{pointer-events:auto;display:flex;align-items:center;gap:8px;height:44px;padding:0 6px 0 12px;border-radius:12px;min-width:0}
+#mode{pointer-events:auto;display:flex;align-items:center;gap:8px;height:44px;padding:0 12px;border-radius:12px;min-width:0;text-align:left}
 #mode .dot{width:9px;height:9px;border-radius:50%;background:var(--good);flex:none;box-shadow:0 0 0 3px rgba(124,201,143,.2)}
+#mode .txt{display:flex;flex-direction:column;min-width:0;line-height:1.2}
 #mode .lbl{font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-#mode.editing{border-color:var(--edit);background:rgba(20,48,60,.9)}
-#mode.editing .dot{background:var(--edit);box-shadow:0 0 0 3px rgba(91,184,217,.25)}
-#modeBack{display:none;height:36px;min-height:36px;padding:0 14px;border-radius:9px;background:var(--edit);color:#06202b;font-weight:700;white-space:nowrap}
-#mode.editing #modeBack{display:block}
-#mode{padding-right:12px}
-#mode.editing{padding-right:4px}
+#mode .sub{display:none;font-size:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#mode .x{display:none;width:22px;height:22px;stroke-width:2.4}
+#mode.editing{background:var(--edit);border-color:var(--edit);color:#06202b;padding:0 12px 0 8px;box-shadow:0 0 0 3px rgba(91,184,217,.3)}
+#mode.editing .dot{display:none}
+#mode.editing .x,#mode.editing .sub{display:block}
 
 #statusDetail{position:absolute;left:calc(var(--sal) + 8px);right:calc(var(--sar) + 8px);top:calc(var(--sat) + 56px);
   pointer-events:auto;border-radius:12px;padding:12px 14px;display:grid;grid-template-columns:1fr 1fr;gap:10px 16px;z-index:4}
@@ -181,6 +184,41 @@ body.portrait.panel-open #btnFull{display:none}
 .plan{margin:0;padding-left:1.3em;display:flex;flex-direction:column;gap:6px;line-height:1.55}
 .stage{display:inline-block;font:600 13px var(--fm);color:var(--accent-ink);background:var(--accent);border-radius:6px;padding:1px 7px;margin-right:6px}
 
+/* ── 地形ブラシバー ── */
+#brushBar{pointer-events:auto;position:absolute;left:0;right:0;bottom:calc(var(--tb-h) + var(--sab));background:var(--panel-2);
+  border-top:2px solid var(--edit);border-radius:14px 14px 0 0;padding:8px calc(var(--sar) + 12px) 4px calc(var(--sal) + 12px);
+  display:flex;flex-direction:column;gap:6px;z-index:2;box-shadow:0 -8px 24px rgba(0,0,0,.3)}
+.bb-row{display:flex;gap:6px;overflow-x:auto;scrollbar-width:none;touch-action:pan-x;align-items:center}
+.bb-row::-webkit-scrollbar{display:none}
+.chip{flex:none;min-height:44px;padding:0 13px;border-radius:10px;border:1px solid var(--line);background:rgba(255,255,255,.04);
+  font-weight:700;display:inline-flex;align-items:center;gap:7px;color:var(--ink-dim);white-space:nowrap}
+.chip.on{background:var(--edit);border-color:var(--edit);color:#06202b}
+.chip[disabled]{opacity:.35;cursor:default}
+.chip .sw8{width:14px;height:14px;border-radius:4px;border:1px solid rgba(0,0,0,.35);flex:none}
+.chip.undo{margin-left:auto;padding:0 11px}
+.chip.undo svg{width:20px;height:20px}
+body.portrait .chip.undo .lb{display:none}
+body.portrait #bbTools .chip{padding:0 11px}
+.bb-sl{display:grid;grid-template-columns:1fr;gap:0 18px}
+.sl{display:flex;align-items:center;gap:10px;min-height:44px}
+.sl .k{color:var(--ink-dim);flex:none;min-width:2.3em}
+.sl output{font:600 14px var(--fm);font-variant-numeric:tabular-nums;min-width:3.6em;text-align:right;flex:none}
+.sl.off{opacity:.4}
+input[type=range]{flex:1;min-width:0;-webkit-appearance:none;appearance:none;height:44px;margin:0;background:transparent;touch-action:manipulation;cursor:pointer}
+input[type=range]:focus-visible{outline:2px solid var(--accent);outline-offset:2px;border-radius:6px}
+input[type=range]::-webkit-slider-runnable-track{height:6px;border-radius:3px;background:var(--raise);border:1px solid var(--line)}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:28px;height:28px;border-radius:50%;background:var(--edit);margin-top:-12px;border:3px solid #0e1317}
+input[type=range]::-moz-range-track{height:6px;border-radius:3px;background:var(--raise)}
+input[type=range]::-moz-range-thumb{width:24px;height:24px;border-radius:50%;background:var(--edit);border:3px solid #0e1317}
+.tools5{display:grid;grid-template-columns:repeat(auto-fill,minmax(96px,1fr));gap:8px}
+.tools5 .chip{justify-content:center;min-height:52px}
+
+/* ── ミニマップ ── */
+#minimap{pointer-events:auto;position:absolute;right:calc(var(--sar) + 8px);top:calc(var(--sat) + 108px);width:25vw;height:25vw;
+  border-radius:12px;padding:3px;touch-action:none;cursor:pointer;z-index:1;transition:width .2s,height .2s}
+#minimap canvas{width:100%;height:100%;display:block;border-radius:9px}
+#minimap.big{width:62vw;height:62vw;z-index:5}
+
 /* ── 横画面レイアウト ── */
 body.landscape #topbar{flex-direction:row;align-items:center;gap:8px;left:calc(var(--rail-w) + var(--sal));padding-left:8px}
 body.landscape #status{flex:0 1 auto;min-width:0}
@@ -198,13 +236,19 @@ body.landscape #panel.open{transform:none;transition:transform .24s cubic-bezier
 body.landscape #ph{cursor:default}
 body.landscape #ph::before{display:none}
 body.landscape #ph h2,body.landscape #ph button{padding-top:0;margin-top:0}
-body.landscape #camBtns{top:50%;bottom:auto;transform:translateY(-50%)}
+body.landscape #camBtns{top:calc(var(--sat) + 64px);bottom:auto}
+body.landscape #brushBar{left:calc(var(--rail-w) + var(--sal) + 8px);right:calc(var(--mm-w) + var(--sar) + 16px);bottom:calc(var(--sab) + 8px);
+  border:2px solid var(--edit);border-radius:14px;padding:6px 12px 2px}
+body.landscape .bb-sl{grid-template-columns:1fr 1fr}
+body.landscape #minimap{top:auto;bottom:calc(var(--sab) + 8px);width:min(30vh,180px);height:min(30vh,180px)}
+body.landscape #minimap.big{width:min(72vh,380px);height:min(72vh,380px)}
+body.landscape.panel-open #minimap{right:auto;left:calc(var(--rail-w) + var(--sal) + 8px);bottom:calc(var(--sab) + var(--log-h) + 16px)}
 body.landscape.panel-open #camBtns{right:calc(var(--panel-w) + var(--sar) + 8px)}
-body.landscape #log{left:calc(var(--rail-w) + var(--sal) + 8px);right:auto;width:min(380px,38vw);bottom:calc(var(--sab) + 8px);padding:6px 12px}
+body.landscape #log{left:calc(var(--rail-w) + var(--sal) + 8px);right:auto;width:min(380px,38vw);bottom:calc(var(--sab) + var(--bb-h) + 8px);padding:6px 12px}
 body.landscape #log.expanded{max-height:60vh}
 body.landscape #selCard{left:calc(var(--rail-w) + var(--sal) + 8px);right:auto;width:min(340px,40vw);top:calc(var(--sat) + 60px);bottom:auto}
 body.landscape #toasts{top:calc(var(--sat) + 62px)}
-body.landscape #fps{left:auto;right:calc(var(--sar) + 8px);top:calc(var(--sat) + 60px)}
+body.landscape #fps{left:auto;right:calc(var(--sar) + 66px);top:calc(var(--sat) + 64px)}
 body.landscape.panel-open #fps{right:calc(var(--panel-w) + var(--sar) + 8px)}
 
 @media (max-width:370px){ body.portrait .st i.opt{display:none} #status{gap:10px} }
@@ -229,7 +273,7 @@ body.landscape.panel-open #fps{right:calc(var(--panel-w) + var(--sar) + 8px)}
         <button data-speed="2" aria-label="4倍速"><span>4×</span></button>
         <button data-speed="3" aria-label="16倍速"><span>16×</span></button>
       </div>
-      <div id="mode" class="glass" aria-live="polite"><span class="dot"></span><span class="lbl" id="modeLbl">閲覧モード</span><button id="modeBack">閲覧に戻る</button></div>
+      <button id="mode" class="glass" aria-live="polite"><span class="dot"></span><svg class="i x" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg><span class="txt"><span class="lbl" id="modeLbl">閲覧モード</span><span class="sub">タップで閲覧に戻る</span></span></button>
     </div>
   </header>
   <div id="statusDetail" class="glass" hidden></div>
@@ -241,6 +285,17 @@ body.landscape.panel-open #fps{right:calc(var(--panel-w) + var(--sar) + 8px)}
     <button id="btnHome" class="glass" aria-label="初期視点へ戻る"><svg class="i" viewBox="0 0 24 24"><path d="M3 11l9-7 9 7"/><path d="M6 9.5V20h12V9.5"/><path d="M10 20v-5h4v5"/></svg></button>
     <button id="btnUnfollow" class="glass dim" aria-label="追従解除"><svg class="i" viewBox="0 0 24 24"><circle cx="12" cy="12" r="7"/><circle cx="12" cy="12" r="2.2"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/><path d="M4 4l16 16"/></svg></button>
     <button id="btnFull" class="glass" aria-label="全画面" hidden><svg class="i" viewBox="0 0 24 24"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/></svg></button>
+  </div>
+
+  <div id="minimap" class="glass" role="button" aria-label="ミニマップ(タップで拡大・縮小、ドラッグで視点移動)"><canvas id="mmc"></canvas></div>
+
+  <div id="brushBar" hidden>
+    <div class="bb-row" id="bbTools"></div>
+    <div class="bb-row" id="bbPaint" hidden></div>
+    <div class="bb-sl">
+      <label class="sl"><span class="k">半径</span><input type="range" id="bbR" data-brush="radius" min="3" max="40" step="1"><output data-out="radius"></output></label>
+      <label class="sl" id="bbSRow"><span class="k">強さ</span><input type="range" id="bbS" data-brush="strength" min="10" max="100" step="5"><output data-out="strength"></output></label>
+    </div>
   </div>
 
   <div id="log" class="glass" role="log" aria-label="ログ"></div>
@@ -469,11 +524,15 @@ const Terrain = {
     this.refresh();
   },
   // 範囲指定(ワールド座標)で頂点の高さと色を更新。normals=false で法線再計算を間引く
-  refresh(x0 = -HALF, z0 = -HALF, x1 = HALF, z1 = HALF, normals = true) {
+  range(x0, z0, x1, z1) {
     const n = this.res, step = WORLD / (n - 1);
+    return [clamp(Math.floor((x0 + HALF) / step) - 1, 0, n - 1), clamp(Math.ceil((x1 + HALF) / step) + 1, 0, n - 1),
+      clamp(Math.floor((z0 + HALF) / step) - 1, 0, n - 1), clamp(Math.ceil((z1 + HALF) / step) + 1, 0, n - 1)];
+  },
+  refresh(x0 = -HALF, z0 = -HALF, x1 = HALF, z1 = HALF, normals = true) {
+    const n = this.res;
     const pos = this.geo.attributes.position.array, col = this.geo.attributes.color.array;
-    const i0 = clamp(Math.floor((x0 + HALF) / step) - 1, 0, n - 1), i1 = clamp(Math.ceil((x1 + HALF) / step) + 1, 0, n - 1);
-    const j0 = clamp(Math.floor((z0 + HALF) / step) - 1, 0, n - 1), j1 = clamp(Math.ceil((z1 + HALF) / step) + 1, 0, n - 1);
+    const [i0, i1, j0, j1] = this.range(x0, z0, x1, z1);
     for (let j = j0; j <= j1; j++) for (let i = i0; i <= i1; i++) {
       const k = j * n + i, x = pos[k * 3], z = pos[k * 3 + 2];
       const h = heightAt(x, z);
@@ -483,9 +542,22 @@ const Terrain = {
     }
     this.geo.attributes.position.needsUpdate = true;
     this.geo.attributes.color.needsUpdate = true;
-    if (normals) this.finalize();
+    if (normals) this.normals(x0, z0, x1, z1);
   },
-  finalize() { this.geo.computeVertexNormals(); this.geo.computeBoundingSphere(); this.geo.computeBoundingBox(); },
+  // 高さマップの勾配から範囲内の法線を再計算(メッシュ全体の computeVertexNormals より軽い)
+  normals(x0 = -HALF, z0 = -HALF, x1 = HALF, z1 = HALF) {
+    const n = this.res, s = WORLD / (n - 1);
+    const pos = this.geo.attributes.position.array, nor = this.geo.attributes.normal.array;
+    const [i0, i1, j0, j1] = this.range(x0, z0, x1, z1);
+    for (let j = j0; j <= j1; j++) for (let i = i0; i <= i1; i++) {
+      const k = (j * n + i) * 3, x = pos[k], z = pos[k + 2];
+      const nx = heightAt(x - s, z) - heightAt(x + s, z), ny = 2 * s, nz = heightAt(x, z - s) - heightAt(x, z + s);
+      const l = Math.hypot(nx, ny, nz);
+      nor[k] = nx / l; nor[k + 1] = ny / l; nor[k + 2] = nz / l;
+    }
+    this.geo.attributes.normal.needsUpdate = true;
+    this.geo.computeBoundingSphere(); this.geo.computeBoundingBox();
+  },
 };
 
 /* ════════════════════════════════════════════
@@ -592,16 +664,16 @@ scene.add(selRing);
    ════════════════════════════════════════════ */
 // [時刻, 空(上), 空(地平), 太陽色, 太陽強度, 環境光色, 環境光強度, 窓の灯り]
 const SKY_KEYS = [
-  [0,    0x0a0f1e, 0x1b2440, 0x9fb2e0, .22, 0x34406a, .36, 1],
-  [4.8,  0x0a0f1e, 0x1b2440, 0x9fb2e0, .22, 0x34406a, .36, 1],
+  [0,    0x0c1224, 0x222c4c, 0xa6b8e4, .3,  0x4a5890, .5, 1],
+  [4.8,  0x0c1224, 0x222c4c, 0xa6b8e4, .3,  0x4a5890, .5, 1],
   [6,    0x34466f, 0xe79a67, 0xffa868, .35, 0x7a6f88, .42, .7],
   [7.2,  0x4a82c2, 0xf2c49a, 0xffd2a0, .8,  0xa7aec0, .5, .1],
   [9,    0x4d8fd2, 0xbfdcef, 0xfff3dc, 1.0, 0xb9c8d8, .55, 0],
   [16,   0x4d8fd2, 0xbfdcef, 0xfff3dc, 1.0, 0xb9c8d8, .55, 0],
   [17.2, 0x4a67a0, 0xf4b27c, 0xffb070, .75, 0x9d8a92, .48, .2],
   [18,   0x33406e, 0xef8c56, 0xff8d4d, .35, 0x7d6c86, .42, .7],
-  [19.3, 0x141a36, 0x3b3358, 0x9fb2e0, .22, 0x38416c, .37, 1],
-  [24,   0x0a0f1e, 0x1b2440, 0x9fb2e0, .22, 0x34406a, .36, 1],
+  [19.3, 0x151c3a, 0x3d375e, 0xa6b8e4, .3,  0x4c5890, .5, 1],
+  [24,   0x0c1224, 0x222c4c, 0xa6b8e4, .3,  0x4a5890, .5, 1],
 ];
 const _ca = new THREE.Color(), _cb = new THREE.Color(), _sunDir = new THREE.Vector3();
 function lerpHex(a, b, t, out) { return out.setHex(a).lerp(_cb.setHex(b), t); }
@@ -752,14 +824,175 @@ function pickGround(sx, sy) {
    ════════════════════════════════════════════ */
 const MODES = { view: '閲覧モード', terrain: '地形編集中', place: '配置中', area: 'エリア設定中' };
 let mode = 'view';
-const Edit = { down() {}, move() {}, up() {}, cancel() {} }; // 編集ハンドラ(段階②で実装)
+// 編集モードの1本指操作をモードごとの処理に振り分ける
+const Edit = {
+  down(x, y) { if (mode === 'terrain') Brush.begin(x, y); },
+  move(x, y) { if (mode === 'terrain') Brush.moveTo(x, y); },
+  up() { if (mode === 'terrain') Brush.end(); },
+  cancel() { Brush.cancel(); },
+};
 function setMode(m) {
-  if (mode !== 'view' && m !== mode) Edit.cancel();
+  if (mode !== 'view' && m !== mode) Edit.up();
   mode = m;
   $('#modeLbl').textContent = MODES[m];
   $('#mode').classList.toggle('editing', m !== 'view');
+  if (m !== 'view') select(null);
+  if (m === 'terrain' && !Brush.pt) Brush.pt = { x: Cam.target.x, z: Cam.target.z };
+  Brush.ring.visible = m === 'terrain';
+  renderBrushBar();
+  applyPanelLayout();
 }
-$('#modeBack').addEventListener('click', () => setMode('view'));
+$('#mode').addEventListener('click', () => {
+  if (mode !== 'view') { setMode('view'); toast('閲覧モードに戻りました'); }
+  else toast('閲覧モード:1本指ドラッグで移動、2本指でズーム・回転');
+});
+
+/* ════════════════════════════════════════════
+   地形ブラシ
+   ════════════════════════════════════════════ */
+const BRUSH_TOOLS = [['raise', '隆起'], ['lower', '沈降'], ['flatten', '平坦化'], ['smooth', '平滑化'], ['paint', '塗り']];
+const BRUSH_COL = { raise: 0xe2a64b, lower: 0x5bb8d9, flatten: 0xf2eee2, smooth: 0x7cc98f };
+const TT_HEX = [0x6a9a43, 0x3f6a2f, 0xd8bf7e, 0xe4ebf0, 0x4f5b38];
+const TT_CSS = TT_HEX.map(c => '#' + c.toString(16).padStart(6, '0'));
+const TT_EFFECT = ['見通しがよく、ときどき木が生えます', '木が密集して生えます', '砂の大地になり、木は生えません', '一面の雪景色になります', '湿った低木が点在します'];
+const H_MAX = 60;
+const Brush = {
+  tool: 'raise', radius: 12, strength: .5, paint: 1,
+  active: false, pt: null, flatH: 0, t0: 0, dirty: null, lastNorm: 0, lastMap: 0, undo: [], hoverT: 0,
+  scratch: new Float32Array(DN * DN), ring: null, seg: 64,
+  initRing() {
+    const seg = this.seg, geo = new THREE.BufferGeometry(), idx = [];
+    geo.setAttribute('position', new THREE.BufferAttribute(new Float32Array(seg * 2 * 3), 3));
+    for (let i = 0; i < seg; i++) { const a = i * 2, b = ((i + 1) % seg) * 2; idx.push(a, b, a + 1, b, b + 1, a + 1); }
+    geo.setIndex(idx);
+    this.ring = new THREE.Mesh(geo, new THREE.MeshBasicMaterial({ color: 0xe2a64b, transparent: true, opacity: .95, depthTest: false, side: THREE.DoubleSide }));
+    this.ring.renderOrder = 11; this.ring.frustumCulled = false; this.ring.visible = false;
+    scene.add(this.ring);
+  },
+  // 地面に沿ったブラシ範囲の円(頂点を書き換えるだけで再生成しない)
+  updateRing() {
+    if (!this.pt) return;
+    const pos = this.ring.geometry.attributes.position.array, seg = this.seg;
+    const w = clamp(Cam.dist * .006, .25, 2.4), cx = this.pt.x, cz = this.pt.z;
+    for (let i = 0; i < seg; i++) {
+      const a = i / seg * Math.PI * 2, c = Math.cos(a), s = Math.sin(a);
+      for (let k = 0; k < 2; k++) {
+        const r = this.radius + (k ? w / 2 : -w / 2), x = cx + c * r, z = cz + s * r, o = (i * 2 + k) * 3;
+        pos[o] = x; pos[o + 1] = Math.max(heightAt(x, z), 0) + .35; pos[o + 2] = z;
+      }
+    }
+    this.ring.geometry.attributes.position.needsUpdate = true;
+    this.ring.material.color.setHex(this.tool === 'paint' ? TT_HEX[this.paint] : BRUSH_COL[this.tool]);
+    this.ring.material.opacity = this.active ? 1 : .75;
+  },
+  begin(x, y) {
+    const p = pickGround(x, y);
+    if (!p) return;
+    this.pushUndo();
+    this.active = true; this.pt = p; this.flatH = heightAt(p.x, p.z); this.t0 = performance.now(); this.dirty = null;
+  },
+  moveTo(x, y) { const p = pickGround(x, y); if (p) this.pt = p; },
+  hover(x, y) {
+    const now = performance.now();
+    if (now - this.hoverT < 40) return;
+    this.hoverT = now; this.moveTo(x, y);
+  },
+  end() {
+    if (!this.active) return;
+    this.active = false;
+    if (this.dirty) { const d = this.dirty; Terrain.normals(d[0], d[1], d[2], d[3]); }
+    this.dirty = null;
+    afterTerrainChange();
+  },
+  // 2本指操作の開始直後など、意図しないストロークを取り消す
+  cancel() {
+    if (!this.active) return;
+    this.active = false; this.dirty = null;
+    const s = this.undo.pop(); if (s) this.restore(s);
+  },
+  pushUndo() {
+    this.undo.push({ h: G.terrain.h.slice(), t: G.terrain.t.slice() });
+    if (this.undo.length > 15) this.undo.shift();
+  },
+  undoLast() {
+    const s = this.undo.pop();
+    if (!s) { toast('元に戻せる操作はありません'); return; }
+    this.restore(s); toast('地形を1つ前の状態に戻しました');
+  },
+  restore(s) {
+    G.terrain.h.set(s.h); G.terrain.t.set(s.t);
+    Terrain.refresh();
+    afterTerrainChange();
+  },
+  apply(dt) {
+    if (!this.active || !this.pt) return;
+    const H = G.terrain.h, T = G.terrain.t, r = this.radius, cx = this.pt.x, cz = this.pt.z, st = this.strength, tool = this.tool;
+    const i0 = clamp(Math.floor((cx - r + HALF) / CELL), 1, DN - 2), i1 = clamp(Math.ceil((cx + r + HALF) / CELL), 1, DN - 2);
+    const j0 = clamp(Math.floor((cz - r + HALF) / CELL), 1, DN - 2), j1 = clamp(Math.ceil((cz + r + HALF) / CELL), 1, DN - 2);
+    if (i0 > i1 || j0 > j1) return;
+    const S = this.scratch;
+    if (tool === 'smooth') for (let j = j0 - 1; j <= j1 + 1; j++) for (let i = i0 - 1; i <= i1 + 1; i++) S[j * DN + i] = H[j * DN + i];
+    const rr = r * r;
+    for (let j = j0; j <= j1; j++) for (let i = i0; i <= i1; i++) {
+      const dx = -HALF + i * CELL - cx, dz = -HALF + j * CELL - cz, d2 = (dx * dx + dz * dz) / rr;
+      if (d2 >= 1) continue;
+      const w = (1 - d2) * (1 - d2), k = j * DN + i;
+      if (tool === 'raise') H[k] = Math.min(H_MAX, H[k] + st * 16 * dt * w);
+      else if (tool === 'lower') H[k] = Math.max(SEA_FLOOR, H[k] - st * 16 * dt * w);
+      else if (tool === 'flatten') H[k] += (this.flatH - H[k]) * Math.min(1, st * 7 * dt * w);
+      else if (tool === 'smooth') {
+        const avg = (S[k - 1] + S[k + 1] + S[k - DN] + S[k + DN] + S[k - DN - 1] + S[k - DN + 1] + S[k + DN - 1] + S[k + DN + 1]) / 8;
+        H[k] += (avg - H[k]) * Math.min(1, st * 10 * dt * w);
+      } else if (tool === 'paint' && w > .1) T[k] = this.paint;
+    }
+    const b = [cx - r - CELL, cz - r - CELL, cx + r + CELL, cz + r + CELL];
+    const d = this.dirty;
+    this.dirty = d ? [Math.min(d[0], b[0]), Math.min(d[1], b[1]), Math.max(d[2], b[2]), Math.max(d[3], b[3])] : b;
+    Terrain.refresh(b[0], b[1], b[2], b[3], false);
+    // 法線とミニマップは編集中は間引いて更新し、指を離したときに確定
+    const now = performance.now();
+    if (now - this.lastNorm > 120) { this.lastNorm = now; Terrain.normals(b[0], b[1], b[2], b[3]); }
+    if (now - this.lastMap > 400) { this.lastMap = now; Minimap.redrawBase(); }
+  },
+  setTool(t) { this.tool = t; renderBrushBar(); if (UI.tab === 'terrain') renderPanel(); },
+};
+Brush.initRing();
+
+function afterTerrainChange() {
+  Scenery.rebuild();
+  Objects.rebuildAll();
+  Minimap.redrawBase();
+  if (UI.tab === 'terrain') renderPanel();
+  renderBrushBar();
+  if (selection) renderSelCard();
+}
+
+function renderBrushBar() {
+  $('#bbTools').innerHTML = BRUSH_TOOLS.map(([k, l]) => `<button class="chip ${Brush.tool === k ? 'on' : ''}" data-tool="${k}" aria-pressed="${Brush.tool === k}">${l}</button>`).join('')
+    + `<button class="chip undo" data-bb="undo" aria-label="元に戻す" ${Brush.undo.length ? '' : 'disabled'}><svg class="i" viewBox="0 0 24 24"><path d="M9 14L4 9l5-5"/><path d="M4 9h10a6 6 0 010 12h-3"/></svg><span class="lb">元に戻す</span></button>`;
+  const pr = $('#bbPaint'), wasHidden = pr.hidden;
+  pr.hidden = Brush.tool !== 'paint';
+  pr.innerHTML = TT_NAMES.map((n, i) => `<button class="chip ${Brush.paint === i ? 'on' : ''}" data-paint="${i}"><span class="sw8" style="background:${TT_CSS[i]}"></span>${n}</button>`).join('');
+  syncBrushInputs();
+  if (wasHidden !== pr.hidden) applyPanelLayout();
+}
+function syncBrushInputs() {
+  document.querySelectorAll('[data-brush]').forEach(el => { el.value = el.dataset.brush === 'radius' ? Brush.radius : Math.round(Brush.strength * 100); });
+  document.querySelectorAll('[data-out="radius"]').forEach(el => el.textContent = Brush.radius + ' m');
+  document.querySelectorAll('[data-out="strength"]').forEach(el => el.textContent = Math.round(Brush.strength * 100) + '%');
+  document.querySelectorAll('#bbSRow,.slS').forEach(el => el.classList.toggle('off', Brush.tool === 'paint'));
+}
+document.addEventListener('input', e => {
+  const el = e.target.closest && e.target.closest('[data-brush]'); if (!el) return;
+  if (el.dataset.brush === 'radius') Brush.radius = +el.value; else Brush.strength = +el.value / 100;
+  syncBrushInputs();
+});
+$('#brushBar').addEventListener('click', e => {
+  const b = e.target.closest('button'); if (!b || b.disabled) return;
+  if (b.dataset.tool) Brush.setTool(b.dataset.tool);
+  else if (b.dataset.paint) { Brush.paint = +b.dataset.paint; renderBrushBar(); }
+  else if (b.dataset.bb === 'undo') Brush.undoLast();
+});
 
 /* ════════════════════════════════════════════
    入力:Pointer Events でタッチとマウスを統一
@@ -779,11 +1012,14 @@ canvas.addEventListener('pointerdown', e => {
     if (e.pointerType === 'mouse') act = e.button === 2 ? 'rotate' : e.button === 1 ? 'pan' : (mode === 'view' ? 'pan' : 'edit');
     else if (mode !== 'view') act = 'edit';
     gest = { kind: 'one', id: e.pointerId, act, moved: false, lp: false, t0: performance.now(), lastT: performance.now(), button: e.button, type: e.pointerType };
-    if (e.button === 0) gest.lpTimer = setTimeout(() => { if (gest && gest.kind === 'one' && !gest.moved) { gest.lp = true; longPress(e.clientX, e.clientY); } }, 500);
+    if (e.button === 0 && act !== 'edit') gest.lpTimer = setTimeout(() => { if (gest && gest.kind === 'one' && !gest.moved) { gest.lp = true; longPress(e.clientX, e.clientY); } }, 500);
     if (act === 'edit') Edit.down(e.clientX, e.clientY);
     Cam.dragging = true;
   } else if (pointers.size === 2) {
-    if (gest && gest.kind === 'one') { clearTimeout(gest.lpTimer); if (gest.act === 'edit') Edit.up(); }
+    if (gest && gest.kind === 'one') {
+      clearTimeout(gest.lpTimer);
+      if (gest.act === 'edit') { if (performance.now() - gest.t0 < 250) Edit.cancel(); else Edit.up(); }
+    }
     const [a, b] = [...pointers.values()];
     gest = { kind: 'two', lock: null, acc: 0, span: Math.hypot(b.x - a.x, b.y - a.y), ang: Math.atan2(b.y - a.y, b.x - a.x), cx: (a.x + b.x) / 2, cy: (a.y + b.y) / 2, lastT: performance.now() };
     Cam.dragging = true;
@@ -792,7 +1028,10 @@ canvas.addEventListener('pointerdown', e => {
 
 canvas.addEventListener('pointermove', e => {
   const p = pointers.get(e.pointerId);
-  if (!p) return;
+  if (!p) {
+    if (e.pointerType === 'mouse' && mode === 'terrain' && !pointers.size) Brush.hover(e.clientX, e.clientY);
+    return;
+  }
   const dx = e.clientX - p.x, dy = e.clientY - p.y;
   p.x = e.clientX; p.y = e.clientY;
   if (!gest) return;
@@ -905,9 +1144,13 @@ function longPress(x, y) {
 addEventListener('keydown', e => {
   if (e.target.closest && e.target.closest('input,textarea')) return;
   const k = e.key.toLowerCase();
+  if (e.ctrlKey || e.metaKey) { if (k === 'z') { Brush.undoLast(); e.preventDefault(); } return; }
   if (['w', 'a', 's', 'd', 'q', 'e', 'r', 'f', 'arrowup', 'arrowdown', 'arrowleft', 'arrowright'].includes(k)) { Cam.keys.add(k); e.preventDefault(); }
   else if (k === 'escape') { if (!$('#dialog').hidden) return; if (Cam.follow) setFollow(null); else if (mode !== 'view') setMode('view'); else if (UI.tab) closePanel(); else select(null); }
   else if (k === 'h') Cam.home();
+  else if (k === 'z' && (e.ctrlKey || e.metaKey)) { Brush.undoLast(); e.preventDefault(); }
+  else if (k === '[' || k === ']') { Brush.radius = clamp(Brush.radius + (k === ']' ? 2 : -2), 3, 40); syncBrushInputs(); }
+  else if (k === 't') setMode(mode === 'terrain' ? 'view' : 'terrain');
   else if (k === ' ') { setSpeed(speedIdx ? 0 : (prevSpeed || 1)); e.preventDefault(); }
   else if (['1', '2', '3', '4'].includes(k)) setSpeed(+k - 1);
 });
@@ -1067,18 +1310,31 @@ function sheetHeights() {
   return { half: Math.max(220, Math.min(full, Math.round(innerHeight * .6) - tb)), full };
 }
 function applyPanelLayout() {
-  const open = !!UI.tab;
+  const open = !!UI.tab, bs = document.body.style;
   document.body.classList.toggle('panel-open', open);
+  // ブラシバーは地形編集中かつパネルを閉じているときだけ表示
+  const bb = $('#brushBar');
+  bb.hidden = !(mode === 'terrain' && !open);
+  const bbH = bb.hidden ? 0 : bb.getBoundingClientRect().height;
   if (UI.layout === 'portrait') {
     const H = sheetHeights(), h = !open ? 0 : UI.sheet === 'full' ? H.full : H.half;
     panel.style.height = h + 'px';
-    document.body.style.setProperty('--sheet-h', h + 'px');
+    bs.setProperty('--sheet-h', (open ? h : bbH) + 'px');
+    bs.setProperty('--bb-h', '0px');
     document.body.classList.toggle('sheet-full', open && UI.sheet === 'full');
   } else {
     panel.style.height = '';
-    document.body.style.setProperty('--sheet-h', '0px');
+    bs.setProperty('--sheet-h', '0px');
+    bs.setProperty('--bb-h', (bbH ? bbH + 8 : 0) + 'px');
     document.body.classList.remove('sheet-full');
   }
+  measureOverlays();
+}
+function measureOverlays() {
+  const bs = document.body.style, mm = $('#minimap');
+  bs.setProperty('--log-h', $('#log').offsetHeight + 'px');
+  // 拡大中でも通常サイズの幅を基準にする
+  bs.setProperty('--mm-w', (mm.classList.contains('big') ? Minimap.smallW : mm.offsetWidth) + 'px');
 }
 
 // ボトムシートのドラッグ(上:全画面 / 下:閉じる)
@@ -1121,7 +1377,6 @@ function renderPanel() {
   pb.innerHTML = R(t);
 }
 const TODO = {
-  terrain: ['②', '隆起・沈降・平坦化・平滑化ブラシ、地形種別(草原/森/砂漠/雪原/沼地)の塗り、ブラシ半径・強さのスライダー'],
   place: ['③', '町・村・宿屋・掲示板・道路・橋・木・岩・出現地点・ダンジョン入口の配置(プレビュー→確定/取消)'],
   area: ['③', '2点タップで矩形エリアを作成し、名前と推奨レベル範囲を設定'],
   monster: ['③', 'モンスターエディタ(形状・色・能力値・ボス)と出現地点ごとの出現設定'],
@@ -1139,12 +1394,24 @@ const PANELS = {
   terrain() {
     const H = G.terrain.h, T = G.terrain.t; let land = 0, max = -99; const cnt = [0, 0, 0, 0, 0];
     for (let i = 0; i < H.length; i++) { if (H[i] > 0) { land++; cnt[T[i]]++; } if (H[i] > max) max = H[i]; }
-    return `<div class="sec"><h4>現在の地形</h4><div class="cards">
+    const editing = mode === 'terrain';
+    return `<div class="sec"><h4>ブラシ</h4>
+      <div class="tools5">${BRUSH_TOOLS.map(([k, l]) => `<button class="chip ${Brush.tool === k ? 'on' : ''}" data-act="tool" data-v="${k}" aria-pressed="${Brush.tool === k}">${l}</button>`).join('')}</div>
+      <p class="hint">ブラシを選ぶと地形編集モードになり、パネルが閉じます。編集中は1本指ドラッグで地形を変え、2本指でカメラを動かします。海底を隆起させると新しい陸地になります。</p></div>
+      <div class="sec"><h4>塗る地形種別</h4>
+      <div class="tools5">${TT_NAMES.map((n, i) => `<button class="chip ${Brush.paint === i ? 'on' : ''}" data-act="paint" data-v="${i}"><span class="sw8" style="background:${TT_CSS[i]}"></span>${n}</button>`).join('')}</div></div>
+      <div class="sec"><h4>ブラシの設定</h4>
+        <label class="sl"><span class="k">半径</span><input type="range" data-brush="radius" min="3" max="40" step="1" value="${Brush.radius}"><output data-out="radius">${Brush.radius} m</output></label>
+        <label class="sl slS ${Brush.tool === 'paint' ? 'off' : ''}"><span class="k">強さ</span><input type="range" data-brush="strength" min="10" max="100" step="5" value="${Math.round(Brush.strength * 100)}"><output data-out="strength">${Math.round(Brush.strength * 100)}%</output></label>
+        <div class="row"><button class="btn" data-act="undo" ${Brush.undo.length ? '' : 'disabled'}>元に戻す(${Brush.undo.length})</button>
+          <button class="btn pri" data-act="edit">${editing ? '編集を続ける' : '編集を始める'}</button></div></div>
+      <div class="sec"><h4>現在の地形</h4><div class="cards">
       <div class="card"><i>陸地の割合</i><b>${(land / H.length * 100).toFixed(1)}%</b></div>
       <div class="card"><i>最高標高</i><b>${max.toFixed(1)} m</b></div>
       ${cnt.map((c, i) => c ? `<div class="card"><i>${TT_NAMES[i]}</i><b>${(c / land * 100).toFixed(0)}%</b></div>` : '').join('')}
       </div></div>
-      <div class="sec"><p class="hint"><span class="stage">段階②</span>${TODO.terrain[1]}を追加します。</p></div>`;
+      <div class="sec"><h4>地形種別の効果</h4><dl class="keys">${TT_NAMES.map((n, i) => `<dt style="color:${TT_CSS[i] === '#3f6a2f' || TT_CSS[i] === '#4f5b38' ? '#8fbf6a' : TT_CSS[i]}">${n}</dt><dd>${TT_EFFECT[i]}</dd>`).join('')}</dl>
+      <p class="hint">モンスターの出現傾向への影響は段階③で追加します。</p></div>`;
   },
   biz() {
     return `<div class="sec"><h4>現在の運営状況</h4><div class="cards">
@@ -1172,17 +1439,28 @@ const PANELS = {
       <div class="sec"><h4>タッチ操作</h4><dl class="keys">
         <dt>1本指ドラッグ</dt><dd>移動(閲覧モード)</dd><dt>2本指ピンチ</dt><dd>ズーム</dd>
         <dt>2本指ひねり</dt><dd>回転</dd><dt>2本指を上下</dt><dd>見下ろす角度</dd>
-        <dt>タップ</dt><dd>選択</dd><dt>ダブルタップ</dt><dd>その地点へ移動(NPCは追従)</dd><dt>長押し</dt><dd>詳細表示</dd></dl></div>
+        <dt>タップ</dt><dd>選択</dd><dt>ダブルタップ</dt><dd>その地点へ移動(NPCは追従)</dd><dt>長押し</dt><dd>詳細表示</dd>
+        <dt>編集モード</dt><dd>1本指=編集、2本指=カメラ操作。上部の水色のボタンで閲覧に戻る</dd>
+        <dt>ミニマップ</dt><dd>タップで拡大・縮小、ドラッグで視点移動</dd></dl></div>
       <div class="sec"><h4>マウス・キーボード</h4><dl class="keys">
         <dt>左/中ドラッグ</dt><dd>移動</dd><dt>右ドラッグ</dt><dd>回転・角度</dd><dt>ホイール</dt><dd>ズーム</dd>
         <dt>WASD・矢印</dt><dd>移動</dd><dt>Q / E</dt><dd>回転</dd><dt>R / F</dt><dd>角度</dd>
-        <dt>Space・1〜4</dt><dd>一時停止・速度</dd><dt>Esc</dt><dd>追従解除</dd><dt>H</dt><dd>初期視点</dd></dl></div>
-      <div class="sec"><h4>開発状況</h4><p class="hint"><span class="stage">段階①</span>3D地形・神視点カメラ・縦横レイアウト・画質設定</p></div>`;
+        <dt>Space・1〜4</dt><dd>一時停止・速度</dd><dt>Esc</dt><dd>追従解除・閲覧モードに戻る</dd><dt>H</dt><dd>初期視点</dd>
+        <dt>T</dt><dd>地形編集の開始・終了</dd><dt>[ / ]</dt><dd>ブラシ半径</dd><dt>Ctrl+Z</dt><dd>地形を元に戻す</dd></dl></div>
+      <div class="sec"><h4>開発状況</h4><p class="hint"><span class="stage">段階②</span>地形ブラシ・操作モード切替・ミニマップ</p></div>`;
   },
 };
 pb.addEventListener('click', e => {
-  const b = e.target.closest('[data-act]'); if (!b) return;
+  const b = e.target.closest('[data-act]'); if (!b || b.disabled) return;
   const a = b.dataset.act;
+  if (a === 'tool' || a === 'edit') {
+    if (a === 'tool') Brush.tool = b.dataset.v;
+    closePanel(); setMode('terrain');
+    toast(`地形編集:${BRUSH_TOOLS.find(t => t[0] === Brush.tool)[1]}(1本指で編集・2本指でカメラ)`);
+    return;
+  }
+  if (a === 'paint') { Brush.paint = +b.dataset.v; Brush.tool = 'paint'; renderBrushBar(); renderPanel(); return; }
+  if (a === 'undo') { Brush.undoLast(); return; }
   if (a === 'quality') { applyQuality(b.dataset.v); toast(`画質を「${QUALITY[S.quality].label}」にしました`); renderPanel(); }
   else if (a === 'fps') { S.showFps = !S.showFps; $('#fps').hidden = !S.showFps; renderPanel(); }
   else if (a === 'full') toggleFullscreen();
@@ -1218,6 +1496,7 @@ function renderLog() {
   const list = G.logs.slice(-n);
   if (exp) list.reverse();
   el.innerHTML = list.map(l => `<div class="ln ${l.kind}"><span class="t">${gameTimeStr(l.d, l.h)}</span>${esc(l.text)}</div>`).join('') || '<div class="ln">ログはありません</div>';
+  if (UI.layout) measureOverlays();
 }
 $('#log').addEventListener('click', () => { $('#log').classList.toggle('expanded'); renderLog(); $('#log').scrollTop = 0; });
 
@@ -1286,6 +1565,7 @@ function resize() {
     document.body.classList.toggle('landscape', layout === 'landscape');
     document.body.classList.toggle('portrait', layout === 'portrait');
     $('#railTip').hidden = true;
+    $('#minimap').classList.remove('big');
     renderLog();
   }
   applyPanelLayout();
@@ -1333,6 +1613,112 @@ function uiUpdate() {
 }
 
 /* ════════════════════════════════════════════
+   ミニマップ(Canvas 2D)
+   ════════════════════════════════════════════ */
+const _mmPlane = new THREE.Plane(new THREE.Vector3(0, 1, 0), 0), _mmV = new THREE.Vector3();
+const _corners = [{ x: 0, z: 0 }, { x: 0, z: 0 }, { x: 0, z: 0 }, { x: 0, z: 0 }];
+const WATER_C = new THREE.Color(0x2b6f96);
+// 画面の四隅から地面へ伸ばした視野範囲(地平線より上は一定距離で打ち切り)
+function viewCorners() {
+  _mmPlane.constant = -Cam.target.y;
+  const lim = Cam.dist * 4;
+  [[-1, 1], [1, 1], [1, -1], [-1, -1]].forEach(([nx, ny], i) => {
+    _ndc.set(nx, ny); raycaster.setFromCamera(_ndc, camera);
+    const r = raycaster.ray, hit = r.intersectPlane(_mmPlane, _mmV);
+    if (!hit || hit.distanceTo(r.origin) > lim) { _mmV.copy(r.direction); _mmV.y = 0; _mmV.normalize().multiplyScalar(lim).add(r.origin); }
+    _corners[i].x = _mmV.x; _corners[i].z = _mmV.z;
+  });
+  return _corners;
+}
+const Minimap = {
+  el: $('#minimap'), cv: $('#mmc'), ctx: null, base: document.createElement('canvas'), bctx: null, img: null, smallW: 0, last: 0,
+  init() {
+    this.ctx = this.cv.getContext('2d');
+    this.base.width = this.base.height = DN;
+    this.bctx = this.base.getContext('2d');
+    this.img = this.bctx.createImageData(DN, DN);
+    this.redrawBase();
+    this.bind();
+  },
+  redrawBase() {
+    const d = this.img.data, H = G.terrain.h, T = G.terrain.t;
+    for (let iz = 0; iz < DN; iz++) for (let ix = 0; ix < DN; ix++) {
+      const i = iz * DN + ix, h = H[i], x = -HALF + ix * CELL, z = -HALF + iz * CELL;
+      terrainColor(h, T[i], h < 0 ? 0 : slopeAt(x, z), .5, _c);
+      if (h < 0) _c.lerp(WATER_C, .55 + .35 * smooth(0, -12, h));
+      d[i * 4] = _c.r * 255; d[i * 4 + 1] = _c.g * 255; d[i * 4 + 2] = _c.b * 255; d[i * 4 + 3] = 255;
+    }
+    this.bctx.putImageData(this.img, 0, 0);
+  },
+  toMap(x, z, W) { return [(x + HALF) / WORLD * W, (z + HALF) / WORLD * W]; },
+  toWorld(cx, cy) {
+    const r = this.cv.getBoundingClientRect();
+    return { x: (cx - r.left) / r.width * WORLD - HALF, z: (cy - r.top) / r.height * WORLD - HALF };
+  },
+  draw() {
+    const W = Math.round(this.cv.clientWidth * Math.min(2, devicePixelRatio || 1));
+    if (!W) return;
+    if (this.cv.width !== W) { this.cv.width = this.cv.height = W; }
+    const c = this.ctx, u = W / 100;
+    c.imageSmoothingEnabled = true;
+    c.drawImage(this.base, 0, 0, W, W);
+    // 町
+    for (const o of G.objects) {
+      if (o.type !== 'town') continue;
+      const [mx, my] = this.toMap(o.x, o.z, W);
+      c.fillStyle = '#e2a64b'; c.strokeStyle = '#1c1406'; c.lineWidth = Math.max(1, u * .8);
+      c.fillRect(mx - u * 2.6, my - u * 2.6, u * 5.2, u * 5.2); c.strokeRect(mx - u * 2.6, my - u * 2.6, u * 5.2, u * 5.2);
+    }
+    // ブラシ
+    if (mode === 'terrain' && Brush.pt) {
+      const [mx, my] = this.toMap(Brush.pt.x, Brush.pt.z, W);
+      c.beginPath(); c.arc(mx, my, Brush.radius / WORLD * W, 0, Math.PI * 2);
+      c.strokeStyle = '#5bb8d9'; c.lineWidth = Math.max(1.5, u * .7); c.stroke();
+    }
+    // 視野範囲
+    const pts = viewCorners();
+    c.beginPath();
+    pts.forEach((p, i) => { const [mx, my] = this.toMap(p.x, p.z, W); if (i) c.lineTo(mx, my); else c.moveTo(mx, my); });
+    c.closePath();
+    c.fillStyle = 'rgba(236,230,214,.16)'; c.fill();
+    c.strokeStyle = 'rgba(248,244,232,.95)'; c.lineWidth = Math.max(1.5, u * .6); c.stroke();
+    const [tx, ty] = this.toMap(Cam.target.x, Cam.target.z, W);
+    c.beginPath(); c.arc(tx, ty, Math.max(2.5, u * 1.3), 0, Math.PI * 2);
+    c.fillStyle = Cam.follow ? '#e2a64b' : '#f8f4e8'; c.fill();
+  },
+  bind() {
+    let st = null;
+    this.el.addEventListener('pointerdown', e => {
+      this.el.setPointerCapture(e.pointerId);
+      st = { x: e.clientX, y: e.clientY, drag: false };
+      collapseOverlays();
+    });
+    this.el.addEventListener('pointermove', e => {
+      if (!st) return;
+      if (!st.drag && Math.hypot(e.clientX - st.x, e.clientY - st.y) > 6) st.drag = true;
+      if (st.drag) {
+        const p = this.toWorld(e.clientX, e.clientY);
+        if (Cam.follow) setFollow(null);
+        Cam.anim = null; Cam.vel.set(0, 0);
+        Cam.target.x = clamp(p.x, -HALF, HALF); Cam.target.z = clamp(p.z, -HALF, HALF);
+      }
+    });
+    const end = e => {
+      if (!st) return;
+      const tap = !st.drag && e.type === 'pointerup';
+      st = null;
+      if (tap) {
+        if (!this.el.classList.contains('big')) this.smallW = this.el.offsetWidth;
+        this.el.classList.toggle('big');
+        setTimeout(() => { measureOverlays(); applyPanelLayout(); }, 240);
+      }
+    };
+    this.el.addEventListener('pointerup', end);
+    this.el.addEventListener('pointercancel', end);
+  },
+};
+
+/* ════════════════════════════════════════════
    メインループ
    ════════════════════════════════════════════ */
 let lastFrame = performance.now(), uiT = 0;
@@ -1345,7 +1731,10 @@ function frame(now) {
   simUpdate(dt);
   Cam.update(dt);
   Sky.update((G.hour + (SPEEDS[speedIdx] ? clamp(tickAcc, 0, .999) : 0)) % 24);
+  Brush.apply(dt);
+  if (Brush.ring.visible) Brush.updateRing();
   if (selRing.visible) selRing.material.opacity = .7 + Math.sin(now / 250) * .25;
+  if (now - Minimap.last > 100) { Minimap.last = now; Minimap.draw(); }
   renderer.render(scene, camera);
   fpsSample(now);
   uiT += dt;
@@ -1359,6 +1748,7 @@ function boot() {
   G = newGame(20260926);
   applyQuality(S.quality);
   Scenery.init();
+  Minimap.init();
   Objects.rebuildAll();
   setSpeed(1);
   setMode('view');
@@ -1373,6 +1763,6 @@ function boot() {
 boot();
 
 // デバッグ・後続段階用に参照を公開
-window.__arcana = { get G() { return G; }, Cam, Terrain, setMode, applyQuality, toast };
+window.__arcana = { get G() { return G; }, Cam, Terrain, Brush, Minimap, setMode, applyQuality, toast };
 })();
 </script>
